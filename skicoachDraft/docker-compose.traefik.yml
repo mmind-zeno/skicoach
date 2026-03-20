@@ -1,0 +1,45 @@
+# Optional: Traefik + Let's Encrypt (nur wenn auf dem Host KEIN anderer Dienst 80/443 belegt)
+# Start: docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+#
+# Hinweis: Auf 49.13.139.206 mit Caddy (n8n) oder 195.201.x mit Nginx diese Datei NICHT verwenden.
+
+services:
+  app:
+    ports: [] # Traefik routet ins interne Netz; Host-Port-Mapping entfernen
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.skicoach.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.skicoach.entrypoints=websecure"
+      - "traefik.http.routers.skicoach.tls.certresolver=le"
+      - "traefik.http.routers.skicoach-redirect.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.skicoach-redirect.entrypoints=web"
+      - "traefik.http.routers.skicoach-redirect.middlewares=skicoach-redirect-to-https"
+      - "traefik.http.middlewares.skicoach-redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.services.skicoach.loadbalancer.server.port=3000"
+
+  traefik:
+    image: traefik:v3.0
+    container_name: skicoach_traefik
+    restart: unless-stopped
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - skicoach_net
+
+volumes:
+  traefik_letsencrypt:
+    driver: local

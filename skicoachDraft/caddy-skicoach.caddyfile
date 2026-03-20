@@ -1,0 +1,21 @@
+# Caddy — skicoach.mmind.space → Skicoach-App auf localhost
+#
+# Kontext: Server 49.13.139.206 (u. a. n8n + Caddy). Skicoach läuft wie aiact/Forklore:
+#   Docker publisht nur 127.0.0.1:HOST_APP_PORT → Next.js (siehe docker-compose.yml).
+#   Caddy übernimmt TLS + Reverse Proxy auf 80/443 (n8n bleibt unverändert in eigenen Blöcken).
+#
+# Einbindung (je nach eurem Setup):
+#   - Block unten in die bestehende Caddyfile kopieren, ODER
+#   - import caddy-skicoach.caddyfile
+#
+# Port MUSS mit HOST_APP_PORT in /opt/skicoach/.env übereinstimmen (Default 3002).
+# Vor dem Reload: ss -tlnp | grep 3002  → skicoach_app lauscht nach docker compose up -d
+
+skicoach.mmind.space {
+	encode gzip
+
+	reverse_proxy 127.0.0.1:3002 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto {scheme}
+	}
+}

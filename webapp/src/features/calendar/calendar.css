@@ -1,0 +1,26 @@
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button:active {
+  color: #fff;
+  background-color: #1b4f8a;
+  border-color: #1b4f8a;
+}
+
+.rbc-toolbar button:focus {
+  outline: 2px solid rgba(27, 79, 138, 0.35);
+  outline-offset: 1px;
+}
+
+.rbc-today {
+  background-color: rgba(27, 79, 138, 0.07);
+}
+
+.rbc-slot-selection {
+  background-color: rgba(27, 79, 138, 0.18);
+}
+
+.rbc-event:focus {
+  outline: 2px solid #1b4f8a;
+  outline-offset: 1px;
+}

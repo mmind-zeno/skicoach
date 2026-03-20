@@ -1,0 +1,18 @@
+ALTER TABLE "guests" ADD COLUMN "company" text;
+--> statement-breakpoint
+ALTER TABLE "guests" ADD COLUMN "crm_source" text;
+--> statement-breakpoint
+CREATE TABLE "guest_contacts" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"guest_id" uuid NOT NULL,
+	"author_user_id" uuid,
+	"kind" text DEFAULT 'note' NOT NULL,
+	"body" text NOT NULL,
+	"created_at" timestamptz DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+ALTER TABLE "guest_contacts" ADD CONSTRAINT "guest_contacts_guest_id_guests_id_fk" FOREIGN KEY ("guest_id") REFERENCES "public"."guests"("id") ON DELETE cascade ON UPDATE no action;
+--> statement-breakpoint
+ALTER TABLE "guest_contacts" ADD CONSTRAINT "guest_contacts_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+--> statement-breakpoint
+CREATE INDEX "guest_contacts_guest_created_idx" ON "guest_contacts" ("guest_id","created_at");

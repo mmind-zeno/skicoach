@@ -1,0 +1,99 @@
+name: skicoach
+
+# Produktion: 49.13.139.206 — App-Image aus ./webapp, TLS via Caddy (siehe caddy-skicoach.caddyfile).
+# n8n-Stack nicht anfassen.
+
+services:
+
+  # App: Next + Socket.io (server.ts), gleicher Port 3000 — Proxy muss /socket.io WebSockets durchlassen.
+  app:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+    container_name: skicoach_app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HOST_APP_PORT:-3002}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      AUTH_TRUST_HOST: "true"
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@skicoach.li}
+      NEXT_PUBLIC_APP_URL: ${NEXTAUTH_URL}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
+      ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-admin@skicoach.li}
+      TZ: ${TZ:-Europe/Zurich}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - skicoach_net
+      # Caddy läuft im n8n-Compose (Container n8n-caddy-1) im Netzwerk n8n_default — sonst kein TLS-Upstream.
+      - n8n_proxy
+
+  db:
+    image: postgres:16-alpine
+    container_name: skicoach_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TZ:-Europe/Zurich}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skicoach_net
+
+  backup:
+    image: postgres:16-alpine
+    container_name: skicoach_backup
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_NAME}
+    volumes:
+      - ./backups:/backups
+    command: >
+      /bin/sh -c "
+      sleep 30;
+      pg_dump -F c > /backups/skicoach_$$(date +%Y%m%d_%H%M%S)_boot.dump;
+      find /backups -name '*.dump' -mtime +30 -delete;
+      echo \"Boot backup done $$(date)\";
+      while true; do
+        sleep 86400;
+        pg_dump -F c > /backups/skicoach_$$(date +%Y%m%d_%H%M%S).dump;
+        find /backups -name '*.dump' -mtime +30 -delete;
+        echo \"Backup done $$(date)\";
+      done
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - skicoach_net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  skicoach_net:
+    driver: bridge
+  n8n_proxy:
+    external: true
+    name: n8n_default

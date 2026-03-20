@@ -1,0 +1,297 @@
+import { and, eq, gte, lte, lt, gt, ne, sql } from "drizzle-orm";
+import {
+  bookings,
+  courseTypes,
+  guests,
+  users,
+} from "../../drizzle/schema";
+import { parseLocalDateOnly } from "../lib/datetime";
+import { getDb } from "../lib/db";
+import { NotFoundError, ValidationError } from "../lib/errors";
+import type {
+  BookingWithDetailsDto,
+  CreateBookingInput,
+  UpdateBookingInput,
+} from "../features/calendar/types";
+import type { BookingStatus } from "../features/calendar/types";
+
+function toTeacherDto(u: typeof users.$inferSelect) {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    colorIndex: u.colorIndex,
+  };
+}
+
+function toGuestDto(g: typeof guests.$inferSelect) {
+  return {
+    id: g.id,
+    name: g.name,
+    email: g.email,
+    phone: g.phone,
+    niveau: g.niveau,
+    language: g.language,
+    notes: g.notes,
+    company: g.company ?? null,
+    crmSource: g.crmSource ?? null,
+    createdAt: g.createdAt.toISOString(),
+  };
+}
+
+function toCourseDto(c: typeof courseTypes.$inferSelect) {
+  return {
+    id: c.id,
+    name: c.name,
+    durationMin: c.durationMin,
+    priceCHF: c.priceCHF,
+    maxParticipants: c.maxParticipants,
+    isPublic: c.isPublic,
+    isActive: c.isActive,
+  };
+}
+
+function toBookingDto(
+  b: typeof bookings.$inferSelect,
+  guest: typeof guests.$inferSelect,
+  teacher: typeof users.$inferSelect,
+  courseType: typeof courseTypes.$inferSelect
+): BookingWithDetailsDto {
+  const dateStr =
+    b.date instanceof Date
+      ? `${b.date.getFullYear()}-${String(b.date.getMonth() + 1).padStart(2, "0")}-${String(b.date.getDate()).padStart(2, "0")}`
+      : String(b.date).slice(0, 10);
+  return {
+    id: b.id,
+    teacherId: b.teacherId,
+    guestId: b.guestId,
+    courseTypeId: b.courseTypeId,
+    date: dateStr,
+    startTime: b.startTime,
+    endTime: b.endTime,
+    status: b.status,
+    source: b.source,
+    notes: b.notes,
+    priceCHF: b.priceCHF,
+    createdAt: b.createdAt.toISOString(),
+    guest: toGuestDto(guest),
+    teacher: toTeacherDto(teacher),
+    courseType: toCourseDto(courseType),
+  };
+}
+
+async function loadBookingRow(id: string) {
+  const row = await getDb().query.bookings.findFirst({
+    where: eq(bookings.id, id),
+    with: {
+      guest: true,
+      teacher: true,
+      courseType: true,
+    },
+  });
+  return row;
+}
+
+export async function findBookingById(id: string): Promise<BookingWithDetailsDto> {
+  const row = await loadBookingRow(id);
+  if (!row || !row.guest || !row.teacher || !row.courseType) {
+    throw new NotFoundError("Termin nicht gefunden");
+  }
+  return toBookingDto(row, row.guest, row.teacher, row.courseType);
+}
+
+export async function findByTeacher(
+  teacherId: string,
+  dateFrom: Date,
+  dateTo: Date
+): Promise<BookingWithDetailsDto[]> {
+  const db = getDb();
+  const rows = await db.query.bookings.findMany({
+    where: and(
+      eq(bookings.teacherId, teacherId),
+      gte(bookings.date, dateFrom),
+      lte(bookings.date, dateTo)
+    ),
+    with: {
+      guest: true,
+      teacher: true,
+      courseType: true,
+    },
+    orderBy: (b, { asc }) => [asc(b.date), asc(b.startTime)],
+  });
+  return rows
+    .filter((r) => r.guest && r.teacher && r.courseType)
+    .map((r) =>
+      toBookingDto(r, r.guest!, r.teacher!, r.courseType!)
+    );
+}
+
+export async function findAllInRange(
+  dateFrom: Date,
+  dateTo: Date
+): Promise<BookingWithDetailsDto[]> {
+  const db = getDb();
+  const rows = await db.query.bookings.findMany({
+    where: and(gte(bookings.date, dateFrom), lte(bookings.date, dateTo)),
+    with: {
+      guest: true,
+      teacher: true,
+      courseType: true,
+    },
+    orderBy: (b, { asc }) => [asc(b.date), asc(b.startTime)],
+  });
+  return rows
+    .filter((r) => r.guest && r.teacher && r.courseType)
+    .map((r) =>
+      toBookingDto(r, r.guest!, r.teacher!, r.courseType!)
+    );
+}
+
+/** Überlappung nur mit nicht stornierten Terminen */
+export async function hasTimeOverlap(
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string
+): Promise<boolean> {
+  const db = getDb();
+  const conditions = [
+    eq(bookings.teacherId, teacherId),
+    eq(bookings.date, date),
+    ne(bookings.status, "storniert"),
+    lt(bookings.startTime, endTime),
+    gt(bookings.endTime, startTime),
+  ];
+  if (excludeBookingId) {
+    conditions.push(ne(bookings.id, excludeBookingId));
+  }
+  const [hit] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(bookings)
+    .where(and(...conditions));
+  return (hit?.c ?? 0) > 0;
+}
+
+export async function checkAvailability(
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string
+): Promise<boolean> {
+  const overlap = await hasTimeOverlap(
+    teacherId,
+    date,
+    startTime,
+    endTime,
+    excludeBookingId
+  );
+  return !overlap;
+}
+
+export async function createBooking(
+  input: CreateBookingInput
+): Promise<BookingWithDetailsDto> {
+  const date = parseLocalDateOnly(input.date);
+  const ok = await checkAvailability(
+    input.teacherId,
+    date,
+    input.startTime,
+    input.endTime
+  );
+  if (!ok) {
+    throw new ValidationError("Zeitslot für diesen Lehrer nicht verfügbar");
+  }
+
+  const db = getDb();
+  const course = await db.query.courseTypes.findFirst({
+    where: eq(courseTypes.id, input.courseTypeId),
+  });
+  if (!course || !course.isActive) {
+    throw new ValidationError("Ungültiger Kurstyp");
+  }
+
+  const price = input.priceCHF ?? course.priceCHF;
+
+  const [row] = await db
+    .insert(bookings)
+    .values({
+      teacherId: input.teacherId,
+      guestId: input.guestId,
+      courseTypeId: input.courseTypeId,
+      date,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      notes: input.notes ?? null,
+      priceCHF: price,
+      source: input.source ?? "intern",
+    })
+    .returning();
+
+  if (!row) throw new Error("Buchung fehlgeschlagen");
+  return findBookingById(row.id);
+}
+
+export async function updateBooking(
+  id: string,
+  input: UpdateBookingInput
+): Promise<BookingWithDetailsDto> {
+  const existing = await loadBookingRow(id);
+  if (!existing) throw new NotFoundError("Termin nicht gefunden");
+
+  const nextTeacher = input.teacherId ?? existing.teacherId;
+  const nextDate = input.date
+    ? parseLocalDateOnly(input.date)
+    : existing.date instanceof Date
+      ? existing.date
+      : parseLocalDateOnly(String(existing.date).slice(0, 10));
+  const nextStart = input.startTime ?? existing.startTime;
+  const nextEnd = input.endTime ?? existing.endTime;
+
+  const ok = await checkAvailability(
+    nextTeacher,
+    nextDate,
+    nextStart,
+    nextEnd,
+    id
+  );
+  if (!ok) {
+    throw new ValidationError("Zeitslot für diesen Lehrer nicht verfügbar");
+  }
+
+  const patch: Partial<typeof bookings.$inferInsert> = {};
+  if (input.teacherId) patch.teacherId = input.teacherId;
+  if (input.guestId) patch.guestId = input.guestId;
+  if (input.courseTypeId) patch.courseTypeId = input.courseTypeId;
+  if (input.date) patch.date = parseLocalDateOnly(input.date);
+  if (input.startTime) patch.startTime = input.startTime;
+  if (input.endTime) patch.endTime = input.endTime;
+  if (input.notes !== undefined) patch.notes = input.notes;
+  if (input.priceCHF) patch.priceCHF = input.priceCHF;
+  if (input.status) patch.status = input.status;
+  if (input.source) patch.source = input.source;
+
+  if (Object.keys(patch).length === 0) {
+    return findBookingById(id);
+  }
+
+  await getDb().update(bookings).set(patch).where(eq(bookings.id, id));
+  return findBookingById(id);
+}
+
+export async function updateBookingStatus(
+  id: string,
+  status: BookingStatus
+): Promise<BookingWithDetailsDto> {
+  await getDb().update(bookings).set({ status }).where(eq(bookings.id, id));
+  return findBookingById(id);
+}
+
+export async function deleteBooking(id: string): Promise<void> {
+  const res = await getDb()
+    .delete(bookings)
+    .where(eq(bookings.id, id))
+    .returning({ id: bookings.id });
+  if (res.length === 0) throw new NotFoundError("Termin nicht gefunden");
+}

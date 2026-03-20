@@ -1,0 +1,12 @@
+# Öffentlich: Startseite & Buchung. Interne Bereiche nicht indexieren.
+User-agent: *
+Allow: /
+Allow: /buchen
+Allow: /datenschutz
+Disallow: /admin
+Disallow: /kalender
+Disallow: /gaeste
+Disallow: /rechnungen
+Disallow: /chat
+Disallow: /login
+Disallow: /api/

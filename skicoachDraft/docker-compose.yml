@@ -1,0 +1,96 @@
+name: skicoach
+
+# HINWEIS: Veraltete Kopie — produktiv das docker-compose.yml im REPO-ROOT nutzen
+# (build context: ./webapp). Diese Datei dient nur als Referenz im Draft-Ordner.
+#
+# docker-compose.yml — skicoach (Standard: wie aiact/Forklore)
+#
+# Produktion: Server 49.13.139.206 — neben n8n + Caddy. Kein Bind von Host 80/443 hier.
+# App nur 127.0.0.1:HOST_APP_PORT (Default 3002). TLS: Caddy-Block skicoach.mmind.space
+# (siehe caddy-skicoach.caddyfile). n8n-Compose nicht anfassen.
+#
+# Anderer Host mit Nginx: nginx-skicoach.conf. Greenfield-Traefik: docker-compose.traefik.yml
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skicoach_app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HOST_APP_PORT:-3002}:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      AUTH_TRUST_HOST: "true"
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      NEXT_PUBLIC_APP_URL: ${NEXTAUTH_URL}
+      ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-admin@skicoach.li}
+      TZ: ${TZ:-Europe/Zurich}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - skicoach_net
+
+  db:
+    image: postgres:16-alpine
+    container_name: skicoach_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      TZ: ${TZ:-Europe/Zurich}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skicoach_net
+
+  backup:
+    image: postgres:16-alpine
+    container_name: skicoach_backup
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_NAME}
+    volumes:
+      - ./backups:/backups
+    command: >
+      /bin/sh -c "
+      sleep 30;
+      pg_dump -F c > /backups/skicoach_$$(date +%Y%m%d_%H%M%S)_boot.dump;
+      find /backups -name '*.dump' -mtime +30 -delete;
+      echo \"Boot backup done $$(date)\";
+      while true; do
+        sleep 86400;
+        pg_dump -F c > /backups/skicoach_$$(date +%Y%m%d_%H%M%S).dump;
+        find /backups -name '*.dump' -mtime +30 -delete;
+        echo \"Backup done $$(date)\";
+      done
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - skicoach_net
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  skicoach_net:
+    driver: bridge
