@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { brand } from "@/config/brand";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -14,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "skicoach",
-  description: "Skischule — interne Verwaltung & Buchungsportal",
+  title: brand.siteName,
+  description: brand.marketingTagline,
 };
 
 export default function RootLayout({
@@ -24,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de">
+    <html lang={brand.htmlLang}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

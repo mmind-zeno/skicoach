@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 import useSWR from "swr";
+import { brand } from "@/config/brand";
 import type { GuestListItem, GuestWithBookings } from "../types";
 
 async function fetcher<T>(url: string): Promise<T> {
@@ -53,7 +54,9 @@ export function useGuestMutations() {
     });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      throw new Error((j as { error?: string }).error ?? "Fehler");
+      throw new Error(
+        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+      );
     }
     return r.json();
   }, []);
@@ -66,7 +69,9 @@ export function useGuestMutations() {
     });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      throw new Error((j as { error?: string }).error ?? "Fehler");
+      throw new Error(
+        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+      );
     }
     return r.json();
   }, []);
@@ -75,7 +80,9 @@ export function useGuestMutations() {
     const r = await fetch(`/api/guests/${id}`, { method: "DELETE" });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      throw new Error((j as { error?: string }).error ?? "Fehler");
+      throw new Error(
+        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+      );
     }
   }, []);
 
@@ -88,7 +95,9 @@ export function useGuestMutations() {
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        throw new Error((j as { error?: string }).error ?? "Fehler");
+        throw new Error(
+          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+        );
       }
       return r.json();
     },

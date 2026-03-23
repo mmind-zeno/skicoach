@@ -8,6 +8,7 @@ import { getDb } from "./db";
 import { consumeRateLimitBucket } from "./rate-limit-db";
 import { authAdapterTables, users } from "../../drizzle/schema";
 import { magicLinkHtml, magicLinkText } from "./auth-email-templates";
+import { getAuthResendFromEmail } from "@/config/brand";
 import { UnauthorizedError, ForbiddenError } from "./errors";
 import type { Session } from "next-auth";
 
@@ -47,7 +48,7 @@ async function enforceMagicLinkRateLimits(
 
 const resendEmail = Resend({
   apiKey: process.env.RESEND_API_KEY ?? "",
-  from: process.env.RESEND_FROM_EMAIL ?? "skicoach@localhost",
+  from: getAuthResendFromEmail(),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

@@ -15,6 +15,7 @@ import {
 } from "../lib/mail";
 import { checkAvailability } from "./booking.service";
 import { findOrCreateByEmail } from "./guest.service";
+import { brand } from "../config/brand";
 
 export async function createPublicRequest(input: {
   courseTypeId: string;
@@ -41,7 +42,14 @@ export async function createPublicRequest(input: {
       status: "neu",
     })
     .returning();
-  if (!row) throw new Error("Anfrage fehlgeschlagen");
+  if (!row) {
+    throw new Error(
+      brand.labels.msgBookingRequestInsertFailed.replace(
+        "{bookingRequest}",
+        brand.labels.bookingRequestSingular
+      )
+    );
+  }
   const course = await db.query.courseTypes.findFirst({
     where: eq(courseTypes.id, input.courseTypeId),
   });
@@ -52,7 +60,7 @@ export async function createPublicRequest(input: {
   void sendAdminNewRequest({
     guestName: row.guestName,
     guestEmail: row.guestEmail,
-    courseName: course?.name ?? "Kurs",
+    courseName: course?.name ?? brand.labels.serviceSingular,
     date: input.date,
     startTime: input.startTime,
     requestId: row.id,
@@ -86,7 +94,14 @@ export async function findRequestById(id: string) {
     where: eq(bookingRequests.id, id),
     with: { courseType: true, booking: true },
   });
-  if (!r) throw new NotFoundError("Anfrage nicht gefunden");
+  if (!r) {
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.bookingRequestSingular
+      )
+    );
+  }
   return r;
 }
 
@@ -98,7 +113,12 @@ export async function confirmRequest(
   const db = getDb();
   const req = await findRequestById(requestId);
   if (req.status !== "neu") {
-    throw new ValidationError("Anfrage ist nicht mehr offen");
+    throw new ValidationError(
+      brand.labels.msgBookingRequestNoLongerOpen.replace(
+        "{bookingRequest}",
+        brand.labels.bookingRequestSingular
+      )
+    );
   }
   const date = req.date instanceof Date ? req.date : parseLocalDateOnly(String(req.date).slice(0, 10));
   const ok = await checkAvailability(
@@ -108,7 +128,9 @@ export async function confirmRequest(
     endTimeFromStart(req.startTime, req.courseType?.durationMin ?? 60)
   );
   if (!ok) {
-    throw new ValidationError("Lehrer zu diesem Zeitpunkt nicht verfügbar");
+    throw new ValidationError(
+      `${brand.labels.staffCollectivePlural} zu diesem Zeitpunkt nicht verfügbar`
+    );
   }
 
   const guest = await findOrCreateByEmail(req.guestEmail, req.guestName);
@@ -138,7 +160,14 @@ export async function confirmRequest(
     })
     .returning();
 
-  if (!booking) throw new Error("Buchung fehlgeschlagen");
+  if (!booking) {
+    throw new Error(
+      brand.labels.msgBookingInsertFailed.replace(
+        "{booking}",
+        brand.labels.bookingSingular
+      )
+    );
+  }
 
   await db
     .update(bookingRequests)
@@ -153,7 +182,7 @@ export async function confirmRequest(
   void sendBookingConfirmed(req.guestEmail, req.guestName, {
     date: String(req.date).slice(0, 10),
     startTime: req.startTime.slice(0, 5),
-    courseName: req.courseType?.name ?? "Kurs",
+    courseName: req.courseType?.name ?? brand.labels.serviceSingular,
   }).catch(() => {});
 
   return booking;
@@ -173,7 +202,12 @@ export async function rejectRequest(requestId: string, reason?: string | null) {
   const db = getDb();
   const req = await findRequestById(requestId);
   if (req.status !== "neu") {
-    throw new ValidationError("Anfrage ist nicht mehr offen");
+    throw new ValidationError(
+      brand.labels.msgBookingRequestNoLongerOpen.replace(
+        "{bookingRequest}",
+        brand.labels.bookingRequestSingular
+      )
+    );
   }
   await db
     .update(bookingRequests)

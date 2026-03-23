@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { StatusBadgeVariant } from "@/lib/colors";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
+import { brand } from "@/config/brand";
 import type { InvoiceWithDetails } from "../types";
 
 function invoiceStatusVariant(
@@ -52,7 +53,7 @@ export function InvoicesPageClient() {
     });
     const j = (await res.json().catch(() => ({}))) as { error?: string };
     if (!res.ok) {
-      window.alert(j.error ?? "Status konnte nicht gesetzt werden");
+      window.alert(j.error ?? brand.labels.uiStatusUpdateFailed);
       return false;
     }
     void mutate();
@@ -62,12 +63,14 @@ export function InvoicesPageClient() {
   return (
     <div className="space-y-6">
       {!stats ? (
-        <p className="text-sm text-sk-ink/60">Monatsstatistik wird geladen…</p>
+        <p className="text-sm text-sk-ink/60">
+          {brand.labels.invoiceStatsLoading}
+        </p>
       ) : null}
       {stats ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <MetricCard
-            label="Offen (Monat)"
+            label={brand.labels.invoiceMetricOpenMonth}
             value={
               <CHFAmount amount={stats.openCHF} size="xl" className="text-amber-800" />
             }
@@ -85,16 +88,16 @@ export function InvoicesPageClient() {
 
       <div className="flex flex-wrap items-center gap-3">
         <label className="text-sm text-sk-ink">
-          Status
+          {brand.labels.fieldStatus}
           <select
             className="ml-2 rounded border border-sk-ink/20 px-2 py-1"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">Alle</option>
-            <option value="offen">Offen</option>
-            <option value="bezahlt">Bezahlt</option>
-            <option value="storniert">Storniert</option>
+            <option value="">{brand.labels.uiFilterAll}</option>
+            <option value="offen">{brand.labels.statusOffen}</option>
+            <option value="bezahlt">{brand.labels.statusBezahlt}</option>
+            <option value="storniert">{brand.labels.statusStorniert}</option>
           </select>
         </label>
       </div>
@@ -103,12 +106,14 @@ export function InvoicesPageClient() {
         <table className="w-full text-left text-sm">
           <thead className="bg-sk-surface text-xs text-sk-ink/60">
             <tr>
-              <th className="px-3 py-2">Nr.</th>
-              <th className="px-3 py-2">Gast</th>
-              <th className="px-3 py-2">Datum</th>
-              <th className="px-3 py-2">CHF</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Aktionen</th>
+              <th className="px-3 py-2">
+                {brand.labels.invoiceTableNumberAbbrev}
+              </th>
+              <th className="px-3 py-2">{brand.labels.clientSingular}</th>
+              <th className="px-3 py-2">{brand.labels.invoiceTableDate}</th>
+              <th className="px-3 py-2">{brand.labels.invoiceTableCurrency}</th>
+              <th className="px-3 py-2">{brand.labels.fieldStatus}</th>
+              <th className="px-3 py-2">{brand.labels.invoiceTableActions}</th>
             </tr>
           </thead>
           <tbody>
@@ -121,10 +126,7 @@ export function InvoicesPageClient() {
                   <CHFAmount amount={inv.amountCHF} size="sm" />
                 </td>
                 <td className="px-3 py-2">
-                  <StatusBadge
-                    variant={invoiceStatusVariant(inv.status)}
-                    label={inv.status}
-                  />
+                  <StatusBadge variant={invoiceStatusVariant(inv.status)} />
                 </td>
                 <td className="space-x-2 px-3 py-2" onClick={(e) => e.stopPropagation()}>
                   <button
@@ -132,7 +134,7 @@ export function InvoicesPageClient() {
                     className="text-sk-brand underline"
                     onClick={() => setDetail(inv)}
                   >
-                    Vorschau
+                    {brand.labels.invoicePreview}
                   </button>
                   <a
                     className="text-sk-brand underline"
@@ -140,7 +142,7 @@ export function InvoicesPageClient() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    PDF
+                    {brand.labels.invoicePdfLink}
                   </a>
                   {inv.status === "offen" ? (
                     <button
@@ -148,7 +150,7 @@ export function InvoicesPageClient() {
                       className="text-emerald-700 underline"
                       onClick={() => void markPaid(inv.id)}
                     >
-                      Bezahlt
+                      {brand.labels.statusBezahlt}
                     </button>
                   ) : null}
                 </td>
@@ -172,14 +174,14 @@ export function InvoicesPageClient() {
           >
             <div className="flex items-center justify-between border-b border-sk-ink/10 px-4 py-3">
               <h2 id="inv-detail-title" className="text-sm font-semibold text-sk-ink">
-                Rechnung {detail.invoiceNumber}
+                {brand.labels.invoiceSingular} {detail.invoiceNumber}
               </h2>
               <button
                 type="button"
                 className="rounded px-2 py-1 text-sm text-sk-ink/70 hover:bg-sk-surface"
                 onClick={() => setDetail(null)}
               >
-                Schliessen
+                {brand.labels.uiClose}
               </button>
             </div>
             <iframe
@@ -194,7 +196,7 @@ export function InvoicesPageClient() {
                 target="_blank"
                 rel="noreferrer"
               >
-                PDF herunterladen
+                {brand.labels.invoiceDownloadPdf}
               </a>
               {detail.status === "offen" ? (
                 <button
@@ -205,7 +207,7 @@ export function InvoicesPageClient() {
                     if (ok) setDetail(null);
                   }}
                 >
-                  Als bezahlt markieren
+                  {brand.labels.invoiceMarkPaidButton}
                 </button>
               ) : null}
             </div>

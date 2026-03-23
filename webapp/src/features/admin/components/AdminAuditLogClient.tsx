@@ -1,5 +1,6 @@
 "use client";
 
+import { brand } from "@/config/brand";
 import useSWR from "swr";
 
 type Row = {
@@ -23,16 +24,24 @@ async function fetchLogs(url: string): Promise<Row[]> {
     detail = (await r.text()).slice(0, 200);
   }
   if (r.status === 401) {
-    throw new Error("Nicht angemeldet — bitte neu anmelden.");
+    throw new Error(brand.labels.auditLogUnauthorized);
   }
   if (r.status === 403) {
-    throw new Error("Keine Berechtigung für das Audit-Protokoll.");
+    throw new Error(
+      brand.labels.auditLogForbiddenTemplate.replace(
+        "{navAuditLog}",
+        brand.labels.navAuditLog
+      )
+    );
   }
   throw new Error(
     detail ||
       (r.status === 500
-        ? "Serverfehler beim Laden des Protokolls."
-        : `HTTP ${r.status}`)
+        ? brand.labels.auditLogServerError
+        : brand.labels.auditLogHttpErrorTemplate.replace(
+            "{status}",
+            String(r.status)
+          ))
   );
 }
 
@@ -42,12 +51,14 @@ export function AdminAuditLogClient() {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-sk-ink/60">Lade …</p>;
+    return (
+      <p className="text-sm text-sk-ink/60">{brand.labels.uiLoadingEllipsis}</p>
+    );
   }
   if (error) {
     return (
       <p className="text-sm text-red-600">
-        Konnte Protokoll nicht laden: {error.message}
+        {brand.labels.auditLogLoadFailedPrefix} {error.message}
       </p>
     );
   }
@@ -60,12 +71,22 @@ export function AdminAuditLogClient() {
       <table className="w-full min-w-[640px] text-left text-xs">
         <thead className="border-b border-sk-ink/10 bg-sk-surface text-sk-ink/70">
           <tr>
-            <th className="px-3 py-2 font-medium">Zeit (UTC)</th>
-            <th className="px-3 py-2 font-medium">Aktion</th>
-            <th className="px-3 py-2 font-medium">Akteur</th>
-            <th className="px-3 py-2 font-medium">Ressource</th>
-            <th className="px-3 py-2 font-medium">IP</th>
-            <th className="px-3 py-2 font-medium">Details</th>
+            <th className="px-3 py-2 font-medium">
+              {brand.labels.auditColTimeUtc}
+            </th>
+            <th className="px-3 py-2 font-medium">
+              {brand.labels.auditColAction}
+            </th>
+            <th className="px-3 py-2 font-medium">
+              {brand.labels.auditColActor}
+            </th>
+            <th className="px-3 py-2 font-medium">
+              {brand.labels.auditColResource}
+            </th>
+            <th className="px-3 py-2 font-medium">{brand.labels.auditColIp}</th>
+            <th className="px-3 py-2 font-medium">
+              {brand.labels.auditColDetails}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -76,14 +97,16 @@ export function AdminAuditLogClient() {
               </td>
               <td className="px-3 py-2 text-sk-brand">{row.action}</td>
               <td className="max-w-[140px] truncate px-3 py-2 text-sk-ink/80">
-                {row.actorEmail ?? "—"}
+                {row.actorEmail ?? brand.labels.uiEmDash}
               </td>
               <td className="max-w-[120px] truncate px-3 py-2 font-mono text-sk-ink/70">
-                {row.resource ?? "—"}
+                {row.resource ?? brand.labels.uiEmDash}
               </td>
               <td className="px-3 py-2 font-mono text-sk-ink/60">{row.clientIp ?? "—"}</td>
               <td className="max-w-[220px] truncate px-3 py-2 text-sk-ink/60" title={metaTitle(row.metadata)}>
-                {row.metadata ? JSON.stringify(row.metadata) : "—"}
+                {row.metadata
+                  ? JSON.stringify(row.metadata)
+                  : brand.labels.uiEmDash}
               </td>
             </tr>
           ))}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { UserAvatar } from "@/features/auth/components/UserAvatar";
+import { brand } from "@/config/brand";
 
 function navActive(href: string, pathname: string): boolean {
   if (href === "/admin") return pathname === "/admin";
@@ -35,17 +36,17 @@ export function InternalSidebar({
   return (
     <aside className="fixed left-0 top-0 z-10 flex h-full w-[220px] flex-col bg-sk-brand text-white shadow-[4px_0_24px_rgba(0,0,0,0.08)]">
       <div className="border-b border-white/10 px-4 py-4">
-        <div className="text-sm font-semibold tracking-tight">skicoach</div>
+        <div className="text-sm font-semibold tracking-tight">{brand.siteName}</div>
         <div className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-white/50">
-          Team
+          {brand.labels.navTeam}
         </div>
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-3 text-sm">
         <Link className={linkClass("/kalender")} href="/kalender">
-          Kalender
+          {brand.labels.navCalendar}
         </Link>
         <Link className={linkClass("/gaeste")} href="/gaeste">
-          Gäste
+          {brand.labels.clientPlural}
         </Link>
         <Link className={linkClass("/rechnungen")} href="/rechnungen">
           Rechnungen
@@ -57,13 +58,13 @@ export function InternalSidebar({
           <>
             <div className="my-2 border-t border-white/10" />
             <Link className={linkClass("/admin")} href="/admin">
-              Admin
+              {brand.labels.navAdmin}
             </Link>
             <Link
               className={linkClass("/admin/anfragen", "flex items-center justify-between gap-2")}
               href="/admin/anfragen"
             >
-              <span>Anfragen</span>
+              <span>{brand.labels.requestPlural}</span>
               {badge > 0 ? (
                 <span className="shrink-0 rounded-full bg-amber-400/90 px-2 py-0.5 text-[11px] font-semibold text-sk-ink">
                   {badge}
@@ -71,7 +72,7 @@ export function InternalSidebar({
               ) : null}
             </Link>
             <Link className={linkClass("/admin/audit")} href="/admin/audit">
-              Audit
+              {brand.labels.navAudit}
             </Link>
           </>
         ) : null}

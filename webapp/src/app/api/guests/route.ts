@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
 import { genericApiErrorMessage } from "@/lib/map-db-error";
@@ -48,7 +49,10 @@ export async function POST(request: Request) {
     }
     const quick = createGuestBodySchema.safeParse(json);
     if (!quick.success) {
-      return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+      return NextResponse.json(
+        { error: brand.labels.apiInvalidData },
+        { status: 400 }
+      );
     }
     const qd = quick.data;
     const g = await createGuest({

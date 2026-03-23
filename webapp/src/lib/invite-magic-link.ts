@@ -3,6 +3,7 @@ import { users, verificationTokens } from "../../drizzle/schema";
 import { getDb } from "./db";
 import { NotFoundError, ValidationError } from "./errors";
 import { sendTeacherInviteMagicLinkEmail } from "./mail";
+import { brand } from "@/config/brand";
 
 const MAX_AGE_SEC = 24 * 60 * 60;
 
@@ -25,9 +26,7 @@ function resolveAppOrigin(): string {
     process.env.NEXTAUTH_URL ??
     process.env.NEXT_PUBLIC_APP_URL;
   if (!raw?.trim()) {
-    throw new Error(
-      "AUTH_URL, NEXTAUTH_URL oder NEXT_PUBLIC_APP_URL muss gesetzt sein für Einladungs-E-Mails."
-    );
+    throw new Error(brand.labels.configInviteOriginMissing);
   }
   return new URL(raw).origin;
 }
@@ -38,7 +37,7 @@ async function insertMagicLoginToken(
 ): Promise<{ magicUrl: string; expires: Date }> {
   const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
   if (!secret) {
-    throw new Error("AUTH_SECRET / NEXTAUTH_SECRET fehlt.");
+    throw new Error(brand.labels.configAuthSecretMissing);
   }
 
   const email = emailRaw.trim().toLowerCase();
@@ -125,11 +124,12 @@ export async function resendTeacherMagicLink(email: string): Promise<void> {
     where: eq(users.email, normalized),
   });
   if (!row) {
-    throw new NotFoundError("Nutzer mit dieser E-Mail nicht gefunden");
+    throw new NotFoundError(brand.labels.apiUserByEmailNotFound);
   }
   if (!row.isActive) {
-    throw new ValidationError("Nutzer ist deaktiviert — zuerst wieder aktivieren");
+    throw new ValidationError(brand.labels.apiUserDeactivatedReactivateFirst);
   }
-  const label = row.name?.trim() || row.email.split("@")[0] || "Lehrkraft";
+  const label =
+    row.name?.trim() || row.email.split("@")[0] || brand.labels.staffSingular;
   await deliverMagicLoginLink(row.email, label);
 }

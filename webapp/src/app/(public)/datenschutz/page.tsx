@@ -1,13 +1,15 @@
+import { brand } from "@/config/brand";
+
 export default function DatenschutzPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-xl font-semibold text-sk-ink">Datenschutz</h1>
       <p className="mt-4 text-sm leading-relaxed text-sk-ink/80">
         Diese Seite ist ein Platzhalter. Hier binden Sie die Datenschutzerklärung
-        für skicoach.li ein (Verantwortliche, Zwecke, Hosting, Kontaktformular /
-        Buchungsanfragen, Cookies, Ihre Rechte). Bei Fragen:{" "}
-        <a className="text-sk-brand underline" href="mailto:info@skicoach.li">
-          info@skicoach.li
+        für {brand.siteDomain} ein (Verantwortliche, Zwecke, Hosting, Kontaktformular /
+        {brand.labels.bookingRequestPlural}, Cookies, Ihre Rechte). Bei Fragen:{" "}
+        <a className="text-sk-brand underline" href={`mailto:${brand.supportEmail}`}>
+          {brand.supportEmail}
         </a>
         .
       </p>

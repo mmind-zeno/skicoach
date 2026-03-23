@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
 import {
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json(
-    { error: "channelId oder recipientId erforderlich" },
+    { error: brand.labels.apiChatChannelOrRecipientRequired },
     { status: 400 }
   );
 }
@@ -95,7 +96,10 @@ export async function POST(request: Request) {
     const json = await request.json();
     const content = typeof json.content === "string" ? json.content.trim() : "";
     if (content.length < 1) {
-      return NextResponse.json({ error: "Leere Nachricht" }, { status: 400 });
+      return NextResponse.json(
+        { error: brand.labels.apiChatEmptyMessage },
+        { status: 400 }
+      );
     }
     const channelId =
       typeof json.channelId === "string" ? json.channelId : undefined;
@@ -127,6 +131,9 @@ export async function POST(request: Request) {
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Fehler" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.uiErrorGeneric },
+      { status: 400 }
+    );
   }
 }

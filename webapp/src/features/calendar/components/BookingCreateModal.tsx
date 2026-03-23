@@ -3,6 +3,7 @@
 import { addMinutes, format } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatLocalDateISO } from "@/lib/datetime";
+import { brand } from "@/config/brand";
 import type { CourseTypeDto } from "../types";
 import type { TeacherLegendItem } from "./TeacherLegend";
 
@@ -130,7 +131,12 @@ export function BookingCreateModal({
   async function createQuickGuest() {
     const name = guestQuery.trim();
     if (name.length < 2) {
-      setWarn("Mindestens 2 Zeichen für neuen Gast.");
+      setWarn(
+        brand.labels.bookingModalQuickGuestMinCharsTemplate.replace(
+          "{client}",
+          brand.labels.clientSingular
+        )
+      );
       return;
     }
     const r = await fetch("/api/guests", {
@@ -139,7 +145,9 @@ export function BookingCreateModal({
       body: JSON.stringify({ name }),
     });
     if (!r.ok) {
-      setWarn("Gast konnte nicht angelegt werden.");
+      setWarn(
+        `${brand.labels.clientSingular} konnte nicht angelegt werden.`
+      );
       return;
     }
     const g = (await r.json()) as { id: string };
@@ -149,15 +157,25 @@ export function BookingCreateModal({
 
   async function submit() {
     if (!slotStart || !computedEnd) {
-      setWarn("Ungültiger Zeitslot.");
+      setWarn(brand.labels.bookingModalInvalidSlot);
       return;
     }
     if (!guestId) {
-      setWarn("Bitte Gast wählen oder neu anlegen.");
+      setWarn(
+        brand.labels.bookingModalPickClientOrNewTemplate.replace(
+          "{client}",
+          brand.labels.clientSingular
+        )
+      );
       return;
     }
     if (!courseTypeId) {
-      setWarn("Kurstyp wählen.");
+      setWarn(
+        brand.labels.bookingModalPickCourseTypeTemplate.replace(
+          "{courseType}",
+          brand.labels.serviceTypeSingular
+        )
+      );
       return;
     }
     setSaving(true);
@@ -181,7 +199,9 @@ export function BookingCreateModal({
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        setWarn((j as { error?: string }).error ?? "Speichern fehlgeschlagen");
+        setWarn(
+          (j as { error?: string }).error ?? brand.labels.uiSaveFailed
+        );
         return;
       }
       onCreated();
@@ -201,7 +221,10 @@ export function BookingCreateModal({
         aria-labelledby="booking-create-title"
       >
         <h2 id="booking-create-title" className="text-lg font-semibold text-sk-ink">
-          Neuer Termin
+          {brand.labels.bookingModalNewAppointmentTitleTemplate.replace(
+            "{appointment}",
+            brand.labels.appointmentSingular
+          )}
         </h2>
         <p className="mt-1 text-sm text-sk-ink/70">
           {formatLocalDateISO(slotStart)} · {format(slotStart, "HH:mm")}–
@@ -211,7 +234,7 @@ export function BookingCreateModal({
         <div className="mt-4 max-h-[60vh] space-y-3 overflow-y-auto">
           {isAdmin ? (
             <label className="block text-sm text-sk-ink">
-              Lehrkraft
+              {brand.labels.staffSingular}
               <select
                 className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2 text-sk-ink"
                 value={teacherId}
@@ -227,7 +250,7 @@ export function BookingCreateModal({
           ) : null}
 
           <label className="block text-sm text-sk-ink">
-            Kurstyp
+            {brand.labels.serviceTypeSingular}
             <select
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2 text-sk-ink"
               value={courseTypeId}
@@ -242,11 +265,11 @@ export function BookingCreateModal({
           </label>
 
           <div className="text-sm text-sk-ink">
-            <span className="font-medium">Gast</span>
+            <span className="font-medium">{brand.labels.clientSingular}</span>
             <input
               type="search"
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2 text-sk-ink"
-              placeholder="Suche Name oder E-Mail…"
+              placeholder={brand.labels.placeholderClientSearchModal}
               value={guestQuery}
               onChange={(e) => {
                 setGuestQuery(e.target.value);
@@ -254,7 +277,12 @@ export function BookingCreateModal({
               }}
             />
             {guestId ? (
-              <p className="mt-1 text-xs text-emerald-700">Gast ausgewählt.</p>
+              <p className="mt-1 text-xs text-emerald-700">
+                {brand.labels.bookingModalClientSelectedTemplate.replace(
+                  "{client}",
+                  brand.labels.clientSingular
+                )}
+              </p>
             ) : null}
             {guestOptions.length > 0 ? (
               <ul className="mt-1 max-h-32 overflow-auto rounded border border-sk-ink/10">
@@ -283,7 +311,7 @@ export function BookingCreateModal({
               className="mt-2 text-xs font-medium text-sk-brand underline"
               onClick={() => void createQuickGuest()}
             >
-              Neuen Gast mit eingegebenem Namen anlegen
+              Neuen {brand.labels.clientSingular} mit eingegebenem Namen anlegen
             </button>
           </div>
 
@@ -321,7 +349,7 @@ export function BookingCreateModal({
             className="rounded px-3 py-2 text-sm text-sk-ink hover:bg-sk-surface"
             onClick={onClose}
           >
-            Abbrechen
+            {brand.labels.uiCancel}
           </button>
           <button
             type="button"
@@ -329,7 +357,9 @@ export function BookingCreateModal({
             className="rounded bg-sk-brand px-3 py-2 text-sm font-medium text-white hover:bg-sk-hover disabled:opacity-50"
             onClick={() => void submit()}
           >
-            {saving ? "Speichern…" : "Speichern"}
+            {saving
+              ? brand.labels.uiSaveInProgress
+              : brand.labels.uiSave}
           </button>
         </div>
       </div>

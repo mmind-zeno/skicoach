@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
 import { AppError } from "@/lib/errors";
 import { parseLocalDateOnly } from "@/lib/datetime";
@@ -15,7 +16,10 @@ import {
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -27,7 +31,7 @@ export async function GET(request: Request) {
   });
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "dateFrom und dateTo (YYYY-MM-DD) erforderlich" },
+      { error: brand.labels.apiBookingListDateRangeRequired },
       { status: 400 }
     );
   }
@@ -43,7 +47,10 @@ export async function GET(request: Request) {
     }
     const tid = teacherId ?? session.user.id;
     if (session.user.role !== "admin" && teacherId && teacherId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     const list = await findByTeacher(tid, from, to);
     return NextResponse.json(list);
@@ -58,14 +65,20 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
 
   try {
     const json = await request.json();
     const body = createBookingBodySchema.parse(json);
     if (session.user.role !== "admin" && body.teacherId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     const created = await createBooking(body);
     return NextResponse.json(created, { status: 201 });
@@ -73,6 +86,9 @@ export async function POST(request: Request) {
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
 }

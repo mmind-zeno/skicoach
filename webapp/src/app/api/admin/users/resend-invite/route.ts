@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
     }
     if (!allowed) {
       return NextResponse.json(
-        { error: "Zu viele Einladungen. Bitte später erneut." },
+        { error: brand.labels.apiAdminInviteRateLimited },
         { status: 429 }
       );
     }
@@ -28,7 +29,10 @@ export async function POST(request: Request) {
     const json = await request.json();
     const email = typeof json.email === "string" ? json.email.trim().toLowerCase() : "";
     if (!email.includes("@")) {
-      return NextResponse.json({ error: "Ungültige E-Mail" }, { status: 400 });
+      return NextResponse.json(
+        { error: brand.labels.apiInvalidEmail },
+        { status: 400 }
+      );
     }
     await resendTeacherMagicLink(email);
     await writeAuditLog({
@@ -43,7 +47,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Versand fehlgeschlagen" },
+      {
+        error:
+          e instanceof Error ? e.message : brand.labels.apiResendInviteFailed,
+      },
       { status: 500 }
     );
   }

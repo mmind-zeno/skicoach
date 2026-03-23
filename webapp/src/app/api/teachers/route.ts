@@ -1,13 +1,17 @@
 import { and, eq, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { users } from "../../../../drizzle/schema";
+import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
 
   const rows = await getDb().query.users.findMany({

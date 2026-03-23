@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { bookings, invoices } from "../../drizzle/schema";
+import { brand } from "../config/brand";
 import { getDb } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
 import type { Invoice, InvoiceWithDetails } from "../features/invoices/types";
@@ -113,7 +114,13 @@ export async function findById(id: string): Promise<InvoiceWithDetails> {
       guest: true,
     },
   });
-  if (!r?.booking || !r.guest) throw new NotFoundError("Rechnung nicht gefunden");
+  if (!r?.booking || !r.guest)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.invoiceSingular
+      )
+    );
   const b = r.booking;
   const g = r.guest;
   const d =
@@ -150,13 +157,21 @@ export async function createFromBooking(bookingId: string): Promise<Invoice> {
     where: eq(invoices.bookingId, bookingId),
   });
   if (existing) {
-    throw new ValidationError("Für diese Buchung existiert bereits eine Rechnung");
+    throw new ValidationError(
+      `Für diese ${brand.labels.bookingSingular} existiert bereits eine ${brand.labels.invoiceSingular}`
+    );
   }
   const b = await db.query.bookings.findFirst({
     where: eq(bookings.id, bookingId),
     with: { guest: true },
   });
-  if (!b) throw new NotFoundError("Buchung nicht gefunden");
+  if (!b)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.bookingSingular
+      )
+    );
 
   const year = new Date().getFullYear();
   const invoiceNumber = await generateNextNumber(year);
@@ -173,7 +188,13 @@ export async function createFromBooking(bookingId: string): Promise<Invoice> {
     })
     .returning();
 
-  if (!row) throw new Error("Rechnung konnte nicht erstellt werden");
+  if (!row)
+    throw new Error(
+      brand.labels.msgInvoiceInsertFailed.replace(
+        "{invoice}",
+        brand.labels.invoiceSingular
+      )
+    );
   return toInvoiceDto(row);
 }
 
@@ -204,7 +225,13 @@ export async function markAsPaid(id: string): Promise<Invoice> {
     .set({ status: "bezahlt", paidAt: new Date() })
     .where(eq(invoices.id, id));
   const row = await db.query.invoices.findFirst({ where: eq(invoices.id, id) });
-  if (!row) throw new NotFoundError("Rechnung nicht gefunden");
+  if (!row)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.invoiceSingular
+      )
+    );
   return toInvoiceDto(row);
 }
 
@@ -215,7 +242,13 @@ export async function cancelInvoice(id: string): Promise<Invoice> {
     .set({ status: "storniert" })
     .where(eq(invoices.id, id));
   const row = await db.query.invoices.findFirst({ where: eq(invoices.id, id) });
-  if (!row) throw new NotFoundError("Rechnung nicht gefunden");
+  if (!row)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.invoiceSingular
+      )
+    );
   return toInvoiceDto(row);
 }
 

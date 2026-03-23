@@ -12,6 +12,7 @@ import type {
   GuestWithBookings,
   UpdateGuestInput,
 } from "../features/guests/types";
+import { brand } from "../config/brand";
 
 function toGuest(row: typeof guests.$inferSelect): Guest {
   return {
@@ -118,7 +119,13 @@ export async function getGuestById(id: string): Promise<Guest> {
   const row = await getDb().query.guests.findFirst({
     where: eq(guests.id, id),
   });
-  if (!row) throw new NotFoundError("Gast nicht gefunden");
+  if (!row)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.clientSingular
+      )
+    );
   return toGuest(row);
 }
 
@@ -137,7 +144,13 @@ export async function findByIdWithBookings(id: string): Promise<GuestWithBooking
       invoices: true,
     },
   });
-  if (!row) throw new NotFoundError("Gast nicht gefunden");
+  if (!row)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.clientSingular
+      )
+    );
 
   const contactRows = await db.query.guestContacts.findMany({
     where: eq(guestContacts.guestId, id),
@@ -193,7 +206,10 @@ export async function createGuest(input: CreateGuestInput): Promise<Guest> {
       crmSource: input.crmSource?.trim() || null,
     })
     .returning();
-  if (!row) throw new Error("Gast konnte nicht angelegt werden");
+  if (!row)
+    throw new Error(
+      `${brand.labels.clientSingular} konnte nicht angelegt werden`
+    );
   return toGuest(row);
 }
 
@@ -242,7 +258,9 @@ export async function addGuestContact(
       body: body.trim(),
     })
     .returning();
-  if (!row) throw new Error("Kontakt konnte nicht gespeichert werden");
+  if (!row) {
+    throw new Error(brand.labels.apiGuestContactSaveFailed);
+  }
   const author = await db.query.users.findFirst({
     where: eq(users.id, authorUserId),
     columns: { name: true, email: true },
@@ -258,11 +276,19 @@ export async function deleteGuest(id: string): Promise<void> {
   });
   if (hasBookings) {
     throw new ValidationError(
-      "Gast hat Buchungen und kann nicht gelöscht werden"
+      brand.labels.msgGuestHasBookingsNoDelete
+        .replace("{client}", brand.labels.clientSingular)
+        .replace("{bookings}", brand.labels.bookingPlural)
     );
   }
   const res = await db.delete(guests).where(eq(guests.id, id)).returning({ id: guests.id });
-  if (res.length === 0) throw new NotFoundError("Gast nicht gefunden");
+  if (res.length === 0)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.clientSingular
+      )
+    );
 }
 
 export async function findOrCreateByEmail(

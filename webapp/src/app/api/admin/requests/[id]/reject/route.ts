@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
@@ -26,6 +27,9 @@ export async function POST(
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Fehler" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.uiErrorGeneric },
+      { status: 400 }
+    );
   }
 }

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { brand, getResendFromEmail } from "@/config/brand";
 
 function client() {
   const key = process.env.RESEND_API_KEY;
@@ -6,8 +7,7 @@ function client() {
   return new Resend(key);
 }
 
-const from = () =>
-  process.env.RESEND_FROM_EMAIL ?? "noreply@skicoach.li";
+const from = () => getResendFromEmail();
 
 export async function sendBookingRequestConfirmation(
   to: string,
@@ -18,10 +18,10 @@ export async function sendBookingRequestConfirmation(
   await r.emails.send({
     from: from(),
     to,
-    subject: "Wir haben Ihre Anfrage erhalten — skicoach",
+    subject: `Wir haben Ihre ${brand.labels.bookingRequestSingular} erhalten — ${brand.siteName}`,
     html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>vielen Dank für Ihre Kursanfrage. Wir melden uns in der Regel innerhalb von 24 Stunden.</p>
-<p>Freundliche Grüsse<br/>skicoach</p>`,
+<p>vielen Dank für Ihre ${escapeHtml(brand.labels.serviceSingular)}anfrage. Wir melden uns in der Regel innerhalb von 24 Stunden.</p>
+<p>Freundliche Grüsse<br/>${escapeHtml(brand.siteName)}</p>`,
   });
 }
 
@@ -40,11 +40,11 @@ export async function sendAdminNewRequest(payload: {
   await r.emails.send({
     from: from(),
     to: adminTo,
-    subject: `Neue Buchungsanfrage: ${payload.guestName}`,
-    html: `<p>Neue Anfrage im Portal.</p>
+    subject: `Neue ${brand.labels.bookingRequestSingular}: ${payload.guestName}`,
+    html: `<p>Neue ${escapeHtml(brand.labels.bookingRequestSingular)} im Portal.</p>
 <ul>
-<li>Gast: ${escapeHtml(payload.guestName)} (${escapeHtml(payload.guestEmail)})</li>
-<li>Kurs: ${escapeHtml(payload.courseName)}</li>
+<li>${escapeHtml(brand.labels.clientSingular)}: ${escapeHtml(payload.guestName)} (${escapeHtml(payload.guestEmail)})</li>
+<li>${escapeHtml(brand.labels.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
 <li>Datum/Zeit: ${escapeHtml(payload.date)} ${escapeHtml(payload.startTime)}</li>
 </ul>
 <p><a href="${escapeHtml(appUrl)}/admin/anfragen">Im Admin öffnen</a></p>`,
@@ -59,19 +59,19 @@ export async function sendTeacherInviteMagicLinkEmail(
 ): Promise<void> {
   const r = client();
   if (!r) {
-    throw new Error("RESEND_API_KEY fehlt — Magic-Link kann nicht versendet werden.");
+    throw new Error(brand.labels.configResendApiKeyMissing);
   }
   await r.emails.send({
     from: from(),
     to,
-    subject: "Einladung zu skicoach — Anmeldung",
+    subject: `Einladung zu ${brand.siteName} — Anmeldung`,
     html: `<p>Hallo ${escapeHtml(displayName)},</p>
-<p>du wurdest als Lehrkraft für skicoach eingeladen. Mit dem folgenden Link meldest du dich an (einmal gültig, ca. 24&nbsp;Stunden):</p>
-<p><a href="${escapeHtml(magicLinkUrl)}">Bei skicoach anmelden</a></p>
+<p>du wurdest als ${escapeHtml(brand.labels.staffRoleInInvite)} für ${escapeHtml(brand.siteName)} eingeladen. Mit dem folgenden Link meldest du dich an (einmal gültig, ca. 24&nbsp;Stunden):</p>
+<p><a href="${escapeHtml(magicLinkUrl)}">Bei ${escapeHtml(brand.siteName)} anmelden</a></p>
 <p>Falls der Link abläuft, fordere auf der <a href="${escapeHtml(
       loginPageUrl
     )}">Login-Seite</a> mit derselben E-Mail-Adresse einen neuen Magic-Link an.</p>
-<p>Freundliche Grüsse<br/>skicoach</p>`,
+<p>Freundliche Grüsse<br/>${escapeHtml(brand.siteName)}</p>`,
   });
 }
 
@@ -85,9 +85,9 @@ export async function sendBookingConfirmed(
   await r.emails.send({
     from: from(),
     to,
-    subject: "Ihr Kurs ist bestätigt — skicoach",
+    subject: `Ihr ${brand.labels.serviceSingular} ist bestätigt — ${brand.siteName}`,
     html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>Ihre Buchung ist bestätigt:</p>
+<p>Ihre ${escapeHtml(brand.labels.bookingSingular)} ist bestätigt:</p>
 <ul>
 <li>${escapeHtml(details.courseName)}</li>
 <li>${escapeHtml(details.date)} um ${escapeHtml(details.startTime)}</li>

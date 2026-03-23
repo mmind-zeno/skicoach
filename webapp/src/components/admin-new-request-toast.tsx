@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import { brand } from "@/config/brand";
 
 export function AdminNewRequestToast() {
   const prev = useRef<number | undefined>(undefined);
@@ -38,9 +39,11 @@ export function AdminNewRequestToast() {
       className="fixed bottom-6 right-6 z-[60] max-w-sm rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-lg"
       role="status"
     >
-      <p className="font-medium">Neue Buchungsanfrage</p>
+      <p className="font-medium">
+        Neue {brand.labels.bookingRequestSingular}
+      </p>
       <p className="mt-1 text-amber-900/90">
-        Es ist mindestens eine neue Anfrage eingegangen.
+        Es ist mindestens eine neue {brand.labels.requestSingular} eingegangen.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link
@@ -48,14 +51,14 @@ export function AdminNewRequestToast() {
           className="font-medium text-sk-brand underline"
           onClick={() => setOpen(false)}
         >
-          Zu den Anfragen
+          Zu den {brand.labels.requestPlural}
         </Link>
         <button
           type="button"
           className="text-sk-ink/60 underline"
           onClick={() => setOpen(false)}
         >
-          Schliessen
+          {brand.labels.uiClose}
         </button>
       </div>
     </div>

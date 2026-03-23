@@ -14,6 +14,7 @@ import type {
   UpdateBookingInput,
 } from "../features/calendar/types";
 import type { BookingStatus } from "../features/calendar/types";
+import { brand } from "../config/brand";
 
 function toTeacherDto(u: typeof users.$inferSelect) {
   return {
@@ -95,7 +96,12 @@ async function loadBookingRow(id: string) {
 export async function findBookingById(id: string): Promise<BookingWithDetailsDto> {
   const row = await loadBookingRow(id);
   if (!row || !row.guest || !row.teacher || !row.courseType) {
-    throw new NotFoundError("Termin nicht gefunden");
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.appointmentSingular
+      )
+    );
   }
   return toBookingDto(row, row.guest, row.teacher, row.courseType);
 }
@@ -201,7 +207,12 @@ export async function createBooking(
     input.endTime
   );
   if (!ok) {
-    throw new ValidationError("Zeitslot für diesen Lehrer nicht verfügbar");
+    throw new ValidationError(
+      brand.labels.msgTimeSlotUnavailableForStaff.replace(
+        "{staffPlural}",
+        brand.labels.staffCollectivePlural
+      )
+    );
   }
 
   const db = getDb();
@@ -209,7 +220,12 @@ export async function createBooking(
     where: eq(courseTypes.id, input.courseTypeId),
   });
   if (!course || !course.isActive) {
-    throw new ValidationError("Ungültiger Kurstyp");
+    throw new ValidationError(
+      brand.labels.msgInvalidServiceType.replace(
+        "{serviceTypeSingular}",
+        brand.labels.serviceTypeSingular
+      )
+    );
   }
 
   const price = input.priceCHF ?? course.priceCHF;
@@ -229,7 +245,13 @@ export async function createBooking(
     })
     .returning();
 
-  if (!row) throw new Error("Buchung fehlgeschlagen");
+  if (!row)
+    throw new Error(
+      brand.labels.msgBookingInsertFailed.replace(
+        "{booking}",
+        brand.labels.bookingSingular
+      )
+    );
   return findBookingById(row.id);
 }
 
@@ -238,7 +260,13 @@ export async function updateBooking(
   input: UpdateBookingInput
 ): Promise<BookingWithDetailsDto> {
   const existing = await loadBookingRow(id);
-  if (!existing) throw new NotFoundError("Termin nicht gefunden");
+  if (!existing)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.appointmentSingular
+      )
+    );
 
   const nextTeacher = input.teacherId ?? existing.teacherId;
   const nextDate = input.date
@@ -257,7 +285,12 @@ export async function updateBooking(
     id
   );
   if (!ok) {
-    throw new ValidationError("Zeitslot für diesen Lehrer nicht verfügbar");
+    throw new ValidationError(
+      brand.labels.msgTimeSlotUnavailableForStaff.replace(
+        "{staffPlural}",
+        brand.labels.staffCollectivePlural
+      )
+    );
   }
 
   const patch: Partial<typeof bookings.$inferInsert> = {};
@@ -293,5 +326,11 @@ export async function deleteBooking(id: string): Promise<void> {
     .delete(bookings)
     .where(eq(bookings.id, id))
     .returning({ id: bookings.id });
-  if (res.length === 0) throw new NotFoundError("Termin nicht gefunden");
+  if (res.length === 0)
+    throw new NotFoundError(
+      brand.labels.msgEntityNotFound.replace(
+        "{entity}",
+        brand.labels.appointmentSingular
+      )
+    );
 }

@@ -10,6 +10,7 @@ import {
 } from "react-big-calendar";
 import { format, getDay, startOfWeek } from "date-fns";
 import { de } from "date-fns/locale";
+import { brand } from "@/config/brand";
 import { teacherCalendarStyle } from "@/lib/colors";
 import { bookingDateTimesToRange } from "@/lib/datetime";
 import type { BookingWithDetailsDto, CalendarEventItem } from "../types";
@@ -23,17 +24,18 @@ const localizer = dateFnsLocalizer({
 });
 
 const messages = {
-  next: "Weiter",
-  previous: "Zurück",
-  today: "Heute",
-  month: "Monat",
-  week: "Woche",
-  day: "Tag",
-  agenda: "Agenda",
-  date: "Datum",
-  time: "Zeit",
-  event: "Termin",
-  showMore: (total: number) => `+${total} mehr`,
+  next: brand.labels.calNext,
+  previous: brand.labels.calPrevious,
+  today: brand.labels.calToday,
+  month: brand.labels.calMonth,
+  week: brand.labels.calWeek,
+  day: brand.labels.calDay,
+  agenda: brand.labels.calAgenda,
+  date: brand.labels.calDate,
+  time: brand.labels.calTime,
+  event: brand.labels.appointmentSingular,
+  showMore: (total: number) =>
+    `+${total} ${brand.labels.calShowMoreSuffix}`,
 };
 
 function toEvents(rows: BookingWithDetailsDto[]): CalendarEventItem[] {

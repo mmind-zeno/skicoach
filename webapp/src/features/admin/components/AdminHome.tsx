@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import useSWR from "swr";
+import { brand } from "@/config/brand";
 
 async function f<T>(url: string): Promise<T> {
   const r = await fetch(url);
@@ -59,9 +60,12 @@ export function AdminHome() {
       <div className="flex flex-wrap gap-2 border-b border-sk-ink/10 pb-2 text-sm">
         {(
           [
-            ["dash", "Dashboard"],
-            ["users", "Lehrer & Nutzer"],
-            ["courses", "Kurstypen"],
+            ["dash", brand.labels.navDashboard],
+            [
+              "users",
+              `${brand.labels.staffCollectivePlural} & Nutzer`,
+            ],
+            ["courses", brand.labels.serviceTypePlural],
           ] as const
         ).map(([k, lab]) => (
           <button
@@ -81,13 +85,13 @@ export function AdminHome() {
           href="/admin/anfragen"
           className="rounded bg-amber-100 px-3 py-1.5 text-amber-900"
         >
-          Buchungsanfragen →
+          {brand.labels.bookingRequestPlural} →
         </Link>
         <Link
           href="/admin/audit"
           className="rounded border border-sk-ink/15 bg-sk-surface px-3 py-1.5 text-sk-ink hover:border-sk-brand/40"
         >
-          Audit-Protokoll →
+          {brand.labels.navAuditLog} →
         </Link>
       </div>
 
@@ -95,7 +99,7 @@ export function AdminHome() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <MetricCard
-              label="Buchungen (Monat)"
+              label={`${brand.labels.bookingPlural} (Monat)`}
               value={String(statsPack.stats.bookingsThisMonth)}
               sub="Im laufenden Kalendermonat"
             />
@@ -107,17 +111,17 @@ export function AdminHome() {
               sub="Summe Preise (nicht storniert), aktueller Monat"
             />
             <MetricCard
-              label="Aktive Lehrer"
+              label={`Aktive ${brand.labels.staffCollectivePlural}`}
               value={String(statsPack.stats.activeTeachers)}
             />
             <MetricCard
-              label="Gäste total"
+              label={`${brand.labels.clientPlural} total`}
               value={String(statsPack.stats.totalGuests)}
             />
           </div>
           <div>
             <h3 className="text-sm font-medium text-sk-ink">
-              Buchungen pro Monat ({new Date().getFullYear()})
+              {brand.labels.bookingPlural} pro Monat ({new Date().getFullYear()})
             </h3>
             <div className="mt-2 flex h-36 items-end gap-1.5 rounded-lg bg-sk-surface/80 px-1 pb-1 pt-2">
               {(() => {
@@ -136,7 +140,7 @@ export function AdminHome() {
                         height: `${(m.count / maxC) * 100}%`,
                         minHeight: m.count ? 8 : 0,
                       }}
-                      title={`${m.count} Buchungen`}
+                      title={`${m.count} ${brand.labels.bookingPlural}`}
                     />
                     <span className="mt-1 text-[10px] font-medium tabular-nums text-sk-ink/55">
                       {m.month}
@@ -147,15 +151,17 @@ export function AdminHome() {
             </div>
           </div>
           <div>
-            <h3 className="text-sm font-medium text-sk-ink">Umsatz pro Lehrer (Monat)</h3>
+            <h3 className="text-sm font-medium text-sk-ink">
+              Umsatz pro {brand.labels.staffCollectivePlural} (Monat)
+            </h3>
             <p className="mt-0.5 text-xs text-sk-ink/50">
               Balken relativ zum höchsten Umsatz in der Liste
             </p>
             <table className="mt-2 w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-sk-ink/60">
-                  <th className="py-1">Lehrkraft</th>
-                  <th>Buchungen</th>
+                  <th className="py-1">{brand.labels.staffSingular}</th>
+                  <th>{brand.labels.bookingPlural}</th>
                   <th>CHF</th>
                 </tr>
               </thead>
@@ -196,18 +202,22 @@ export function AdminHome() {
       ) : null}
 
       {tab === "dash" && !statsPack ? (
-        <p className="text-sm text-sk-ink/60">Dashboard wird geladen…</p>
+        <p className="text-sm text-sk-ink/60">
+          {brand.labels.adminDashboardLoading}
+        </p>
       ) : null}
 
       {tab === "users" ? (
         <div className="space-y-4">
           {!users ? (
-            <p className="text-sm text-sk-ink/60">Nutzerliste wird geladen…</p>
+            <p className="text-sm text-sk-ink/60">
+              {brand.labels.adminUserListLoading}
+            </p>
           ) : null}
           <div className="flex flex-wrap gap-2">
             <input
               className="rounded border px-2 py-2 text-sm"
-              placeholder="E-Mail einladen"
+              placeholder={brand.labels.adminInviteEmailPlaceholder}
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
             />
@@ -224,23 +234,29 @@ export function AdminHome() {
                   error?: string;
                 };
                 if (!res.ok) {
-                  window.alert(data.error ?? `Fehler (${res.status})`);
+                  window.alert(
+                    data.error ??
+                      brand.labels.uiErrorHttpTemplate.replace(
+                        "{status}",
+                        String(res.status)
+                      )
+                  );
                   return;
                 }
                 setInviteEmail("");
                 void muUsers();
               }}
             >
-              Magic-Link senden
+              {brand.labels.adminSendMagicLink}
             </button>
           </div>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-sk-ink/60">
-                <th className="py-1">Name</th>
-                <th>E-Mail</th>
-                <th>Rolle</th>
-                <th>Aktiv</th>
+                <th className="py-1">{brand.labels.labelName}</th>
+                <th>{brand.labels.labelEmail}</th>
+                <th>{brand.labels.labelRole}</th>
+                <th>{brand.labels.labelActive}</th>
                 <th />
               </tr>
             </thead>
@@ -248,7 +264,7 @@ export function AdminHome() {
               {users && users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-sm text-sk-ink/60">
-                    Noch keine Nutzer. Oben eine E-Mail eintragen und Magic-Link senden.
+                    {brand.labels.adminUsersEmptyHint}
                   </td>
                 </tr>
               ) : null}
@@ -273,13 +289,21 @@ export function AdminHome() {
                             error?: string;
                           };
                           if (!res.ok) {
-                            window.alert(data.error ?? `Fehler (${res.status})`);
+                            window.alert(
+                              data.error ??
+                                brand.labels.uiErrorHttpTemplate.replace(
+                                  "{status}",
+                                  String(res.status)
+                                )
+                            );
                             return;
                           }
-                          window.alert("Magic-Link wurde erneut gesendet.");
+                          window.alert(
+                            brand.labels.adminMagicLinkResentToast
+                          );
                         }}
                       >
-                        Link erneut
+                        {brand.labels.adminResendMagicLink}
                       </button>
                     ) : (
                       <button
@@ -295,13 +319,15 @@ export function AdminHome() {
                             error?: string;
                           };
                           if (!res.ok) {
-                            window.alert(j.error ?? "Aktivieren fehlgeschlagen");
+                            window.alert(
+                              j.error ?? brand.labels.adminActivateUserFailed
+                            );
                             return;
                           }
                           void muUsers();
                         }}
                       >
-                        Aktivieren
+                        {brand.labels.adminActivateUser}
                       </button>
                     )}
                     <button
@@ -309,7 +335,9 @@ export function AdminHome() {
                       className="text-xs text-sk-brand underline disabled:cursor-not-allowed disabled:opacity-40"
                       disabled={u.id === meId}
                       title={
-                        u.id === meId ? "Eigene Rolle hier nicht ändern" : undefined
+                        u.id === meId
+                          ? brand.labels.adminCannotChangeOwnRoleHere
+                          : undefined
                       }
                       onClick={async () => {
                         const res = await fetch(`/api/admin/users/${u.id}`, {
@@ -323,13 +351,15 @@ export function AdminHome() {
                           const j = (await res.json().catch(() => ({}))) as {
                             error?: string;
                           };
-                          window.alert(j.error ?? "Rolle konnte nicht geändert werden");
+                          window.alert(
+                            j.error ?? brand.labels.adminRoleChangeFailed
+                          );
                           return;
                         }
                         void muUsers();
                       }}
                     >
-                      Rolle togglen
+                      {brand.labels.adminRoleToggle}
                     </button>
                     {u.isActive && u.id !== meId ? (
                       <button
@@ -350,13 +380,15 @@ export function AdminHome() {
                             error?: string;
                           };
                           if (!res.ok) {
-                            window.alert(j.error ?? "Deaktivieren fehlgeschlagen");
+                            window.alert(
+                              j.error ?? brand.labels.adminDeactivateUserFailed
+                            );
                             return;
                           }
                           void muUsers();
                         }}
                       >
-                        Deaktivieren
+                        {brand.labels.adminDeactivateUser}
                       </button>
                     ) : null}
                   </td>
@@ -391,7 +423,11 @@ function CourseTypeAdmin({
   const [pub, setPub] = useState(true);
 
   if (!list) {
-    return <p className="text-sm text-sk-ink/60">Kurstypen werden geladen…</p>;
+    return (
+      <p className="text-sm text-sk-ink/60">
+        {brand.labels.serviceTypePlural} werden geladen…
+      </p>
+    );
   }
 
   return (
@@ -399,27 +435,27 @@ function CourseTypeAdmin({
       <div className="grid gap-2 rounded border border-sk-ink/10 p-3 text-sm sm:grid-cols-2">
         <input
           className="rounded border px-2 py-1"
-          placeholder="Name"
+          placeholder={brand.labels.adminCoursePlaceholderName}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <input
           type="number"
           className="rounded border px-2 py-1"
-          placeholder="Dauer Min"
+          placeholder={brand.labels.adminCoursePlaceholderDurationMin}
           value={dur}
           onChange={(e) => setDur(Number(e.target.value))}
         />
         <input
           className="rounded border px-2 py-1"
-          placeholder="Preis CHF"
+          placeholder={brand.labels.adminCoursePlaceholderPriceChf}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
         />
         <input
           type="number"
           className="rounded border px-2 py-1"
-          placeholder="Max TN"
+          placeholder={brand.labels.adminCoursePlaceholderMaxParticipants}
           value={maxP}
           onChange={(e) => setMaxP(Number(e.target.value))}
         />
@@ -429,7 +465,7 @@ function CourseTypeAdmin({
             checked={pub}
             onChange={(e) => setPub(e.target.checked)}
           />
-          Öffentlich (Portal)
+          {brand.labels.adminCoursePublicPortalLabel}
         </label>
         <button
           type="button"
@@ -448,19 +484,23 @@ function CourseTypeAdmin({
             });
             const j = (await res.json().catch(() => ({}))) as { error?: string };
             if (!res.ok) {
-              window.alert(j.error ?? "Kurstyp konnte nicht angelegt werden");
+              window.alert(
+                j.error ??
+                  `${brand.labels.serviceTypeSingular} konnte nicht angelegt werden`
+              );
               return;
             }
             setName("");
             onChange();
           }}
         >
-          Anlegen
+          {brand.labels.adminCourseCreateButton}
         </button>
       </div>
       {list.length === 0 ? (
         <p className="text-sm text-sk-ink/60">
-          Noch keine Kurstypen. Oben anlegen oder per Seed/Migration füllen.
+          Noch keine {brand.labels.serviceTypePlural}. Oben anlegen oder per
+          Seed/Migration füllen.
         </p>
       ) : (
         <ul className="space-y-2 text-sm">
@@ -484,13 +524,15 @@ function CourseTypeAdmin({
                     error?: string;
                   };
                   if (!res.ok) {
-                    window.alert(j.error ?? "Löschen fehlgeschlagen");
+                    window.alert(
+                      j.error ?? brand.labels.uiDeleteFailed
+                    );
                     return;
                   }
                   onChange();
                 }}
               >
-                Löschen
+                {brand.labels.uiDelete}
               </button>
             </li>
           ))}

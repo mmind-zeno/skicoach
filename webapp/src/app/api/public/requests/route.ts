@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { clientIp, rateLimitPublicBookingPost } from "@/lib/public-rate-limit";
 import { publicBookingRequestSchema } from "@/lib/validators/public-request";
 import { createPublicRequest } from "@/services/booking-request.service";
@@ -9,7 +10,10 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const ip = clientIp(request);
   if (!(await rateLimitPublicBookingPost(ip))) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    return NextResponse.json(
+      { error: brand.labels.apiTooManyRequests },
+      { status: 429 }
+    );
   }
   try {
     const json = await request.json();
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
       const ok = await verifyTurnstileToken(body.turnstileToken, ip);
       if (!ok) {
         return NextResponse.json(
-          { error: "Sicherheitsprüfung fehlgeschlagen" },
+          { error: brand.labels.apiTurnstileFailed },
           { status: 400 }
         );
       }
@@ -38,6 +42,9 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ success: true, requestId: row.id });
   } catch {
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
 }

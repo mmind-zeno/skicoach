@@ -1,6 +1,7 @@
 "use client";
 
 import { TeacherBadge } from "@/components/ui/TeacherBadge";
+import { brand } from "@/config/brand";
 
 export interface TeacherLegendItem {
   id: string;
@@ -12,7 +13,9 @@ export interface TeacherLegendItem {
 export function TeacherLegend({ teachers }: { teachers: TeacherLegendItem[] }) {
   if (teachers.length === 0) {
     return (
-      <p className="text-sm text-sk-ink/60">Keine aktiven Lehrkräfte geladen.</p>
+      <p className="text-sm text-sk-ink/60">
+        Keine aktiven {brand.labels.staffPlural} geladen.
+      </p>
     );
   }
   return (

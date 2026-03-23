@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, isNull, lt, ne, or } from "drizzle-orm";
 import { chatChannels, chatMessages, users } from "../../drizzle/schema";
 import { ForbiddenError, NotFoundError, ValidationError } from "../lib/errors";
+import { brand } from "../config/brand";
 import { getDb } from "../lib/db";
 
 export const MAX_CHAT_MESSAGE_LENGTH = 8000;
@@ -15,7 +16,7 @@ export async function assertCanReadChatMessages(opts: {
       where: eq(chatChannels.id, opts.channelId),
       columns: { id: true },
     });
-    if (!ch) throw new NotFoundError("Kanal nicht gefunden");
+    if (!ch) throw new NotFoundError(brand.labels.chatChannelNotFound);
     return;
   }
   if (opts.recipientId) {
@@ -24,11 +25,13 @@ export async function assertCanReadChatMessages(opts: {
       columns: { id: true, isActive: true },
     });
     if (!u?.isActive) {
-      throw new NotFoundError("Gespräch nicht verfügbar");
+      throw new NotFoundError(brand.labels.chatDmNotAvailable);
     }
     return;
   }
-  throw new ValidationError("channelId oder recipientId erforderlich");
+  throw new ValidationError(
+    brand.labels.apiChatChannelOrRecipientRequired
+  );
 }
 
 export async function assertCanSendChatMessage(opts: {
@@ -39,7 +42,10 @@ export async function assertCanSendChatMessage(opts: {
 }): Promise<void> {
   if (opts.content.length > MAX_CHAT_MESSAGE_LENGTH) {
     throw new ValidationError(
-      `Nachricht zu lang (max. ${MAX_CHAT_MESSAGE_LENGTH} Zeichen)`
+      brand.labels.chatMessageTooLongTemplate.replace(
+        "{max}",
+        String(MAX_CHAT_MESSAGE_LENGTH)
+      )
     );
   }
   const db = getDb();
@@ -48,23 +54,25 @@ export async function assertCanSendChatMessage(opts: {
       where: eq(chatChannels.id, opts.channelId),
       columns: { id: true },
     });
-    if (!ch) throw new NotFoundError("Kanal nicht gefunden");
+    if (!ch) throw new NotFoundError(brand.labels.chatChannelNotFound);
     return;
   }
   if (opts.recipientId) {
     if (opts.recipientId === opts.senderId) {
-      throw new ValidationError("Keine Direktnachricht an dich selbst");
+      throw new ValidationError(brand.labels.chatDmSelfForbidden);
     }
     const u = await db.query.users.findFirst({
       where: eq(users.id, opts.recipientId),
       columns: { id: true, isActive: true },
     });
     if (!u?.isActive) {
-      throw new ForbiddenError("Empfänger nicht verfügbar");
+      throw new ForbiddenError(brand.labels.chatRecipientUnavailable);
     }
     return;
   }
-  throw new ValidationError("channelId oder recipientId erforderlich");
+  throw new ValidationError(
+    brand.labels.apiChatChannelOrRecipientRequired
+  );
 }
 
 export async function ensureGeneralChannel() {
@@ -75,9 +83,9 @@ export async function ensureGeneralChannel() {
   if (existing) return existing;
   const [ch] = await db
     .insert(chatChannels)
-    .values({ name: "Team", isGeneral: true })
+    .values({ name: brand.labels.navTeam, isGeneral: true })
     .returning();
-  if (!ch) throw new Error("Kanal konnte nicht erstellt werden");
+  if (!ch) throw new Error(brand.labels.chatChannelCreateFailed);
   return ch;
 }
 
@@ -94,7 +102,7 @@ export async function createChannel(name: string) {
     .insert(chatChannels)
     .values({ name: name.trim(), isGeneral: false })
     .returning();
-  if (!ch) throw new Error("Kanal konnte nicht erstellt werden");
+  if (!ch) throw new Error(brand.labels.chatChannelCreateFailed);
   return ch;
 }
 
@@ -154,7 +162,9 @@ export async function createMessage(input: {
 }) {
   const db = getDb();
   if (!input.channelId && !input.recipientId) {
-    throw new ValidationError("channelId oder recipientId erforderlich");
+    throw new ValidationError(
+      brand.labels.apiChatChannelOrRecipientRequired
+    );
   }
   await assertCanSendChatMessage({
     senderId: input.senderId,
@@ -171,7 +181,7 @@ export async function createMessage(input: {
       content: input.content.trim(),
     })
     .returning();
-  if (!msg) throw new Error("Nachricht konnte nicht gesendet werden");
+  if (!msg) throw new Error(brand.labels.chatMessageSendFailed);
   return db.query.chatMessages.findFirst({
     where: eq(chatMessages.id, msg.id),
     with: { sender: true },

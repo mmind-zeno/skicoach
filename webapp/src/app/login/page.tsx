@@ -4,18 +4,30 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import { brand } from "@/config/brand";
 
-function MountainSilhouette() {
+/** Branchenneutrale Deko: weiche Flächen + wellenförmiger Abschluss (kein Ski/Motiv). */
+function LoginHeroBackdrop() {
   return (
-    <svg
-      className="absolute bottom-0 left-0 right-0 h-[45%] text-white/25"
-      viewBox="0 0 400 120"
-      fill="currentColor"
-      preserveAspectRatio="none"
-      aria-hidden
-    >
-      <path d="M0 120 L80 40 L140 90 L200 20 L260 100 L320 35 L400 85 L400 120 Z" />
-    </svg>
+    <>
+      <div
+        className="pointer-events-none absolute -bottom-24 -left-20 h-[min(55vw,28rem)] w-[min(55vw,28rem)] rounded-full bg-white/[0.09] blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-16 top-[18%] h-[min(45vw,22rem)] w-[min(45vw,22rem)] rounded-full bg-sky-200/[0.14] blur-3xl"
+        aria-hidden
+      />
+      <svg
+        className="absolute bottom-0 left-0 right-0 h-[38%] min-h-[7rem] text-white/[0.11]"
+        viewBox="0 0 480 140"
+        fill="currentColor"
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        <path d="M0 96 C80 72 120 108 200 88 S340 52 480 78 L480 140 L0 140 Z" />
+      </svg>
+    </>
   );
 }
 
@@ -39,9 +51,9 @@ function LoginForm() {
         redirect: false,
       });
       if (result?.error) {
-        setMessage("Anmeldung fehlgeschlagen. Bitte E-Mail prüfen oder später erneut versuchen.");
+        setMessage(brand.labels.loginMessageSignInFailed);
       } else if (result?.ok !== false) {
-        setMessage("Link wurde gesendet — bitte Postfach prüfen.");
+        setMessage(brand.labels.loginMessageLinkSent);
       }
     } finally {
       setLoading(false);
@@ -50,7 +62,12 @@ function LoginForm() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,440px)]">
-      <div className="relative hidden overflow-hidden bg-gradient-to-br from-[#0c1f3a] via-[#1B4F8A] to-[#4a90c4] lg:block">
+      <div
+        className="relative hidden overflow-hidden lg:block"
+        style={{
+          background: `linear-gradient(135deg, ${brand.loginHero.gradientFrom} 0%, ${brand.loginHero.gradientVia} 48%, ${brand.loginHero.gradientTo} 100%)`,
+        }}
+      >
         <div
           className="absolute inset-0 opacity-40"
           style={{
@@ -59,16 +76,16 @@ function LoginForm() {
             backgroundSize: "48px 48px, 64px 64px",
           }}
         />
-        <MountainSilhouette />
+        <LoginHeroBackdrop />
         <div className="relative z-[1] flex h-full flex-col justify-center px-12 text-white">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
-            skicoach
+            {brand.siteName}
           </p>
           <h2 className="mt-3 max-w-md text-3xl font-semibold leading-tight">
-            Team-Bereich
+            {brand.labels.teamAreaTitle}
           </h2>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/85">
-            Kalender, Gäste, Rechnungen und Chat — sicher per Magic-Link.
+            {brand.labels.teamAreaLead}
           </p>
         </div>
       </div>
@@ -77,21 +94,25 @@ function LoginForm() {
         <div className="mx-auto w-full max-w-md rounded-2xl border border-sk-ink/10 bg-white p-8 shadow-lg lg:shadow-xl lg:ring-1 lg:ring-sk-ink/5">
           <div className="mb-6 flex justify-center lg:hidden">
             <div className="rounded-full bg-sk-brand/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-sk-brand">
-              skicoach
+              {brand.siteName}
             </div>
           </div>
-          <h1 className="text-2xl font-semibold text-sk-ink">Anmelden</h1>
+          <h1 className="text-2xl font-semibold text-sk-ink">
+            {brand.labels.loginTitle}
+          </h1>
           <p className="mt-2 text-sm text-sk-ink/70">
-            Magic Link per E-Mail. Nach dem Klick im Postfach bist du eingeloggt.
+            {brand.labels.loginLeadMagicLink}
           </p>
 
           <div className="mt-4 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950/90">
-            <strong className="font-medium">Ohne E-Mail-Versand (Resend):</strong> ein Admin kann auf
-            dem Server mit{" "}
+            <strong className="font-medium">
+              {brand.labels.loginDevNoticeStrong}
+            </strong>{" "}
+            {brand.labels.loginDevNoticeBeforeCmd}{" "}
             <code className="rounded bg-amber-100/80 px-1 font-mono text-[11px]">
               npm run admin:login-url
             </code>{" "}
-            (Container) einen Einmal-Link erzeugen — siehe README.
+            {brand.labels.loginDevNoticeAfterCmd}
           </div>
 
           {error ? (
@@ -100,16 +121,19 @@ function LoginForm() {
               role="alert"
             >
               {error === "Configuration"
-                ? "Server-Konfiguration unvollständig (z. B. RESEND_API_KEY oder AUTH_SECRET)."
+                ? brand.labels.loginErrorConfiguration
                 : error === "AccessDenied"
-                  ? "Zugang verweigert — dieses Konto ist deaktiviert."
-                  : `Fehler: ${error}`}
+                  ? brand.labels.loginErrorAccessDenied
+                  : brand.labels.loginErrorGenericTemplate.replace(
+                      "{error}",
+                      error
+                    )}
             </p>
           ) : null}
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <label className="block text-sm font-medium text-sk-ink">
-              E-Mail
+              {brand.labels.labelEmail}
               <input
                 type="email"
                 name="email"
@@ -118,7 +142,7 @@ function LoginForm() {
                 value={email}
                 onChange={(ev) => setEmail(ev.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-sk-ink/15 px-3 py-2.5 text-sk-ink outline-none transition ring-sk-brand focus:border-sk-brand focus:ring-2"
-                placeholder="du@beispiel.li"
+                placeholder={brand.labels.loginEmailPlaceholder}
               />
             </label>
             <button
@@ -126,7 +150,9 @@ function LoginForm() {
               disabled={loading}
               className="w-full rounded-lg bg-sk-brand px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-sk-hover disabled:opacity-60"
             >
-              {loading ? "Senden …" : "Link senden"}
+              {loading
+                ? brand.labels.loginButtonSending
+                : brand.labels.loginButtonSendLink}
             </button>
           </form>
 
@@ -155,7 +181,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-sk-surface text-sk-ink/60">
-          Laden …
+          {brand.labels.loginFallbackLoading}
         </div>
       }
     >

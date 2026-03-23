@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
 import { canAccessInvoice } from "@/services/invoice.service";
@@ -16,7 +17,10 @@ export async function GET(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     const buf = await generateInvoicePdfBuffer(params.id);
     return new NextResponse(new Uint8Array(buf), {

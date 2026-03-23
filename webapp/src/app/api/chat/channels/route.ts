@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAdminSession, requireAuthSession } from "@/lib/auth-helpers";
 import { createChannel, ensureGeneralChannel, getChannels } from "@/services/chat.service";
 
@@ -14,7 +15,10 @@ export async function POST(request: Request) {
   const json = await request.json();
   const name = typeof json.name === "string" ? json.name : "";
   if (name.length < 2) {
-    return NextResponse.json({ error: "Name zu kurz" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiChatChannelNameTooShort },
+      { status: 400 }
+    );
   }
   const ch = await createChannel(name);
   return NextResponse.json(ch, { status: 201 });

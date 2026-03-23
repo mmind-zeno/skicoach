@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
 import { patchInvoiceBodySchema } from "@/lib/validators/invoice";
@@ -21,7 +22,10 @@ export async function GET(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     return NextResponse.json(await findById(params.id));
   } catch (e) {
@@ -44,7 +48,10 @@ export async function PATCH(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     const json = await request.json();
     const body = patchInvoiceBodySchema.parse(json);
@@ -56,11 +63,17 @@ export async function PATCH(
       const inv = await cancelInvoice(params.id);
       return NextResponse.json(inv);
     }
-    return NextResponse.json({ error: "Nichts zu aktualisieren" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiNothingToUpdate },
+      { status: 400 }
+    );
   } catch (e) {
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { CHFAmount } from "@/components/ui/CHFAmount";
+import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { BookingStatus, BookingWithDetailsDto } from "../types";
 
@@ -21,7 +22,9 @@ export function BookingDetailPanel({
     });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      alert((j as { error?: string }).error ?? "Speichern fehlgeschlagen");
+      alert(
+        (j as { error?: string }).error ?? brand.labels.uiSaveFailed
+      );
       return;
     }
     const updated = (await r.json()) as BookingWithDetailsDto;
@@ -29,11 +32,16 @@ export function BookingDetailPanel({
   }
 
   async function remove() {
-    if (!confirm("Termin wirklich löschen?")) return;
+    if (
+      !confirm(`${brand.labels.appointmentSingular} wirklich löschen?`)
+    )
+      return;
     const r = await fetch(`/api/bookings/${booking.id}`, { method: "DELETE" });
     if (!r.ok) {
       const j = await r.json().catch(() => ({}));
-      alert((j as { error?: string }).error ?? "Löschen fehlgeschlagen");
+      alert(
+        (j as { error?: string }).error ?? brand.labels.uiDeleteFailed
+      );
       return;
     }
     onClose();
@@ -43,61 +51,63 @@ export function BookingDetailPanel({
   return (
     <aside className="flex flex-col border-sk-ink/10 bg-white lg:border-l lg:pl-4">
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h2 className="text-base font-semibold text-sk-ink">Termin</h2>
+        <h2 className="text-base font-semibold text-sk-ink">
+          {brand.labels.appointmentSingular}
+        </h2>
         <button
           type="button"
           onClick={onClose}
           className="rounded px-2 py-1 text-sm text-sk-ink/70 hover:bg-sk-surface"
         >
-          Schließen
+          {brand.labels.uiClose}
         </button>
       </div>
 
       <dl className="space-y-2 text-sm">
         <div>
-          <dt className="text-sk-ink/50">Gast</dt>
+          <dt className="text-sk-ink/50">{brand.labels.clientSingular}</dt>
           <dd className="font-medium text-sk-ink">{booking.guest.name}</dd>
         </div>
         <div>
-          <dt className="text-sk-ink/50">Lehrkraft</dt>
+          <dt className="text-sk-ink/50">{brand.labels.staffSingular}</dt>
           <dd className="text-sk-ink">
             {booking.teacher.name ?? booking.teacher.email}
           </dd>
         </div>
         <div>
-          <dt className="text-sk-ink/50">Kurs</dt>
+          <dt className="text-sk-ink/50">{brand.labels.serviceSingular}</dt>
           <dd className="text-sk-ink">{booking.courseType.name}</dd>
         </div>
         <div>
-          <dt className="text-sk-ink/50">Zeit</dt>
+          <dt className="text-sk-ink/50">{brand.labels.calTime}</dt>
           <dd className="text-sk-ink">
             {booking.date} · {booking.startTime.slice(0, 5)}–
             {booking.endTime.slice(0, 5)}
           </dd>
         </div>
         <div>
-          <dt className="text-sk-ink/50">Preis</dt>
+          <dt className="text-sk-ink/50">{brand.labels.fieldPrice}</dt>
           <dd className="text-sk-ink">
             <CHFAmount amount={booking.priceCHF} />
           </dd>
         </div>
         <div className="flex items-center gap-2">
-          <dt className="text-sk-ink/50">Status</dt>
+          <dt className="text-sk-ink/50">{brand.labels.fieldStatus}</dt>
           <dd>
             <StatusBadge variant={booking.status} />
           </dd>
         </div>
         {booking.source === "anfrage" ? (
           <div>
-            <dt className="text-sk-ink/50">Herkunft</dt>
+            <dt className="text-sk-ink/50">{brand.labels.fieldSource}</dt>
             <dd className="text-xs text-sk-ink/80">
-              Aus Buchungsanfrage (Portal)
+              {brand.labels.sourceFromBookingPortal}
             </dd>
           </div>
         ) : null}
         {booking.notes ? (
           <div>
-            <dt className="text-sk-ink/50">Notizen</dt>
+            <dt className="text-sk-ink/50">{brand.labels.fieldNotes}</dt>
             <dd className="whitespace-pre-wrap text-sk-ink">{booking.notes}</dd>
           </div>
         ) : null}
@@ -109,28 +119,28 @@ export function BookingDetailPanel({
           onClick={() => patchStatus("geplant")}
           className="rounded bg-sk-surface px-2 py-1 text-xs font-medium text-sk-ink hover:bg-sk-ink/10"
         >
-          Geplant
+          {brand.labels.statusGeplant}
         </button>
         <button
           type="button"
           onClick={() => patchStatus("durchgefuehrt")}
           className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700"
         >
-          Durchgeführt
+          {brand.labels.statusDurchgefuehrt}
         </button>
         <button
           type="button"
           onClick={() => patchStatus("storniert")}
           className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium text-zinc-800 hover:bg-zinc-300"
         >
-          Stornieren
+          {brand.labels.bookingActionStornieren}
         </button>
         <button
           type="button"
           onClick={remove}
           className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
         >
-          Löschen
+          {brand.labels.uiDelete}
         </button>
       </div>
       <button
@@ -144,14 +154,18 @@ export function BookingDetailPanel({
           });
           if (!r.ok) {
             const j = await r.json().catch(() => ({}));
-            alert((j as { error?: string }).error ?? "Fehler");
+            alert(
+              (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+            );
             return;
           }
-          alert("Rechnung erstellt — unter Rechnungen / PDF.");
+          alert(
+            `${brand.labels.invoiceSingular} erstellt — unter ${brand.labels.navInvoices} / PDF.`
+          );
           onUpdated();
         }}
       >
-        Rechnung erstellen
+        {brand.labels.invoiceSingular} erstellen
       </button>
     </aside>
   );

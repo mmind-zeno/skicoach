@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
+import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
 import { AppError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { updateBookingBodySchema } from "@/lib/validators/booking";
@@ -22,7 +23,10 @@ export async function GET(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
   const { id } = params;
   try {
@@ -43,7 +47,10 @@ export async function PATCH(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
   const { id } = params;
   try {
@@ -52,7 +59,10 @@ export async function PATCH(
     const json = await request.json();
     const body = updateBookingBodySchema.parse(json);
     if (session.user.role !== "admin" && body.teacherId && body.teacherId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json(
+        { error: brand.labels.apiForbidden },
+        { status: 403 }
+      );
     }
     const updated = await updateBooking(id, body);
     return NextResponse.json(updated);
@@ -60,7 +70,10 @@ export async function PATCH(
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
 }
 
@@ -70,7 +83,10 @@ export async function DELETE(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { error: brand.labels.apiUnauthorized },
+      { status: 401 }
+    );
   }
   const { id } = params;
   try {

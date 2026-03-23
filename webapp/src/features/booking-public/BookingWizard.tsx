@@ -10,6 +10,7 @@ import {
 import { de } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
 import { PublicTurnstile } from "./PublicTurnstile";
+import { brand } from "@/config/brand";
 
 const TURNSTILE_SITE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
@@ -58,6 +59,31 @@ export function BookingWizard() {
 
   const selectedCourse = courses.find((c) => c.id === courseId) ?? null;
 
+  const weekdayShort = useMemo(
+    () => [
+      brand.labels.calWeekdayMo,
+      brand.labels.calWeekdayDi,
+      brand.labels.calWeekdayMi,
+      brand.labels.calWeekdayDo,
+      brand.labels.calWeekdayFr,
+      brand.labels.calWeekdaySa,
+      brand.labels.calWeekdaySo,
+    ],
+    []
+  );
+
+  const niveauLabels: Record<
+    "anfaenger" | "fortgeschritten" | "experte",
+    string
+  > = useMemo(
+    () => ({
+      anfaenger: brand.labels.niveauAnfaenger,
+      fortgeschritten: brand.labels.niveauFortgeschritten,
+      experte: brand.labels.niveauExperte,
+    }),
+    []
+  );
+
   useEffect(() => {
     void (async () => {
       const r = await fetch("/api/public/course-types");
@@ -102,12 +128,17 @@ export function BookingWizard() {
   async function submit() {
     setErr(null);
     if (!courseId || !day || !slotTime) {
-      setErr("Bitte Kurs, Datum und Zeit wählen.");
+      setErr(
+        brand.labels.publicWizardSubmitMissingTemplate.replace(
+          "{service}",
+          brand.labels.serviceSingular
+        )
+      );
       return;
     }
     const guestName = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (guestName.length < 2 || !email.includes("@")) {
-      setErr("Name und gültige E-Mail erforderlich.");
+      setErr(brand.labels.uiValidationNameAndEmail);
       return;
     }
     setLoading(true);
@@ -130,7 +161,9 @@ export function BookingWizard() {
       });
       const j = await r.json();
       if (!r.ok) {
-        setErr((j as { error?: string }).error ?? "Fehler");
+        setErr(
+          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+        );
         return;
       }
       setDoneId((j as { requestId?: string }).requestId ?? "ok");
@@ -164,7 +197,12 @@ export function BookingWizard() {
 
       {step === 1 ? (
         <section>
-          <h2 className="text-lg font-semibold text-sk-ink">Kurstyp wählen</h2>
+          <h2 className="text-lg font-semibold text-sk-ink">
+            {brand.labels.publicWizardPickServiceTypeTemplate.replace(
+              "{serviceType}",
+              brand.labels.serviceTypeSingular
+            )}
+          </h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {courses.map((c) => (
               <button
@@ -181,8 +219,10 @@ export function BookingWizard() {
               >
                 <div className="font-medium text-sk-brand">{c.name}</div>
                 <div className="mt-1 text-sm text-sk-ink/70">
-                  {c.durationMin} Min · max. {c.maxParticipants} · CHF{" "}
-                  {c.priceCHF}
+                  {brand.labels.publicBookingCourseMetaTemplate
+                    .replace("{durationMin}", String(c.durationMin))
+                    .replace("{maxParticipants}", String(c.maxParticipants))
+                    .replace("{priceCHF}", c.priceCHF)}
                 </div>
               </button>
             ))}
@@ -196,14 +236,16 @@ export function BookingWizard() {
               void loadMonth(month);
             }}
           >
-            Weiter
+            {brand.labels.calNext}
           </button>
         </section>
       ) : null}
 
       {step === 2 ? (
         <section>
-          <h2 className="text-lg font-semibold text-sk-ink">Datum wählen</h2>
+          <h2 className="text-lg font-semibold text-sk-ink">
+            {brand.labels.publicWizardPickDate}
+          </h2>
           <div className="mt-4 flex items-center justify-between">
             <button
               type="button"
@@ -232,7 +274,7 @@ export function BookingWizard() {
             </button>
           </div>
           <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs">
-            {["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map((d) => (
+            {weekdayShort.map((d) => (
               <div key={d} className="py-1 text-sk-ink/50">
                 {d}
               </div>
@@ -268,18 +310,18 @@ export function BookingWizard() {
           <p className="mt-4 flex flex-wrap gap-3 text-xs text-sk-ink/70">
             <span className="inline-flex items-center gap-1">
               <span className="h-3 w-3 rounded" style={{ background: COL.free }} />
-              Frei
+              {brand.labels.publicAvailFree}
             </span>
             <span className="inline-flex items-center gap-1">
               <span
                 className="h-3 w-3 rounded"
                 style={{ background: COL.partial }}
               />
-              Teilweise
+              {brand.labels.publicAvailPartial}
             </span>
             <span className="inline-flex items-center gap-1">
               <span className="h-3 w-3 rounded" style={{ background: COL.full }} />
-              Voll
+              {brand.labels.publicAvailFull}
             </span>
           </p>
           <div className="mt-6 flex gap-2">
@@ -288,7 +330,7 @@ export function BookingWizard() {
               className="rounded border px-4 py-2"
               onClick={() => setStep(1)}
             >
-              Zurück
+              {brand.labels.calPrevious}
             </button>
             <button
               type="button"
@@ -296,7 +338,7 @@ export function BookingWizard() {
               disabled={!day}
               onClick={() => setStep(3)}
             >
-              Weiter
+              {brand.labels.calNext}
             </button>
           </div>
         </section>
@@ -304,10 +346,14 @@ export function BookingWizard() {
 
       {step === 3 ? (
         <section>
-          <h2 className="text-lg font-semibold text-sk-ink">Zeit &amp; Kontakt</h2>
+          <h2 className="text-lg font-semibold text-sk-ink">
+            {brand.labels.publicWizardTimeAndContact}
+          </h2>
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
             <div>
-              <div className="text-sm font-medium text-sk-ink">Zeitslots</div>
+              <div className="text-sm font-medium text-sk-ink">
+                {brand.labels.publicWizardSlotsTitle}
+              </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {slots.map((s) => (
                   <button
@@ -329,7 +375,7 @@ export function BookingWizard() {
               </div>
               {selectedCourse && slotTime ? (
                 <p className="mt-2 text-xs text-sk-ink/60">
-                  Ende ca.{" "}
+                  {brand.labels.publicApproxEndShort}{" "}
                   {format(
                     new Date(
                       2000,
@@ -348,13 +394,13 @@ export function BookingWizard() {
               <div className="grid grid-cols-2 gap-2">
                 <input
                   className="rounded border px-2 py-2"
-                  placeholder="Vorname"
+                  placeholder={brand.labels.placeholderFirstName}
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                 />
                 <input
                   className="rounded border px-2 py-2"
-                  placeholder="Nachname"
+                  placeholder={brand.labels.placeholderLastName}
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                 />
@@ -362,24 +408,23 @@ export function BookingWizard() {
               <input
                 className="w-full rounded border px-2 py-2"
                 type="email"
-                placeholder="E-Mail"
+                placeholder={brand.labels.placeholderEmail}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
               <input
                 className="w-full rounded border px-2 py-2"
-                placeholder="Telefon (optional)"
+                placeholder={brand.labels.placeholderPhoneOptional}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="text-xs font-medium text-sk-ink/70">
+                {brand.labels.clientSkillFilterLabel}
+              </div>
+              <div className="mt-1 flex flex-wrap gap-2">
                 {(
-                  [
-                    ["anfaenger", "Anfänger"],
-                    ["fortgeschritten", "Fortgeschritten"],
-                    ["experte", "Experte"],
-                  ] as const
-                ).map(([k, lab]) => (
+                  ["anfaenger", "fortgeschritten", "experte"] as const
+                ).map((k) => (
                   <button
                     key={k}
                     type="button"
@@ -390,14 +435,14 @@ export function BookingWizard() {
                         : "bg-sk-surface text-sk-ink"
                     }`}
                   >
-                    {lab}
+                    {niveauLabels[k]}
                   </button>
                 ))}
               </div>
               <textarea
                 className="w-full rounded border px-2 py-2"
                 rows={3}
-                placeholder="Nachricht (optional)"
+                placeholder={brand.labels.placeholderMessageOptional}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -414,14 +459,20 @@ export function BookingWizard() {
               ) : null}
               {selectedCourse && day ? (
                 <div className="rounded bg-sk-surface p-3 text-xs text-sk-ink/80">
-                  <div>Kurs: {selectedCourse.name}</div>
                   <div>
-                    Datum: {day} {slotTime ?? ""}
+                    {brand.labels.serviceSingular}: {selectedCourse.name}
                   </div>
-                  <div>Preis: CHF {selectedCourse.priceCHF}</div>
+                  <div>
+                    {brand.labels.publicSummaryDateLabel}: {day}{" "}
+                    {slotTime ?? ""}
+                  </div>
+                  <div>
+                    {brand.labels.publicSummaryPriceLabel}:{" "}
+                    {brand.labels.invoiceTableCurrency}{" "}
+                    {selectedCourse.priceCHF}
+                  </div>
                   <p className="mt-2 text-sk-ink/60">
-                    Keine Zahlung jetzt — wir bestätigen per E-Mail innerhalb von
-                    24h.
+                    {brand.labels.publicNoPaymentDisclaimer}
                   </p>
                 </div>
               ) : null}
@@ -434,7 +485,7 @@ export function BookingWizard() {
               className="rounded border px-4 py-2"
               onClick={() => setStep(2)}
             >
-              Zurück
+              {brand.labels.calPrevious}
             </button>
             <button
               type="button"
@@ -442,7 +493,7 @@ export function BookingWizard() {
               className="rounded bg-sk-brand px-4 py-2 text-white disabled:opacity-50"
               onClick={() => void submit()}
             >
-              Anfrage senden →
+              {brand.labels.requestSingular} senden →
             </button>
           </div>
         </section>
@@ -461,15 +512,21 @@ export function BookingWizard() {
             ✓
           </div>
           <h2 className="mt-4 text-xl font-semibold text-sk-ink">
-            Vielen Dank, {firstName}!
+            {brand.labels.publicThanksTitleTemplate.replace(
+              "{name}",
+              firstName
+            )}
           </h2>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-sk-ink/80">
-            Ihre Anfrage wurde erhalten. Sie erhalten in Kürze eine Bestätigung an{" "}
+            {brand.labels.publicThanksIntroTemplate.replace(
+              "{request}",
+              brand.labels.requestSingular
+            )}{" "}
             <span className="font-medium text-sk-brand">{email}</span>.
           </p>
           {doneId && doneId !== "ok" ? (
             <p className="mt-4 inline-block rounded-lg border border-sk-ink/10 bg-white/80 px-3 py-1.5 font-mono text-xs text-sk-ink/60">
-              Referenz: {doneId}
+              {brand.labels.publicReferenceLabel}: {doneId}
             </p>
           ) : null}
           <button
@@ -477,7 +534,7 @@ export function BookingWizard() {
             className="mt-8 rounded-xl border-2 border-sk-brand/30 bg-white px-5 py-2.5 text-sm font-medium text-sk-brand shadow-sm transition hover:border-sk-brand hover:bg-sk-surface"
             onClick={reset}
           >
-            Neue Anfrage stellen
+            Neue {brand.labels.requestSingular} stellen
           </button>
         </section>
       ) : null}

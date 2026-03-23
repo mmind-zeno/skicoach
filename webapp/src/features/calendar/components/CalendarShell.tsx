@@ -11,12 +11,16 @@ import { BookingCreateModal } from "./BookingCreateModal";
 import { BookingDetailPanel } from "./BookingDetailPanel";
 import { CalendarView } from "./CalendarView";
 import { TeacherLegend, type TeacherLegendItem } from "./TeacherLegend";
+import { brand } from "@/config/brand";
 
 async function teachersFetcher(url: string): Promise<TeacherLegendItem[]> {
   const r = await fetch(url);
   if (!r.ok) {
     const j = (await r.json().catch(() => ({}))) as { error?: string };
-    throw new Error(j.error ?? `Lehrerliste (${r.status})`);
+    throw new Error(
+      j.error ??
+        `${brand.labels.staffCollectivePlural}liste (${r.status})`
+    );
   }
   return r.json() as Promise<TeacherLegendItem[]>;
 }
@@ -107,7 +111,9 @@ export function CalendarShell({
         <TeacherLegend teachers={teachers} />
         <div className="flex flex-col gap-2 text-sm text-sk-ink">
           {teachersLoading ? (
-            <p className="text-sk-ink/60">Lehrerliste wird geladen…</p>
+            <p className="text-sk-ink/60">
+              {brand.labels.staffCollectivePlural}liste wird geladen…
+            </p>
           ) : null}
           {teachersError ? (
             <p className="text-red-700" role="alert">
@@ -116,7 +122,9 @@ export function CalendarShell({
           ) : null}
           {!teachersLoading && !teachersError && teachers.length === 0 ? (
             <p className="text-sk-ink/60">
-              Keine Lehrkräfte gefunden. Lehrer per Admin einladen oder Datenbank prüfen.
+              Keine {brand.labels.staffPlural} gefunden.{" "}
+              {brand.labels.staffCollectivePlural} per Admin einladen oder
+              Datenbank prüfen.
             </p>
           ) : null}
           {isAdmin ? (
@@ -126,12 +134,14 @@ export function CalendarShell({
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
               />
-              Alle Lehrer anzeigen
+              Alle {brand.labels.staffCollectivePlural} anzeigen
             </label>
           ) : null}
           {isAdmin && !showAll ? (
             <label className="flex flex-col gap-1">
-              <span className="text-sk-ink/70">Lehrkraft filtern</span>
+              <span className="text-sk-ink/70">
+                {brand.labels.staffSingular} filtern
+              </span>
               <select
                 className="max-w-xs rounded border border-sk-ink/20 px-2 py-2"
                 value={filterTeacherId ?? ""}
@@ -154,7 +164,9 @@ export function CalendarShell({
         </p>
       ) : null}
       {isLoading && !bookings.length ? (
-        <p className="text-sm text-sk-ink/60">Lade Termine…</p>
+        <p className="text-sm text-sk-ink/60">
+          Lade {brand.labels.appointmentPlural}…
+        </p>
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
@@ -185,7 +197,10 @@ export function CalendarShell({
           </div>
         ) : (
           <div className="hidden text-sm text-sk-ink/50 lg:block">
-            Termin im Kalender wählen …
+            {brand.labels.calendarPickAppointmentHintTemplate.replace(
+              "{appointment}",
+              brand.labels.appointmentSingular
+            )}
           </div>
         )}
       </div>

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader";
+import { brand } from "@/config/brand";
 import { AdminAuditLogClient } from "@/features/admin/components/AdminAuditLogClient";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -10,10 +11,10 @@ export default async function AdminAuditPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <PageHeader title="Audit-Protokoll" />
+      <PageHeader title={brand.labels.navAuditLog} />
       <p className="mb-4 text-sm text-sk-ink/70">
-        Letzte sicherheitsrelevante Admin-Aktionen (Einladungen, Nutzer, Kurstypen,
-        Buchungsanfragen).
+        Letzte sicherheitsrelevante Admin-Aktionen (Einladungen, Nutzer,{" "}
+        {brand.labels.serviceTypePlural}, {brand.labels.bookingRequestPlural}).
       </p>
       <AdminAuditLogClient />
     </div>

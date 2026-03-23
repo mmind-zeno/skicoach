@@ -2,17 +2,18 @@ import {
   STATUS_BADGE_STYLE,
   type StatusBadgeVariant,
 } from "@/lib/colors";
+import { brand } from "@/config/brand";
 
 const LABELS: Record<StatusBadgeVariant, string> = {
-  geplant: "Geplant",
-  durchgefuehrt: "Durchgeführt",
-  storniert: "Storniert",
-  offen: "Offen",
-  bezahlt: "Bezahlt",
-  storniert_rechnung: "Storniert",
-  anfrage_neu: "Neu",
-  anfrage_bestaetigt: "Bestätigt",
-  anfrage_abgelehnt: "Abgelehnt",
+  geplant: brand.labels.statusGeplant,
+  durchgefuehrt: brand.labels.statusDurchgefuehrt,
+  storniert: brand.labels.statusStorniert,
+  offen: brand.labels.statusOffen,
+  bezahlt: brand.labels.statusBezahlt,
+  storniert_rechnung: brand.labels.statusStorniert,
+  anfrage_neu: brand.labels.statusAnfrageNeu,
+  anfrage_bestaetigt: brand.labels.statusAnfrageBestaetigt,
+  anfrage_abgelehnt: brand.labels.statusAnfrageAbgelehnt,
 };
 
 export function StatusBadge({

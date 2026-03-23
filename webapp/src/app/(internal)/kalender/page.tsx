@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader";
+import { brand } from "@/config/brand";
 import { CalendarShell } from "@/features/calendar/components/CalendarShell";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -12,8 +13,14 @@ export default async function KalenderPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <PageHeader title="Kalender" />
-      <Suspense fallback={<p className="text-sm text-sk-ink/60">Kalender wird geladen…</p>}>
+      <PageHeader title={brand.labels.navCalendar} />
+      <Suspense
+        fallback={
+          <p className="text-sm text-sk-ink/60">
+            {brand.labels.navCalendar} wird geladen…
+          </p>
+        }
+      >
         <CalendarShell
           userId={session.user.id}
           isAdmin={session.user.role === "admin"}

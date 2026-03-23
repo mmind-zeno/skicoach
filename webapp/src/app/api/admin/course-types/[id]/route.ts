@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { courseTypes } from "../../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
+import { brand } from "@/config/brand";
 import { getDb } from "@/lib/db";
 
 function isPostgresFkViolation(e: unknown): boolean {
@@ -36,7 +37,10 @@ export async function PATCH(
   if (typeof json.isPublic === "boolean") patch.isPublic = json.isPublic;
   if (typeof json.isActive === "boolean") patch.isActive = json.isActive;
   if (Object.keys(patch).length === 0) {
-    return NextResponse.json({ error: "Keine Felder" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiPatchNoFields },
+      { status: 400 }
+    );
   }
   const res = await getDb()
     .update(courseTypes)
@@ -44,7 +48,10 @@ export async function PATCH(
     .where(eq(courseTypes.id, params.id))
     .returning();
   if (res.length === 0) {
-    return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
+    return NextResponse.json(
+      { error: brand.labels.apiNotFound },
+      { status: 404 }
+    );
   }
   return NextResponse.json(res[0]);
 }
@@ -60,7 +67,10 @@ export async function DELETE(
       .where(eq(courseTypes.id, params.id))
       .returning({ id: courseTypes.id });
     if (res.length === 0) {
-      return NextResponse.json({ error: "Kurstyp nicht gefunden" }, { status: 404 });
+      return NextResponse.json(
+        { error: `${brand.labels.serviceTypeSingular} nicht gefunden` },
+        { status: 404 }
+      );
     }
     await writeAuditLog({
       actorUserId: session.user.id,
@@ -73,8 +83,7 @@ export async function DELETE(
     if (isPostgresFkViolation(e)) {
       return NextResponse.json(
         {
-          error:
-            "Kurstyp ist noch mit Buchungen oder Anfragen verknüpft und kann nicht gelöscht werden.",
+          error: `${brand.labels.serviceTypeSingular} ist noch mit ${brand.labels.bookingPlural} oder ${brand.labels.bookingRequestPlural} verknüpft und kann nicht gelöscht werden.`,
         },
         { status: 409 }
       );

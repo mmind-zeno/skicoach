@@ -1,6 +1,7 @@
 "use client";
 
 import type { GuestListItem } from "../types";
+import { brand } from "@/config/brand";
 
 export function GuestList({
   guests,
@@ -16,13 +17,16 @@ export function GuestList({
   return (
     <div className="flex h-full min-h-[420px] flex-col rounded-lg border border-sk-ink/10 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-sk-ink/10 p-3">
-        <span className="text-sm font-medium text-sk-ink">Gästeliste</span>
+        <span className="text-sm font-medium text-sk-ink">
+          {brand.labels.clientPlural}
+          {brand.labels.guestListTitleSuffix}
+        </span>
         <button
           type="button"
           onClick={onNew}
           className="rounded bg-sk-brand px-3 py-2 text-sm font-medium text-white hover:bg-sk-hover"
         >
-          + Neu
+          {brand.labels.guestListNewButton}
         </button>
       </div>
       <div className="flex-1 overflow-auto">
@@ -33,9 +37,14 @@ export function GuestList({
               <th className="px-3 py-2 hidden sm:table-cell">E-Mail</th>
               <th className="px-3 py-2">Tel.</th>
               <th className="px-3 py-2 hidden lg:table-cell">Firma</th>
-              <th className="px-3 py-2">Niveau</th>
+              <th className="px-3 py-2">
+                {brand.labels.clientSkillFilterLabel}
+              </th>
               <th className="px-3 py-2 w-12 text-center">#</th>
-              <th className="px-3 py-2 hidden md:table-cell">Letzte Buchung</th>
+              <th className="px-3 py-2 hidden md:table-cell">
+                {brand.labels.guestListLastBookingPrefix}{" "}
+                {brand.labels.bookingSingular}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -49,11 +58,13 @@ export function GuestList({
               >
                 <td className="px-3 py-2 font-medium text-sk-ink">{g.name}</td>
                 <td className="px-3 py-2 text-sk-ink/70 hidden sm:table-cell">
-                  {g.email ?? "—"}
+                  {g.email ?? brand.labels.uiEmDash}
                 </td>
-                <td className="px-3 py-2 text-sk-ink/70">{g.phone ?? "—"}</td>
+                <td className="px-3 py-2 text-sk-ink/70">
+                  {g.phone ?? brand.labels.uiEmDash}
+                </td>
                 <td className="px-3 py-2 text-sk-ink/60 hidden lg:table-cell">
-                  {g.company ?? "—"}
+                  {g.company ?? brand.labels.uiEmDash}
                 </td>
                 <td className="px-3 py-2 text-xs capitalize">{g.niveau}</td>
                 <td className="px-3 py-2 text-center text-xs text-sk-ink/70">
@@ -68,7 +79,10 @@ export function GuestList({
         </table>
         {guests.length === 0 ? (
           <p className="p-4 text-center text-sm text-sk-ink/50">
-            Keine Gäste — Suche anpassen oder neu anlegen.
+            {brand.labels.guestListEmptyTemplate.replace(
+              "{clients}",
+              brand.labels.clientPlural
+            )}
           </p>
         ) : null}
       </div>

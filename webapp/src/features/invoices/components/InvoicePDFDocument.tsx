@@ -5,6 +5,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { brand } from "@/config/brand";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
@@ -65,25 +66,27 @@ export function InvoicePDFDocument({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.brand}>skicoach.li</Text>
-          <Text>Liechtenstein</Text>
+          <Text style={styles.brand}>{brand.invoiceBrandHeader}</Text>
+          <Text>{brand.issuerLocation}</Text>
         </View>
-        <Text style={styles.h1}>Rechnung {invoiceNumber}</Text>
+        <Text style={styles.h1}>
+          {brand.labels.invoiceSingular} {invoiceNumber}
+        </Text>
 
         <View style={styles.row}>
-          <Text style={styles.label}>Datum</Text>
+          <Text style={styles.label}>{brand.labels.invoiceTableDate}</Text>
           <Text>{dateStr}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Gast</Text>
+          <Text style={styles.label}>{brand.labels.clientSingular}</Text>
           <Text>
             {guestName}
             {guestEmail ? ` · ${guestEmail}` : ""}
           </Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Lehrkraft</Text>
-          <Text>{teacherName ?? "—"}</Text>
+          <Text style={styles.label}>{brand.labels.staffSingular}</Text>
+          <Text>{teacherName ?? brand.labels.uiEmDash}</Text>
         </View>
 
         <View style={styles.table}>
@@ -101,30 +104,42 @@ export function InvoicePDFDocument({
 
         <View style={styles.totals}>
           <View style={styles.totalRow}>
-            <Text>Netto</Text>
+            <Text>{brand.labels.invoicePdfNet}</Text>
             <Text>{netCHF}</Text>
           </View>
           <View style={styles.totalRow}>
-            <Text>MwSt. {vatPercent}%</Text>
+            <Text>
+              {brand.labels.invoicePdfVatTemplate.replace(
+                "{percent}",
+                vatPercent
+              )}
+            </Text>
             <Text>{vatCHF}</Text>
           </View>
           <View style={[styles.totalRow, { fontWeight: "bold", marginTop: 6 }]}>
-            <Text>Total CHF</Text>
+            <Text>{brand.labels.invoicePdfTotalChf}</Text>
             <Text>{amountBrutto}</Text>
           </View>
         </View>
 
         {(bankName || bankIban) ? (
           <View style={{ marginTop: 40 }}>
-            <Text style={{ fontWeight: "bold", marginBottom: 6 }}>Zahlungsinformationen</Text>
+            <Text style={{ fontWeight: "bold", marginBottom: 6 }}>
+              {brand.labels.invoicePdfPaymentInfo}
+            </Text>
             {bankName ? <Text>{bankName}</Text> : null}
-            {bankIban ? <Text>IBAN: {bankIban}</Text> : null}
+            {bankIban ? (
+              <Text>
+                {brand.labels.invoicePdfIbanPrefix} {bankIban}
+              </Text>
+            ) : null}
             {bankAddress ? <Text>{bankAddress}</Text> : null}
           </View>
         ) : null}
 
         <Text style={styles.footer}>
-          skicoach.li · Liechtenstein · Rechnung {invoiceNumber}
+          {brand.invoiceFooterBase} · {brand.labels.invoiceSingular}{" "}
+          {invoiceNumber}
         </Text>
       </Page>
     </Document>

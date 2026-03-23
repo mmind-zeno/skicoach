@@ -3,6 +3,7 @@
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { StatusBadgeVariant } from "@/lib/colors";
 import { useState } from "react";
+import { brand } from "@/config/brand";
 import useSWR from "swr";
 
 function requestStatusVariant(status: string): StatusBadgeVariant {
@@ -48,27 +49,26 @@ export function BookingRequestsAdmin() {
         <table className="w-full text-left text-sm">
           <thead className="bg-sk-surface text-xs text-sk-ink/60">
             <tr>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">Gast</th>
-              <th className="px-3 py-2">Kurs</th>
-              <th className="px-3 py-2">Datum</th>
-              <th className="px-3 py-2">Aktion</th>
+              <th className="px-3 py-2">{brand.labels.fieldStatus}</th>
+              <th className="px-3 py-2">{brand.labels.clientSingular}</th>
+              <th className="px-3 py-2">{brand.labels.serviceSingular}</th>
+              <th className="px-3 py-2">{brand.labels.invoiceTableDate}</th>
+              <th className="px-3 py-2">{brand.labels.tableColAction}</th>
             </tr>
           </thead>
           <tbody>
             {data?.map((r) => (
               <tr key={r.id} className="border-t border-sk-ink/5">
                 <td className="px-3 py-2">
-                  <StatusBadge
-                    variant={requestStatusVariant(r.status)}
-                    label={r.status}
-                  />
+                  <StatusBadge variant={requestStatusVariant(r.status)} />
                 </td>
                 <td className="px-3 py-2">
                   {r.guestName}
                   <div className="text-xs text-sk-ink/50">{r.guestEmail}</div>
                 </td>
-                <td className="px-3 py-2">{r.courseType?.name ?? "—"}</td>
+                <td className="px-3 py-2">
+                  {r.courseType?.name ?? brand.labels.uiEmDash}
+                </td>
                 <td className="px-3 py-2 text-xs">
                   {String(r.date).slice(0, 10)} {r.startTime.slice(0, 5)}
                 </td>
@@ -83,14 +83,14 @@ export function BookingRequestsAdmin() {
                           setTeacherId(teachers?.[0]?.id ?? "");
                         }}
                       >
-                        Bestätigen
+                        {brand.labels.adminRequestConfirm}
                       </button>
                       <button
                         type="button"
                         className="text-red-600 underline"
                         onClick={() => setRejectId(r.id)}
                       >
-                        Ablehnen
+                        {brand.labels.adminRequestReject}
                       </button>
                     </>
                   ) : null}
@@ -104,7 +104,9 @@ export function BookingRequestsAdmin() {
       {pick ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h3 className="font-semibold text-sk-ink">Lehrer zuweisen</h3>
+            <h3 className="font-semibold text-sk-ink">
+              {brand.labels.staffCollectivePlural} zuweisen
+            </h3>
             <select
               className="mt-3 w-full rounded border px-2 py-2 text-sm"
               value={teacherId}
@@ -122,7 +124,7 @@ export function BookingRequestsAdmin() {
                 className="rounded px-3 py-2 text-sm"
                 onClick={() => setPick(null)}
               >
-                Abbrechen
+                {brand.labels.uiCancel}
               </button>
               <button
                 type="button"
@@ -137,7 +139,7 @@ export function BookingRequestsAdmin() {
                   void mutate();
                 }}
               >
-                Buchung anlegen
+                {brand.labels.bookingSingular} anlegen
               </button>
             </div>
           </div>
@@ -147,10 +149,12 @@ export function BookingRequestsAdmin() {
       {rejectId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h3 className="font-semibold text-sk-ink">Anfrage ablehnen</h3>
+            <h3 className="font-semibold text-sk-ink">
+              {brand.labels.bookingRequestSingular} ablehnen
+            </h3>
             <textarea
               className="mt-3 w-full rounded border px-2 py-2 text-sm"
-              placeholder="Grund (optional)"
+              placeholder={brand.labels.placeholderRejectReasonOptional}
               rows={3}
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
@@ -180,7 +184,7 @@ export function BookingRequestsAdmin() {
                   void mutate();
                 }}
               >
-                Ablehnen
+                {brand.labels.adminRequestReject}
               </button>
             </div>
           </div>

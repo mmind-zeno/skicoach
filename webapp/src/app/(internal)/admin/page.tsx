@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/ui/PageHeader";
+import { brand } from "@/config/brand";
 import { AdminHome } from "@/features/admin/components/AdminHome";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -10,7 +11,7 @@ export default async function AdminPage() {
 
   return (
     <div className="p-4 md:p-6">
-      <PageHeader title="Admin" />
+      <PageHeader title={brand.labels.navAdmin} />
       <AdminHome />
     </div>
   );

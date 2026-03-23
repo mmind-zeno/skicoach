@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { brand } from "@/config/brand";
 
 export const metadata: Metadata = {
-  title: "Anmelden · skicoach",
-  description: "Team-Login per Magic-Link",
+  title: `Anmelden · ${brand.siteName}`,
+  description: `${brand.labels.teamLoginHome} per Magic-Link`,
 };
 
 export default function LoginLayout({

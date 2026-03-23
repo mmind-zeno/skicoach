@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { brand } from "@/config/brand";
 import type { GuestNiveau } from "../types";
 
 export function GuestCreateModal({
@@ -25,7 +26,7 @@ export function GuestCreateModal({
   async function submit() {
     setErr(null);
     if (name.trim().length < 2) {
-      setErr("Name erforderlich");
+      setErr(brand.labels.uiNameRequired);
       return;
     }
     setLoading(true);
@@ -46,7 +47,9 @@ export function GuestCreateModal({
       });
       if (!r.ok) {
         const j = await r.json().catch(() => ({}));
-        setErr((j as { error?: string }).error ?? "Fehler");
+        setErr(
+          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+        );
         return;
       }
       setName("");
@@ -67,7 +70,9 @@ export function GuestCreateModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-        <h2 className="text-lg font-semibold text-sk-ink">Neuer Gast</h2>
+        <h2 className="text-lg font-semibold text-sk-ink">
+          Neuer {brand.labels.clientSingular}
+        </h2>
         <div className="mt-4 space-y-3 text-sm">
           <label className="block text-sk-ink">
             Name *
@@ -108,19 +113,21 @@ export function GuestCreateModal({
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
               value={crmSource}
               onChange={(e) => setCrmSource(e.target.value)}
-              placeholder="z. B. Website, Empfehlung"
+              placeholder={brand.labels.placeholderCrmSourceExample}
             />
           </label>
           <label className="block text-sk-ink">
-            Niveau
+            {brand.labels.clientSkillFilterLabel}
             <select
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
               value={niveau}
               onChange={(e) => setNiveau(e.target.value as GuestNiveau)}
             >
-              <option value="anfaenger">Anfänger</option>
-              <option value="fortgeschritten">Fortgeschritten</option>
-              <option value="experte">Experte</option>
+              <option value="anfaenger">{brand.labels.niveauAnfaenger}</option>
+              <option value="fortgeschritten">
+                {brand.labels.niveauFortgeschritten}
+              </option>
+              <option value="experte">{brand.labels.niveauExperte}</option>
             </select>
           </label>
           <label className="block text-sk-ink">
@@ -140,7 +147,7 @@ export function GuestCreateModal({
             className="rounded px-3 py-2 text-sk-ink hover:bg-sk-surface"
             onClick={onClose}
           >
-            Abbrechen
+            {brand.labels.uiCancel}
           </button>
           <button
             type="button"
@@ -148,7 +155,7 @@ export function GuestCreateModal({
             className="rounded bg-sk-brand px-3 py-2 text-white hover:bg-sk-hover disabled:opacity-50"
             onClick={() => void submit()}
           >
-            Speichern
+            {brand.labels.uiSave}
           </button>
         </div>
       </div>

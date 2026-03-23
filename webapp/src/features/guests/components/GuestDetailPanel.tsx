@@ -5,13 +5,8 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import type { GuestContactKind, GuestNiveau, GuestWithBookings } from "../types";
 import { useGuestMutations } from "../hooks/useGuests";
-
-const KIND_LABELS: Record<GuestContactKind, string> = {
-  note: "Notiz",
-  call: "Anruf",
-  email: "E-Mail",
-  meeting: "Treffen",
-};
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { brand } from "@/config/brand";
 
 export function GuestDetailPanel({
   guest,
@@ -22,6 +17,13 @@ export function GuestDetailPanel({
   onMutate: () => void;
   onDeleted?: () => void;
 }) {
+  const kindLabels: Record<GuestContactKind, string> = {
+    note: brand.labels.guestContactKindNote,
+    call: brand.labels.guestContactKindCall,
+    email: brand.labels.guestContactKindEmail,
+    meeting: brand.labels.guestContactKindMeeting,
+  };
+
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
   const { update, remove, addContact } = useGuestMutations();
@@ -85,7 +87,9 @@ export function GuestDetailPanel({
       setEditing(false);
       onMutate();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Fehler");
+      setErr(
+        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
+      );
     }
   }
 
@@ -93,7 +97,7 @@ export function GuestDetailPanel({
     setContactErr(null);
     const body = contactBody.trim();
     if (body.length < 1) {
-      setContactErr("Text erforderlich");
+      setContactErr(brand.labels.uiContactTextRequired);
       return;
     }
     setContactLoading(true);
@@ -102,7 +106,9 @@ export function GuestDetailPanel({
       setContactBody("");
       onMutate();
     } catch (e) {
-      setContactErr(e instanceof Error ? e.message : "Fehler");
+      setContactErr(
+        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
+      );
     } finally {
       setContactLoading(false);
     }
@@ -110,13 +116,18 @@ export function GuestDetailPanel({
 
   async function del() {
     if (!isAdmin) return;
-    if (!confirm("Gast endgültig löschen?")) return;
+    if (
+      !confirm(`${brand.labels.clientSingular} endgültig löschen?`)
+    )
+      return;
     try {
       await remove(guest.id);
       onDeleted?.();
       onMutate();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Fehler");
+      alert(
+        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
+      );
     }
   }
 
@@ -127,8 +138,11 @@ export function GuestDetailPanel({
           <h2 className="text-lg font-semibold text-sk-ink">{guest.name}</h2>
           {guest.openInvoicesCount > 0 ? (
             <span className="mt-1 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-900">
-              {guest.openInvoicesCount} offene Rechnung
-              {guest.openInvoicesCount > 1 ? "en" : ""}
+              {guest.openInvoicesCount}{" "}
+              {brand.labels.guestOpenInvoicesAdj}{" "}
+              {guest.openInvoicesCount === 1
+                ? brand.labels.invoiceSingular
+                : brand.labels.invoicePlural}
             </span>
           ) : null}
         </div>
@@ -138,7 +152,9 @@ export function GuestDetailPanel({
             className="text-sm text-sk-brand hover:underline"
             onClick={() => setEditing(!editing)}
           >
-            {editing ? "Abbrechen" : "Bearbeiten"}
+            {editing
+              ? brand.labels.uiCancel
+              : brand.labels.uiEdit}
           </button>
         </div>
       </div>
@@ -146,7 +162,7 @@ export function GuestDetailPanel({
       {editing ? (
         <div className="space-y-2 text-sm">
           <label className="block text-sk-ink">
-            Name
+            {brand.labels.labelName}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={name}
@@ -154,7 +170,7 @@ export function GuestDetailPanel({
             />
           </label>
           <label className="block text-sk-ink">
-            E-Mail
+            {brand.labels.labelEmail}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={email}
@@ -162,7 +178,7 @@ export function GuestDetailPanel({
             />
           </label>
           <label className="block text-sk-ink">
-            Telefon
+            {brand.labels.labelPhone}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={phone}
@@ -170,7 +186,7 @@ export function GuestDetailPanel({
             />
           </label>
           <label className="block text-sk-ink">
-            Firma
+            {brand.labels.labelCompany}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={company}
@@ -178,7 +194,7 @@ export function GuestDetailPanel({
             />
           </label>
           <label className="block text-sk-ink">
-            CRM-Quelle (z. B. Website, Empfehlung)
+            {brand.labels.guestCrmSourceLabelExtended}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={crmSource}
@@ -186,28 +202,32 @@ export function GuestDetailPanel({
             />
           </label>
           <label className="block text-sk-ink">
-            Niveau
+            {brand.labels.clientSkillFilterLabel}
             <select
               className="mt-1 w-full rounded border px-2 py-2"
               value={niveau}
               onChange={(e) => setNiveau(e.target.value as GuestNiveau)}
             >
-              <option value="anfaenger">Anfänger</option>
-              <option value="fortgeschritten">Fortgeschritten</option>
-              <option value="experte">Experte</option>
+              <option value="anfaenger">
+                {brand.labels.niveauAnfaenger}
+              </option>
+              <option value="fortgeschritten">
+                {brand.labels.niveauFortgeschritten}
+              </option>
+              <option value="experte">{brand.labels.niveauExperte}</option>
             </select>
           </label>
           <label className="block text-sk-ink">
-            Sprache
+            {brand.labels.labelLanguage}
             <input
               className="mt-1 w-full rounded border px-2 py-2"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              placeholder="de"
+              placeholder={brand.labels.guestPlaceholderLanguage}
             />
           </label>
           <label className="block text-sk-ink">
-            Notizen
+            {brand.labels.fieldNotes}
             <textarea
               className="mt-1 w-full rounded border px-2 py-2"
               rows={3}
@@ -221,44 +241,50 @@ export function GuestDetailPanel({
             className="rounded bg-sk-brand px-3 py-2 text-white"
             onClick={() => void save()}
           >
-            Speichern
+            {brand.labels.uiSave}
           </button>
         </div>
       ) : (
         <dl className="space-y-2 text-sm text-sk-ink">
           <div>
-            <dt className="text-sk-ink/50">E-Mail</dt>
-            <dd>{guest.email ?? "—"}</dd>
+            <dt className="text-sk-ink/50">{brand.labels.labelEmail}</dt>
+            <dd>{guest.email ?? brand.labels.uiEmDash}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">Telefon</dt>
-            <dd>{guest.phone ?? "—"}</dd>
+            <dt className="text-sk-ink/50">{brand.labels.labelPhone}</dt>
+            <dd>{guest.phone ?? brand.labels.uiEmDash}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">Firma</dt>
-            <dd>{guest.company ?? "—"}</dd>
+            <dt className="text-sk-ink/50">{brand.labels.labelCompany}</dt>
+            <dd>{guest.company ?? brand.labels.uiEmDash}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">CRM-Quelle</dt>
-            <dd>{guest.crmSource ?? "—"}</dd>
+            <dt className="text-sk-ink/50">{brand.labels.labelCrmSource}</dt>
+            <dd>{guest.crmSource ?? brand.labels.uiEmDash}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">Niveau</dt>
+            <dt className="text-sk-ink/50">
+              {brand.labels.clientSkillFilterLabel}
+            </dt>
             <dd className="capitalize">{guest.niveau}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">Sprache</dt>
+            <dt className="text-sk-ink/50">{brand.labels.labelLanguage}</dt>
             <dd>{guest.language}</dd>
           </div>
           <div>
-            <dt className="text-sk-ink/50">Notizen</dt>
-            <dd className="whitespace-pre-wrap">{guest.notes ?? "—"}</dd>
+            <dt className="text-sk-ink/50">{brand.labels.fieldNotes}</dt>
+            <dd className="whitespace-pre-wrap">
+              {guest.notes ?? brand.labels.uiEmDash}
+            </dd>
           </div>
         </dl>
       )}
 
       <div className="mt-4 border-t border-sk-ink/10 pt-4">
-        <h3 className="text-sm font-medium text-sk-ink">Aktivität &amp; Kontakte</h3>
+        <h3 className="text-sm font-medium text-sk-ink">
+          {brand.labels.guestActivityHeading}
+        </h3>
         <ul className="mt-2 max-h-52 space-y-2 overflow-y-auto text-sm">
           {guest.contacts.map((c) => (
             <li
@@ -273,7 +299,8 @@ export function GuestDetailPanel({
                   })}
                 </span>
                 <span>
-                  {KIND_LABELS[c.kind]} · {c.authorName ?? "Team"}
+                  {kindLabels[c.kind]} ·{" "}
+                  {c.authorName ?? brand.labels.navTeam}
                 </span>
               </div>
               <p className="mt-1 whitespace-pre-wrap text-sk-ink">{c.body}</p>
@@ -281,19 +308,21 @@ export function GuestDetailPanel({
           ))}
         </ul>
         {guest.contacts.length === 0 ? (
-          <p className="text-xs text-sk-ink/50">Noch keine Einträge.</p>
+          <p className="text-xs text-sk-ink/50">
+            {brand.labels.uiNoEntriesYet}
+          </p>
         ) : null}
         <div className="mt-3 space-y-2 border-t border-sk-ink/10 pt-3">
           <label className="block text-xs text-sk-ink/70">
-            Neuer Eintrag
+            {brand.labels.guestContactNewEntryLabel}
             <select
               className="mt-1 w-full rounded border px-2 py-1.5 text-sm text-sk-ink"
               value={contactKind}
               onChange={(e) => setContactKind(e.target.value as GuestContactKind)}
             >
-              {(Object.keys(KIND_LABELS) as GuestContactKind[]).map((k) => (
+              {(Object.keys(kindLabels) as GuestContactKind[]).map((k) => (
                 <option key={k} value={k}>
-                  {KIND_LABELS[k]}
+                  {kindLabels[k]}
                 </option>
               ))}
             </select>
@@ -301,7 +330,7 @@ export function GuestDetailPanel({
           <textarea
             className="w-full rounded border px-2 py-2 text-sm"
             rows={3}
-            placeholder="Gespräch, Follow-up, interne Notiz …"
+            placeholder={brand.labels.placeholderGuestContactBody}
             value={contactBody}
             onChange={(e) => setContactBody(e.target.value)}
           />
@@ -312,13 +341,17 @@ export function GuestDetailPanel({
             className="rounded bg-sk-brand px-3 py-2 text-sm text-white disabled:opacity-50"
             onClick={() => void submitContact()}
           >
-            {contactLoading ? "…" : "Eintrag speichern"}
+            {contactLoading
+              ? brand.labels.uiSaveInProgress
+              : brand.labels.guestContactSaveButton}
           </button>
         </div>
       </div>
 
       <div className="mt-4 border-t border-sk-ink/10 pt-4">
-        <h3 className="text-sm font-medium text-sk-ink">Buchungen</h3>
+        <h3 className="text-sm font-medium text-sk-ink">
+          {brand.labels.bookingPlural}
+        </h3>
         <ul className="mt-2 max-h-48 space-y-2 overflow-y-auto text-sm">
           {guest.bookings.map((b) => (
             <li
@@ -328,14 +361,23 @@ export function GuestDetailPanel({
               <div className="font-medium">
                 {b.date} {b.startTime.slice(0, 5)} · {b.courseTypeName}
               </div>
-              <div className="text-xs text-sk-ink/60">
-                {b.teacherName} · {b.status} · {b.priceCHF} CHF
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-sk-ink/60">
+                <span>{b.teacherName ?? brand.labels.uiEmDash}</span>
+                <span>·</span>
+                <StatusBadge variant={b.status} />
+                <span>·</span>
+                <span>{b.priceCHF} CHF</span>
               </div>
             </li>
           ))}
         </ul>
         {guest.bookings.length === 0 ? (
-          <p className="text-xs text-sk-ink/50">Noch keine Buchungen.</p>
+          <p className="text-xs text-sk-ink/50">
+            {brand.labels.guestNoBookingsYetTemplate.replace(
+              "{bookings}",
+              brand.labels.bookingPlural
+            )}
+          </p>
         ) : null}
       </div>
 
@@ -344,7 +386,10 @@ export function GuestDetailPanel({
           href={`/kalender?guestId=${guest.id}`}
           className="rounded border border-sk-brand px-3 py-2 text-sm text-sk-brand hover:bg-[#E8F0FA]"
         >
-          Neuer Termin (Kalender)
+          {brand.labels.guestNewAppointmentCalendarTemplate.replace(
+            "{appointment}",
+            brand.labels.appointmentSingular
+          )}
         </Link>
         {isAdmin ? (
           <button
@@ -352,7 +397,7 @@ export function GuestDetailPanel({
             className="rounded border border-red-200 px-3 py-2 text-sm text-red-700"
             onClick={() => void del()}
           >
-            Löschen
+            {brand.labels.uiDelete}
           </button>
         ) : null}
       </div>

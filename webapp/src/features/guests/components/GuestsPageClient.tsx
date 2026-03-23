@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { brand } from "@/config/brand";
 import { GuestCreateModal } from "./GuestCreateModal";
 import { GuestDetailPanel } from "./GuestDetailPanel";
 import { GuestList } from "./GuestList";
@@ -33,30 +34,34 @@ export function GuestsPageClient() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-sm text-sk-ink">
-          Suche
+          {brand.labels.labelSearch}
           <input
             type="search"
             className="mt-1 block w-56 rounded border border-sk-ink/20 px-2 py-2"
-            placeholder="Name oder E-Mail…"
+            placeholder={brand.labels.placeholderClientSearch}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </label>
         <label className="text-sm text-sk-ink">
-          Niveau
+          {brand.labels.clientSkillFilterLabel}
           <select
             className="mt-1 block rounded border border-sk-ink/20 px-2 py-2"
             value={niveau}
             onChange={(e) => setNiveau(e.target.value)}
           >
-            <option value="">Alle</option>
-            <option value="anfaenger">Anfänger</option>
-            <option value="fortgeschritten">Fortgeschritten</option>
-            <option value="experte">Experte</option>
+            <option value="">{brand.labels.uiFilterAll}</option>
+            <option value="anfaenger">{brand.labels.niveauAnfaenger}</option>
+            <option value="fortgeschritten">
+              {brand.labels.niveauFortgeschritten}
+            </option>
+            <option value="experte">{brand.labels.niveauExperte}</option>
           </select>
         </label>
         {isLoading ? (
-          <span className="text-xs text-sk-ink/50">Laden…</span>
+          <span className="text-xs text-sk-ink/50">
+            {brand.labels.uiLoadingEllipsis}
+          </span>
         ) : null}
       </div>
 
@@ -77,7 +82,10 @@ export function GuestsPageClient() {
           </div>
         ) : (
           <div className="hidden rounded-lg border border-dashed border-sk-ink/20 p-8 text-center text-sm text-sk-ink/50 lg:block">
-            Gast auswählen …
+            {brand.labels.guestPageSelectClientHintTemplate.replace(
+              "{client}",
+              brand.labels.clientSingular
+            )}
           </div>
         )}
       </div>

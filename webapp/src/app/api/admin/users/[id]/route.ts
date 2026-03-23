@@ -4,10 +4,11 @@ import { users } from "../../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
 import { AppError, NotFoundError, ValidationError } from "@/lib/errors";
+import { brand } from "@/config/brand";
 import { getDb } from "@/lib/db";
 
-const LAST_ADMIN =
-  "Der letzte aktive Admin kann nicht deaktiviert oder zum Lehrer gemacht werden";
+const lastActiveAdminBlocked = () =>
+  `Der letzte aktive Admin kann nicht deaktiviert oder zum ${brand.labels.staffCollectivePlural} gemacht werden`;
 
 async function assertNotSoleActiveAdmin(userId: string) {
   const db = getDb();
@@ -21,7 +22,7 @@ async function assertNotSoleActiveAdmin(userId: string) {
     .from(users)
     .where(and(eq(users.role, "admin"), eq(users.isActive, true)));
   if (Number(row?.c ?? 0) <= 1) {
-    throw new ValidationError(LAST_ADMIN);
+    throw new ValidationError(lastActiveAdminBlocked());
   }
 }
 
@@ -36,7 +37,7 @@ export async function PATCH(
     if (typeof json.isActive === "boolean") {
       if (json.isActive === false && params.id === session.user.id) {
         return NextResponse.json(
-          { error: "Du kannst dich nicht selbst deaktivieren" },
+          { error: brand.labels.apiAdminSelfDeactivateForbidden },
           { status: 400 }
         );
       }
@@ -53,14 +54,19 @@ export async function PATCH(
     }
     if (typeof json.name === "string") patch.name = json.name.trim();
     if (Object.keys(patch).length === 0) {
-      return NextResponse.json({ error: "Keine Felder" }, { status: 400 });
+      return NextResponse.json(
+        { error: brand.labels.apiPatchNoFields },
+        { status: 400 }
+      );
     }
     const res = await getDb()
       .update(users)
       .set(patch)
       .where(eq(users.id, params.id))
       .returning({ id: users.id });
-    if (res.length === 0) throw new NotFoundError("Nutzer nicht gefunden");
+    if (res.length === 0) {
+      throw new NotFoundError(brand.labels.apiAdminUserNotFound);
+    }
     await writeAuditLog({
       actorUserId: session.user.id,
       action: "admin.user.patch",
@@ -85,7 +91,7 @@ export async function DELETE(
     const session = await requireAdminSession();
     if (params.id === session.user.id) {
       return NextResponse.json(
-        { error: "Du kannst dich nicht selbst deaktivieren" },
+        { error: brand.labels.apiAdminSelfDeactivateForbidden },
         { status: 400 }
       );
     }
@@ -96,7 +102,10 @@ export async function DELETE(
       .where(eq(users.id, params.id))
       .returning({ id: users.id });
     if (res.length === 0) {
-      return NextResponse.json({ error: "Nicht gefunden" }, { status: 404 });
+      return NextResponse.json(
+        { error: brand.labels.apiNotFound },
+        { status: 404 }
+      );
     }
     await writeAuditLog({
       actorUserId: session.user.id,

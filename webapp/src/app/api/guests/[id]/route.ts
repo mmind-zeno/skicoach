@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { requireAdminSession, requireAuthSession } from "@/lib/auth-helpers";
 import { AppError } from "@/lib/errors";
 import { updateGuestBodySchema } from "@/lib/validators/guest-full";
@@ -47,7 +48,10 @@ export async function PATCH(
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
 }
 

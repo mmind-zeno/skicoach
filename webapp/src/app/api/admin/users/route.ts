@@ -7,6 +7,7 @@ import { AppError } from "@/lib/errors";
 import { getDb } from "@/lib/db";
 import { sendTeacherInviteMagicLink } from "@/lib/invite-magic-link";
 import { consumeRateLimitBucket } from "@/lib/rate-limit-db";
+import { brand } from "@/config/brand";
 
 export async function GET() {
   await requireAdminSession();
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
     }
     if (!allowed) {
       return NextResponse.json(
-        { error: "Zu viele Einladungen. Bitte später erneut." },
+        { error: brand.labels.apiAdminInviteRateLimited },
         { status: 429 }
       );
     }
@@ -49,9 +50,12 @@ export async function POST(request: Request) {
     const name =
       typeof json.name === "string" && json.name.trim()
         ? json.name.trim()
-        : email.split("@")[0] ?? "Lehrkraft";
+        : email.split("@")[0] ?? brand.labels.staffSingular;
     if (!email.includes("@")) {
-      return NextResponse.json({ error: "Ungültige E-Mail" }, { status: 400 });
+      return NextResponse.json(
+        { error: brand.labels.apiInvalidEmail },
+        { status: 400 }
+      );
     }
     const db = getDb();
     const exists = await db.query.users.findFirst({
@@ -60,8 +64,7 @@ export async function POST(request: Request) {
     if (exists) {
       return NextResponse.json(
         {
-          error:
-            "Nutzer existiert bereits. Magic-Link erneut senden: in der Tabelle „Link erneut“ nutzen.",
+          error: brand.labels.apiAdminUserExists,
           code: "USER_EXISTS",
         },
         { status: 409 }
@@ -86,6 +89,9 @@ export async function POST(request: Request) {
     if (e instanceof AppError) {
       return NextResponse.json({ error: e.message }, { status: e.statusCode });
     }
-    return NextResponse.json({ error: "Fehler beim Einladen" }, { status: 500 });
+    return NextResponse.json(
+      { error: brand.labels.apiInviteFailed },
+      { status: 500 }
+    );
   }
 }

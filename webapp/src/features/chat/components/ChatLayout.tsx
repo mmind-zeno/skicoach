@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
+import { brand } from "@/config/brand";
 import { disconnectChatSocket, getChatSocket } from "@/lib/socket";
 
 type Channel = { id: string; name: string; isGeneral: boolean };
@@ -179,12 +180,16 @@ export function ChatLayout() {
               : "rounded-full bg-sk-surface px-2 py-0.5 text-sk-ink/70"
           }
         >
-          {sockLive ? "Live (Socket.io)" : "Polling"}
+          {sockLive
+            ? brand.labels.chatConnectionLive
+            : brand.labels.chatConnectionPolling}
         </span>
       </div>
       <div className="flex min-h-0 flex-1">
         <aside className="w-52 shrink-0 border-r border-sk-ink/10 p-2 text-sm">
-          <div className="font-medium text-sk-ink/70">Kanäle</div>
+          <div className="font-medium text-sk-ink/70">
+            {brand.labels.chatChannelsHeading}
+          </div>
           <ul className="mt-1 space-y-1">
             {channels?.map((c) => (
               <li key={c.id}>
@@ -205,7 +210,9 @@ export function ChatLayout() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 font-medium text-sk-ink/70">Direkt</div>
+          <div className="mt-4 font-medium text-sk-ink/70">
+            {brand.labels.chatDirectHeading}
+          </div>
           <ul className="mt-1 max-h-40 space-y-1 overflow-y-auto">
             {users?.map((u) => (
               <li key={u.id}>
@@ -262,7 +269,7 @@ export function ChatLayout() {
             <div className="flex gap-2">
               <textarea
                 className="min-h-[40px] flex-1 resize-none rounded border border-sk-ink/20 px-2 py-2 text-sm"
-                placeholder="Nachricht… (Enter sendet, Shift+Enter Zeile)"
+                placeholder={brand.labels.chatComposerPlaceholder}
                 value={text}
                 rows={2}
                 onChange={(e) => setText(e.target.value)}
@@ -278,7 +285,7 @@ export function ChatLayout() {
                 className="self-end rounded bg-sk-brand px-3 py-2 text-sm text-white hover:bg-sk-hover"
                 onClick={() => void send()}
               >
-                Senden
+                {brand.labels.chatSendButton}
               </button>
             </div>
           </div>

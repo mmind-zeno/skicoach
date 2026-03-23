@@ -1,5 +1,6 @@
 import { asc } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 import { courseTypes } from "../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
@@ -21,7 +22,10 @@ export async function POST(request: Request) {
   const priceCHF = String(json.priceCHF ?? "0");
   const maxParticipants = Number(json.maxParticipants ?? 1);
   if (!name || !Number.isFinite(durationMin) || durationMin < 1) {
-    return NextResponse.json({ error: "Ungültige Daten" }, { status: 400 });
+    return NextResponse.json(
+      { error: brand.labels.apiInvalidData },
+      { status: 400 }
+    );
   }
   const [row] = await getDb()
     .insert(courseTypes)
