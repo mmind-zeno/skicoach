@@ -7,10 +7,14 @@ export default function ChatPage() {
     <div className="p-4 md:p-6">
       <PageHeader title={brand.labels.navChat} />
       <p className="mb-4 text-sm text-sk-ink/70">
-        {brand.labels.navTeam}-Kanäle und Direktnachrichten. Mit laufendem{" "}
-        <code className="rounded bg-sk-surface px-1">server.ts</code>{" "}
-        erscheint oben im Chat{" "}
-        <strong>{brand.labels.chatConnectionLive}</strong>; sonst automatisches{" "}
+        {brand.labels.chatPageIntroSegment1Template.replace(
+          "{navTeam}",
+          brand.labels.navTeam
+        )}
+        <code className="rounded bg-sk-surface px-1">server.ts</code>
+        {brand.labels.chatPageIntroSegment2Template}
+        <strong>{brand.labels.chatConnectionLive}</strong>
+        {brand.labels.chatPageIntroSegment3Template}
         {brand.labels.chatConnectionPolling}.
       </p>
       <ChatLayout />

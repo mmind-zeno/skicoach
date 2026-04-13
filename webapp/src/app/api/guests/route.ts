@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
-import { genericApiErrorMessage } from "@/lib/map-db-error";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { createGuestFullBodySchema } from "@/lib/validators/guest-full";
 import { createGuestBodySchema } from "@/lib/validators/guest";
 import { createGuest, findAll } from "@/services/guest.service";
@@ -17,14 +16,7 @@ export async function GET(request: Request) {
     const rows = await findAll(q, niveau ?? undefined, limit);
     return NextResponse.json(rows);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    console.error("[GET /api/guests]", e);
-    return NextResponse.json(
-      { error: genericApiErrorMessage(e) },
-      { status: 500 }
-    );
+    return apiErrorResponse(e, "GET /api/guests");
   }
 }
 
@@ -49,10 +41,7 @@ export async function POST(request: Request) {
     }
     const quick = createGuestBodySchema.safeParse(json);
     if (!quick.success) {
-      return NextResponse.json(
-        { error: brand.labels.apiInvalidData },
-        { status: 400 }
-      );
+      return apiClientError(brand.labels.apiInvalidData, 400, "INVALID_INPUT");
     }
     const qd = quick.data;
     const g = await createGuest({
@@ -62,13 +51,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(g, { status: 201 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    console.error("[POST /api/guests]", e);
-    return NextResponse.json(
-      { error: genericApiErrorMessage(e) },
-      { status: 500 }
-    );
+    return apiErrorResponse(e, "POST /api/guests");
   }
 }

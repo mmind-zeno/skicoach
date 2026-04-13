@@ -89,7 +89,7 @@ export async function findAll(filters?: {
       guestName: g.name,
       guestEmail: g.email,
       bookingDate: d,
-      courseName: b.courseType?.name ?? "—",
+      courseName: b.courseType?.name ?? brand.labels.uiEmDash,
       teacherName: b.teacher?.name ?? b.teacher?.email ?? null,
     };
   });
@@ -146,7 +146,7 @@ export async function findById(id: string): Promise<InvoiceWithDetails> {
     guestName: g.name,
     guestEmail: g.email,
     bookingDate: d,
-    courseName: b.courseType?.name ?? "—",
+    courseName: b.courseType?.name ?? brand.labels.uiEmDash,
     teacherName: b.teacher?.name ?? b.teacher?.email ?? null,
   };
 }
@@ -158,7 +158,9 @@ export async function createFromBooking(bookingId: string): Promise<Invoice> {
   });
   if (existing) {
     throw new ValidationError(
-      `Für diese ${brand.labels.bookingSingular} existiert bereits eine ${brand.labels.invoiceSingular}`
+      brand.labels.msgInvoiceAlreadyForBooking
+        .replace("{booking}", brand.labels.bookingSingular)
+        .replace("{invoice}", brand.labels.invoiceSingular)
     );
   }
   const b = await db.query.bookings.findFirst({

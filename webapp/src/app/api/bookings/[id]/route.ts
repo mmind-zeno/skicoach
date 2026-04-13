@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import type { Session } from "next-auth";
 import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
-import { AppError, ForbiddenError, UnauthorizedError } from "@/lib/errors";
+import { ForbiddenError, UnauthorizedError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { updateBookingBodySchema } from "@/lib/validators/booking";
 import {
   deleteBooking,
   findBookingById,
   updateBooking,
 } from "@/services/booking.service";
+
+export const dynamic = "force-dynamic";
 
 function assertCanEdit(session: Session, teacherId: string) {
   const uid = session.user?.id;
@@ -18,15 +21,12 @@ function assertCanEdit(session: Session, teacherId: string) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401, undefined, undefined, request);
   }
   const { id } = params;
   try {
@@ -34,10 +34,7 @@ export async function GET(
     assertCanEdit(session, booking.teacherId);
     return NextResponse.json(booking);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/bookings/[id]", { request });
   }
 }
 
@@ -47,10 +44,7 @@ export async function PATCH(
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401, undefined, undefined, request);
   }
   const { id } = params;
   try {
@@ -59,34 +53,26 @@ export async function PATCH(
     const json = await request.json();
     const body = updateBookingBodySchema.parse(json);
     if (session.user.role !== "admin" && body.teacherId && body.teacherId !== session.user.id) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     const updated = await updateBooking(id, body);
     return NextResponse.json(updated);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "PATCH /api/bookings/[id]", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+      request,
+    });
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401, undefined, undefined, request);
   }
   const { id } = params;
   try {
@@ -95,9 +81,6 @@ export async function DELETE(
     await deleteBooking(id);
     return new NextResponse(null, { status: 204 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "DELETE /api/bookings/[id]", { request });
   }
 }

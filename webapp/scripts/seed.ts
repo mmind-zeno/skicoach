@@ -15,10 +15,20 @@ import {
   guests,
   users,
 } from "../drizzle/schema";
+import { brand } from "../src/config/brand";
 import { getDb } from "../src/lib/db";
 
 config({ path: resolve(process.cwd(), ".env.local") });
 config({ path: resolve(process.cwd(), ".env") });
+
+/** Demo-Nutzer: admin@… / lehrer{n}@… — Domain per Env (Fork), siehe .env.example */
+const seedEmailDomain =
+  process.env.SEED_EMAIL_DOMAIN?.trim() ||
+  process.env.NEXT_PUBLIC_SITE_DOMAIN?.trim() ||
+  "skicoach.li";
+const seedAdminEmail = (
+  process.env.SEED_ADMIN_EMAIL?.trim() || `admin@${seedEmailDomain}`
+).toLowerCase();
 
 async function ensureUser(opts: {
   email: string;
@@ -50,7 +60,7 @@ async function main() {
   const db = getDb();
 
   const admin = await ensureUser({
-    email: "admin@skicoach.li",
+    email: seedAdminEmail,
     name: "Admin",
     role: "admin",
     colorIndex: 0,
@@ -60,7 +70,7 @@ async function main() {
   for (let i = 1; i <= 4; i++) {
     teacherRows.push(
       await ensureUser({
-        email: `lehrer${i}@skicoach.li`,
+        email: `lehrer${i}@${seedEmailDomain}`,
         name: `Lehrer ${i}`,
         role: "teacher",
         colorIndex: i,
@@ -216,13 +226,7 @@ async function main() {
     limit: 1,
   });
   if (msgCount.length === 0) {
-    const lines = [
-      "Willkommen im Team-Kanal!",
-      "Bitte Termine im Kalender pflegen.",
-      "Bei Fragen: Admin melden.",
-      "Schönes Wochenende!",
-      "Reminder: Anfragen unter Admin prüfen.",
-    ];
+    const lines = brand.demoTeamChannelSeedMessages;
     for (let i = 0; i < lines.length; i++) {
       await db.insert(chatMessages).values({
         channelId: team.id,
@@ -234,12 +238,13 @@ async function main() {
   }
 
   console.log("Seed OK:", {
+    seedEmailDomain,
     admin: admin.email,
     teachers: teacherRows.length,
     courseTypes: [ct1.name, ct2.name, ct3.name],
     guests: guestRows.length,
     teamChannel: team.name,
-    hint: `Heute+10 Termine ab ${format(addDays(new Date(), 10), "yyyy-MM-dd")}`,
+    hint: `Demo bookings: today+10 from ${format(addDays(new Date(), 10), "yyyy-MM-dd")}`,
   });
 }
 

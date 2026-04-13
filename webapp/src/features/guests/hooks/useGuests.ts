@@ -3,15 +3,12 @@
 import { useCallback, useMemo } from "react";
 import useSWR from "swr";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorMessage } from "@/lib/client-error-message";
 import type { GuestListItem, GuestWithBookings } from "../types";
 
-async function fetcher<T>(url: string): Promise<T> {
-  const r = await fetch(url);
-  if (!r.ok) {
-    const j = await r.json().catch(() => ({}));
-    throw new Error((j as { error?: string }).error ?? r.statusText);
-  }
-  return r.json();
+function fetcher<T>(url: string): Promise<T> {
+  return fetchJson<T>(url);
 }
 
 export function useGuestList(search: string, niveau: string) {
@@ -23,7 +20,9 @@ export function useGuestList(search: string, niveau: string) {
     return `/api/guests${qs ? `?${qs}` : ""}`;
   }, [search, niveau]);
 
-  const swr = useSWR<GuestListItem[]>(key, fetcher);
+  const swr = useSWR<GuestListItem[]>(key, fetcher, {
+    keepPreviousData: true,
+  });
   return {
     guests: swr.data ?? [],
     isLoading: swr.isLoading,
@@ -35,7 +34,8 @@ export function useGuestList(search: string, niveau: string) {
 export function useGuestDetail(id: string | null) {
   const swr = useSWR<GuestWithBookings>(
     id ? `/api/guests/${id}` : null,
-    fetcher
+    fetcher,
+    { keepPreviousData: true }
   );
   return {
     guest: swr.data,
@@ -47,59 +47,48 @@ export function useGuestDetail(id: string | null) {
 
 export function useGuestMutations() {
   const create = useCallback(async (body: Record<string, unknown>) => {
-    const r = await fetch("/api/guests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      throw new Error(
-        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-      );
+    try {
+      return await fetchJson<unknown>("/api/guests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (e) {
+      throw new Error(getUiErrorMessage(e, brand.labels.uiErrorGeneric));
     }
-    return r.json();
   }, []);
 
   const update = useCallback(async (id: string, body: Record<string, unknown>) => {
-    const r = await fetch(`/api/guests/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      throw new Error(
-        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-      );
+    try {
+      return await fetchJson<unknown>(`/api/guests/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (e) {
+      throw new Error(getUiErrorMessage(e, brand.labels.uiErrorGeneric));
     }
-    return r.json();
   }, []);
 
   const remove = useCallback(async (id: string) => {
-    const r = await fetch(`/api/guests/${id}`, { method: "DELETE" });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      throw new Error(
-        (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-      );
+    try {
+      await fetchJson<unknown>(`/api/guests/${id}`, { method: "DELETE" });
+    } catch (e) {
+      throw new Error(getUiErrorMessage(e, brand.labels.uiErrorGeneric));
     }
   }, []);
 
   const addContact = useCallback(
     async (guestId: string, body: { kind: string; body: string }) => {
-      const r = await fetch(`/api/guests/${guestId}/contacts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!r.ok) {
-        const j = await r.json().catch(() => ({}));
-        throw new Error(
-          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-        );
+      try {
+        return await fetchJson<unknown>(`/api/guests/${guestId}/contacts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      } catch (e) {
+        throw new Error(getUiErrorMessage(e, brand.labels.uiErrorGeneric));
       }
-      return r.json();
     },
     []
   );

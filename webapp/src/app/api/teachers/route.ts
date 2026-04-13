@@ -3,15 +3,15 @@ import { NextResponse } from "next/server";
 import { users } from "../../../../drizzle/schema";
 import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
+import { apiClientError } from "@/lib/api-error";
 import { getDb } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401);
   }
 
   const rows = await getDb().query.users.findMany({

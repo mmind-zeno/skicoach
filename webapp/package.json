@@ -1,6 +1,6 @@
 {
   "name": "webapp",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch server.ts",
@@ -12,6 +12,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:test": "node node_modules/tsx/dist/cli.mjs scripts/test-db.ts",
+    "check:api-errors": "node node_modules/tsx/dist/cli.mjs scripts/check-api-error.ts",
+    "check:ui-errors": "node node_modules/tsx/dist/cli.mjs scripts/check-client-error-message.ts",
     "db:seed": "node node_modules/tsx/dist/cli.mjs scripts/seed.ts",
     "admin:login-url": "node node_modules/tsx/dist/cli.mjs scripts/issue-admin-login.ts"
   },

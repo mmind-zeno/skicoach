@@ -17,7 +17,10 @@ export default async function KalenderPage() {
       <Suspense
         fallback={
           <p className="text-sm text-sk-ink/60">
-            {brand.labels.navCalendar} wird geladen…
+            {brand.labels.navPageLoadingTemplate.replace(
+              "{navTitle}",
+              brand.labels.navCalendar
+            )}
           </p>
         }
       >

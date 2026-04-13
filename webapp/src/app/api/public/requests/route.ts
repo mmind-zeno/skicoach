@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
+import { apiClientError } from "@/lib/api-error";
 import { clientIp, rateLimitPublicBookingPost } from "@/lib/public-rate-limit";
 import { publicBookingRequestSchema } from "@/lib/validators/public-request";
 import { createPublicRequest } from "@/services/booking-request.service";
@@ -10,10 +11,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   const ip = clientIp(request);
   if (!(await rateLimitPublicBookingPost(ip))) {
-    return NextResponse.json(
-      { error: brand.labels.apiTooManyRequests },
-      { status: 429 }
-    );
+    return apiClientError(brand.labels.apiTooManyRequests, 429, undefined, undefined, request);
   }
   try {
     const json = await request.json();
@@ -24,9 +22,12 @@ export async function POST(request: Request) {
     if (turnstileRequired()) {
       const ok = await verifyTurnstileToken(body.turnstileToken, ip);
       if (!ok) {
-        return NextResponse.json(
-          { error: brand.labels.apiTurnstileFailed },
-          { status: 400 }
+        return apiClientError(
+          brand.labels.apiTurnstileFailed,
+          400,
+          "INVALID_INPUT",
+          undefined,
+          request
         );
       }
     }
@@ -42,9 +43,12 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ success: true, requestId: row.id });
   } catch {
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
+    return apiClientError(
+      brand.labels.apiInvalidData,
+      400,
+      "INVALID_INPUT",
+      undefined,
+      request
     );
   }
 }

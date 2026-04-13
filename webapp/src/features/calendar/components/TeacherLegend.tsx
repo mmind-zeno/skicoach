@@ -14,7 +14,10 @@ export function TeacherLegend({ teachers }: { teachers: TeacherLegendItem[] }) {
   if (teachers.length === 0) {
     return (
       <p className="text-sm text-sk-ink/60">
-        Keine aktiven {brand.labels.staffPlural} geladen.
+        {brand.labels.teacherLegendEmptyTemplate.replace(
+          "{staffPlural}",
+          brand.labels.staffPlural
+        )}
       </p>
     );
   }

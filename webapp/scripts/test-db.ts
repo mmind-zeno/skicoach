@@ -7,7 +7,9 @@ config({ path: resolve(process.cwd(), ".env") });
 
 const url = process.env.DATABASE_URL;
 if (!url) {
-  console.error("DATABASE_URL ist nicht gesetzt (.env / .env.local).");
+  console.error(
+    "DATABASE_URL is not set (check .env / .env.local in the webapp folder)."
+  );
   process.exit(1);
 }
 
@@ -17,7 +19,7 @@ async function main() {
   const client = await pool.connect();
   try {
     await client.query("SELECT 1");
-    console.log("PostgreSQL: Verbindung OK.\n");
+    console.log("PostgreSQL: connection OK.\n");
 
     const tables = await client.query<{ table_name: string }>(
       `SELECT table_name FROM information_schema.tables
@@ -25,7 +27,7 @@ async function main() {
        ORDER BY table_name`
     );
 
-    console.log(`Tabellen (${tables.rows.length}):`);
+    console.log(`Tables (${tables.rows.length}):`);
     for (const { table_name } of tables.rows) {
       if (!/^[a-z_][a-z0-9_]*$/.test(table_name)) continue;
       const c = await client.query(

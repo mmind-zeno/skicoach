@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiErrorResponse } from "@/lib/api-error";
 import { rejectRequest } from "@/services/booking-request.service";
 
 export async function POST(
@@ -24,12 +23,6 @@ export async function POST(
     });
     return NextResponse.json(r);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.uiErrorGeneric },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "POST /api/admin/requests/[id]/reject");
   }
 }

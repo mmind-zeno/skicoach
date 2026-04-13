@@ -4,19 +4,14 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
 
 export function AdminNewRequestToast() {
   const prev = useRef<number | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const { data } = useSWR<{ count: number }>(
     "/api/admin/requests/count",
-    async (url) => {
-      const r = await fetch(url);
-      if (!r.ok) {
-        throw new Error(String(r.status));
-      }
-      return r.json() as Promise<{ count: number }>;
-    },
+    (url) => fetchJson<{ count: number }>(url),
     { refreshInterval: 30_000, keepPreviousData: true }
   );
 
@@ -40,10 +35,16 @@ export function AdminNewRequestToast() {
       role="status"
     >
       <p className="font-medium">
-        Neue {brand.labels.bookingRequestSingular}
+        {brand.labels.adminNewRequestToastTitleTemplate.replace(
+          "{bookingRequest}",
+          brand.labels.bookingRequestSingular
+        )}
       </p>
       <p className="mt-1 text-amber-900/90">
-        Es ist mindestens eine neue {brand.labels.requestSingular} eingegangen.
+        {brand.labels.adminNewRequestToastBodyTemplate.replace(
+          "{requestSingular}",
+          brand.labels.requestSingular
+        )}
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <Link
@@ -51,7 +52,10 @@ export function AdminNewRequestToast() {
           className="font-medium text-sk-brand underline"
           onClick={() => setOpen(false)}
         >
-          Zu den {brand.labels.requestPlural}
+          {brand.labels.adminNewRequestToastCtaTemplate.replace(
+            "{requestPlural}",
+            brand.labels.requestPlural
+          )}
         </Link>
         <button
           type="button"

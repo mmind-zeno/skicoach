@@ -2,16 +2,15 @@ import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auditLogs, users } from "../../../../../drizzle/schema";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
-import { genericApiErrorMessage } from "@/lib/map-db-error";
+import { apiErrorResponse } from "@/lib/api-error";
 import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 function toIso(d: Date | string): string {
-  if (d instanceof Date) return d.toISOString();
-  if (typeof d === "string") return new Date(d).toISOString();
-  return String(d);
+  const date = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(date.getTime())) return String(d);
+  return date.toISOString();
 }
 
 export async function GET(request: Request) {
@@ -51,13 +50,6 @@ export async function GET(request: Request) {
       }))
     );
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    console.error("[GET /api/admin/audit-logs]", e);
-    return NextResponse.json(
-      { error: genericApiErrorMessage(e) },
-      { status: 500 }
-    );
+    return apiErrorResponse(e, "GET /api/admin/audit-logs");
   }
 }

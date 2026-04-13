@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppToast } from "@/components/app-toast";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -7,6 +8,21 @@ import type { GuestContactKind, GuestNiveau, GuestWithBookings } from "../types"
 import { useGuestMutations } from "../hooks/useGuests";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { brand } from "@/config/brand";
+import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
+import { appDateTimeLocale } from "@/lib/locale";
+
+function niveauDisplayLabel(n: GuestNiveau): string {
+  switch (n) {
+    case "anfaenger":
+      return brand.labels.niveauAnfaenger;
+    case "fortgeschritten":
+      return brand.labels.niveauFortgeschritten;
+    case "experte":
+      return brand.labels.niveauExperte;
+    default:
+      return n;
+  }
+}
 
 export function GuestDetailPanel({
   guest,
@@ -17,6 +33,7 @@ export function GuestDetailPanel({
   onMutate: () => void;
   onDeleted?: () => void;
 }) {
+  const { showToast } = useAppToast();
   const kindLabels: Record<GuestContactKind, string> = {
     note: brand.labels.guestContactKindNote,
     call: brand.labels.guestContactKindCall,
@@ -36,11 +53,12 @@ export function GuestDetailPanel({
   const [company, setCompany] = useState(guest.company ?? "");
   const [crmSource, setCrmSource] = useState(guest.crmSource ?? "");
   const [notes, setNotes] = useState(guest.notes ?? "");
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<UiErrorInfo | null>(null);
   const [contactKind, setContactKind] = useState<GuestContactKind>("note");
   const [contactBody, setContactBody] = useState("");
   const [contactLoading, setContactLoading] = useState(false);
-  const [contactErr, setContactErr] = useState<string | null>(null);
+  const [contactErr, setContactErr] = useState<UiErrorInfo | null>(null);
+  const [actionErr, setActionErr] = useState<UiErrorInfo | null>(null);
 
   useEffect(() => {
     setContactBody("");
@@ -48,6 +66,7 @@ export function GuestDetailPanel({
     setContactErr(null);
     setEditing(false);
     setErr(null);
+    setActionErr(null);
   }, [guest.id]);
 
   useEffect(() => {
@@ -79,7 +98,7 @@ export function GuestDetailPanel({
         email: email.trim() || null,
         phone: phone.trim() || null,
         niveau,
-        language: language.trim() || "de",
+        language: language.trim() || brand.defaultGuestLanguage,
         notes: notes.trim() || null,
         company: company.trim() || null,
         crmSource: crmSource.trim() || null,
@@ -87,9 +106,7 @@ export function GuestDetailPanel({
       setEditing(false);
       onMutate();
     } catch (e) {
-      setErr(
-        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
-      );
+      setErr(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
     }
   }
 
@@ -97,18 +114,17 @@ export function GuestDetailPanel({
     setContactErr(null);
     const body = contactBody.trim();
     if (body.length < 1) {
-      setContactErr(brand.labels.uiContactTextRequired);
+      setContactErr({ message: brand.labels.uiContactTextRequired });
       return;
     }
     setContactLoading(true);
     try {
       await addContact(guest.id, { kind: contactKind, body });
       setContactBody("");
+      showToast(brand.labels.guestContactSavedToast, "success");
       onMutate();
     } catch (e) {
-      setContactErr(
-        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
-      );
+      setContactErr(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
     } finally {
       setContactLoading(false);
     }
@@ -117,17 +133,21 @@ export function GuestDetailPanel({
   async function del() {
     if (!isAdmin) return;
     if (
-      !confirm(`${brand.labels.clientSingular} endgültig löschen?`)
+      !confirm(
+        brand.labels.guestConfirmDeletePermanentTemplate.replace(
+          "{client}",
+          brand.labels.clientSingular
+        )
+      )
     )
       return;
     try {
+      setActionErr(null);
       await remove(guest.id);
       onDeleted?.();
       onMutate();
     } catch (e) {
-      alert(
-        e instanceof Error ? e.message : brand.labels.uiErrorGeneric
-      );
+      setActionErr(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
     }
   }
 
@@ -158,6 +178,16 @@ export function GuestDetailPanel({
           </button>
         </div>
       </div>
+      {actionErr ? (
+        <p className="mb-3 text-sm text-red-600" role="alert">
+          {actionErr.message}
+          {actionErr.requestId ? (
+            <span className="block text-xs text-red-700/80">
+              Ref: {actionErr.requestId}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
 
       {editing ? (
         <div className="space-y-2 text-sm">
@@ -235,7 +265,16 @@ export function GuestDetailPanel({
               onChange={(e) => setNotes(e.target.value)}
             />
           </label>
-          {err ? <p className="text-sm text-red-600">{err}</p> : null}
+          {err ? (
+            <p className="text-sm text-red-600" role="alert">
+              {err.message}
+              {err.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {err.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <button
             type="button"
             className="rounded bg-sk-brand px-3 py-2 text-white"
@@ -266,7 +305,7 @@ export function GuestDetailPanel({
             <dt className="text-sk-ink/50">
               {brand.labels.clientSkillFilterLabel}
             </dt>
-            <dd className="capitalize">{guest.niveau}</dd>
+            <dd>{niveauDisplayLabel(guest.niveau)}</dd>
           </div>
           <div>
             <dt className="text-sk-ink/50">{brand.labels.labelLanguage}</dt>
@@ -293,7 +332,7 @@ export function GuestDetailPanel({
             >
               <div className="flex flex-wrap items-baseline justify-between gap-1 text-xs text-sk-ink/50">
                 <span>
-                  {new Date(c.createdAt).toLocaleString("de-CH", {
+                  {new Date(c.createdAt).toLocaleString(appDateTimeLocale, {
                     dateStyle: "short",
                     timeStyle: "short",
                   })}
@@ -334,7 +373,16 @@ export function GuestDetailPanel({
             value={contactBody}
             onChange={(e) => setContactBody(e.target.value)}
           />
-          {contactErr ? <p className="text-xs text-red-600">{contactErr}</p> : null}
+          {contactErr ? (
+            <p className="text-xs text-red-600" role="alert">
+              {contactErr.message}
+              {contactErr.requestId ? (
+                <span className="block text-[11px] text-red-700/80">
+                  Ref: {contactErr.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <button
             type="button"
             disabled={contactLoading}
@@ -366,7 +414,14 @@ export function GuestDetailPanel({
                 <span>·</span>
                 <StatusBadge variant={b.status} />
                 <span>·</span>
-                <span>{b.priceCHF} CHF</span>
+                <span>
+                  {brand.labels.guestBookingListPriceTemplate
+                    .replace("{amount}", b.priceCHF)
+                    .replace(
+                      "{currency}",
+                      brand.labels.invoiceTableCurrency
+                    )}
+                </span>
               </div>
             </li>
           ))}

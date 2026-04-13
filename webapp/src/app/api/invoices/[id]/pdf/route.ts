@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { canAccessInvoice } from "@/services/invoice.service";
 import { generateInvoicePdfBuffer } from "@/services/pdf.service";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const session = await requireAuthSession();
@@ -17,10 +17,7 @@ export async function GET(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     const buf = await generateInvoicePdfBuffer(params.id);
     return new NextResponse(new Uint8Array(buf), {
@@ -30,9 +27,6 @@ export async function GET(
       },
     });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/invoices/[id]/pdf", { request });
   }
 }

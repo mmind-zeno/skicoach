@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { resendTeacherMagicLink } from "@/lib/invite-magic-link";
 import { consumeRateLimitBucket } from "@/lib/rate-limit-db";
 
@@ -20,18 +20,24 @@ export async function POST(request: Request) {
       allowed = true;
     }
     if (!allowed) {
-      return NextResponse.json(
-        { error: brand.labels.apiAdminInviteRateLimited },
-        { status: 429 }
+      return apiClientError(
+        brand.labels.apiAdminInviteRateLimited,
+        429,
+        undefined,
+        undefined,
+        request
       );
     }
 
     const json = await request.json();
     const email = typeof json.email === "string" ? json.email.trim().toLowerCase() : "";
     if (!email.includes("@")) {
-      return NextResponse.json(
-        { error: brand.labels.apiInvalidEmail },
-        { status: 400 }
+      return apiClientError(
+        brand.labels.apiInvalidEmail,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
       );
     }
     await resendTeacherMagicLink(email);
@@ -43,15 +49,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      {
-        error:
-          e instanceof Error ? e.message : brand.labels.apiResendInviteFailed,
-      },
-      { status: 500 }
-    );
+    return apiErrorResponse(e, "POST /api/admin/users/resend-invite", { request });
   }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiErrorResponse } from "@/lib/api-error";
 import { createGuestContactBodySchema } from "@/lib/validators/guest-contact";
 import { addGuestContact } from "@/services/guest.service";
 
@@ -21,12 +21,9 @@ export async function POST(
     );
     return NextResponse.json(entry, { status: 201 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "POST /api/guests/[id]/contacts", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+    });
   }
 }

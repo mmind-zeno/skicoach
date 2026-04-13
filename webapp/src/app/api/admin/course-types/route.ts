@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { courseTypes } from "../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
+import { apiClientError } from "@/lib/api-error";
 import { requireAdminSession } from "@/lib/auth-helpers";
 import { getDb } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   await requireAdminSession();
@@ -22,10 +25,7 @@ export async function POST(request: Request) {
   const priceCHF = String(json.priceCHF ?? "0");
   const maxParticipants = Number(json.maxParticipants ?? 1);
   if (!name || !Number.isFinite(durationMin) || durationMin < 1) {
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiClientError(brand.labels.apiInvalidData, 400, "INVALID_INPUT");
   }
   const [row] = await getDb()
     .insert(courseTypes)

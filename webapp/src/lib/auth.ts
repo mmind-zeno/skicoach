@@ -8,7 +8,7 @@ import { getDb } from "./db";
 import { consumeRateLimitBucket } from "./rate-limit-db";
 import { authAdapterTables, users } from "../../drizzle/schema";
 import { magicLinkHtml, magicLinkText } from "./auth-email-templates";
-import { getAuthResendFromEmail } from "@/config/brand";
+import { brand, getAuthResendFromEmail } from "@/config/brand";
 import { UnauthorizedError, ForbiddenError } from "./errors";
 import type { Session } from "next-auth";
 
@@ -27,9 +27,7 @@ async function enforceMagicLinkRateLimits(
       60_000
     );
     if (!ipOk) {
-      throw new Error(
-        "Zu viele Anmeldeversuche von diesem Netzwerk. Bitte später erneut."
-      );
+      throw new Error(brand.labels.authSignInRateLimitIp);
     }
     const emailOk = await consumeRateLimitBucket(
       `signin:email:${normalized}:${hourSlot}`,
@@ -37,12 +35,16 @@ async function enforceMagicLinkRateLimits(
       3_600_000
     );
     if (!emailOk) {
-      throw new Error(
-        "Zu viele Anmeldeversuche für diese E-Mail. Bitte später erneut."
-      );
+      throw new Error(brand.labels.authSignInRateLimitEmail);
     }
   } catch (e) {
-    if (e instanceof Error && e.message.startsWith("Zu viele")) throw e;
+    if (
+      e instanceof Error &&
+      (e.message === brand.labels.authSignInRateLimitIp ||
+        e.message === brand.labels.authSignInRateLimitEmail)
+    ) {
+      throw e;
+    }
   }
 }
 

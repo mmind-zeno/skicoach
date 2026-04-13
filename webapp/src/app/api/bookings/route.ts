@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { auth } from "@/lib/auth";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { parseLocalDateOnly } from "@/lib/datetime";
 import {
   createBookingBodySchema,
@@ -13,13 +13,12 @@ import {
   findByTeacher,
 } from "@/services/booking.service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401, undefined, undefined, request);
   }
 
   const { searchParams } = new URL(request.url);
@@ -30,9 +29,12 @@ export async function GET(request: Request) {
     all: (searchParams.get("all") as "0" | "1") ?? undefined,
   });
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: brand.labels.apiBookingListDateRangeRequired },
-      { status: 400 }
+    return apiClientError(
+      brand.labels.apiBookingListDateRangeRequired,
+      400,
+      "INVALID_INPUT",
+      undefined,
+      request
     );
   }
 
@@ -47,48 +49,34 @@ export async function GET(request: Request) {
     }
     const tid = teacherId ?? session.user.id;
     if (session.user.role !== "admin" && teacherId && teacherId !== session.user.id) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     const list = await findByTeacher(tid, from, to);
     return NextResponse.json(list);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/bookings", { request });
   }
 }
 
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: brand.labels.apiUnauthorized },
-      { status: 401 }
-    );
+    return apiClientError(brand.labels.apiUnauthorized, 401, undefined, undefined, request);
   }
 
   try {
     const json = await request.json();
     const body = createBookingBodySchema.parse(json);
     if (session.user.role !== "admin" && body.teacherId !== session.user.id) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     const created = await createBooking(body);
     return NextResponse.json(created, { status: 201 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "POST /api/bookings", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+      request,
+    });
   }
 }

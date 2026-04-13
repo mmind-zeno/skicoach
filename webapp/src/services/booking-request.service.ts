@@ -5,7 +5,11 @@ import {
   courseTypes,
   guests,
 } from "../../drizzle/schema";
-import { parseLocalDateOnly } from "../lib/datetime";
+import {
+  calendarDateFromStored,
+  ensureTimeWithSeconds,
+  parseLocalDateOnly,
+} from "../lib/datetime";
 import { getDb } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
 import {
@@ -120,16 +124,16 @@ export async function confirmRequest(
       )
     );
   }
-  const date = req.date instanceof Date ? req.date : parseLocalDateOnly(String(req.date).slice(0, 10));
-  const ok = await checkAvailability(
-    teacherId,
-    date,
-    req.startTime,
-    endTimeFromStart(req.startTime, req.courseType?.durationMin ?? 60)
-  );
+  const date = calendarDateFromStored(req.date);
+  const startT = ensureTimeWithSeconds(req.startTime);
+  const endT = endTimeFromStart(startT, req.courseType?.durationMin ?? 60);
+  const ok = await checkAvailability(teacherId, date, startT, endT);
   if (!ok) {
     throw new ValidationError(
-      `${brand.labels.staffCollectivePlural} zu diesem Zeitpunkt nicht verfügbar`
+      brand.labels.msgStaffUnavailableAtSlot.replace(
+        "{staffPlural}",
+        brand.labels.staffPlural
+      )
     );
   }
 
@@ -142,7 +146,7 @@ export async function confirmRequest(
   }
 
   const price = req.courseType?.priceCHF ?? "0";
-  const endTime = endTimeFromStart(req.startTime, req.courseType?.durationMin ?? 60);
+  const endTime = endTimeFromStart(startT, req.courseType?.durationMin ?? 60);
 
   const [booking] = await db
     .insert(bookings)
@@ -151,7 +155,7 @@ export async function confirmRequest(
       guestId: guest.id,
       courseTypeId: req.courseTypeId,
       date,
-      startTime: req.startTime,
+      startTime: startT,
       endTime,
       status: "geplant",
       source: "anfrage",

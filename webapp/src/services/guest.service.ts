@@ -14,6 +14,18 @@ import type {
 } from "../features/guests/types";
 import { brand } from "../config/brand";
 
+function rowCreatedAtToIso(value: unknown): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  const d =
+    typeof value === "string" || typeof value === "number"
+      ? new Date(value)
+      : new Date(NaN);
+  if (!Number.isNaN(d.getTime())) return d.toISOString();
+  return new Date().toISOString();
+}
+
 function toGuest(row: typeof guests.$inferSelect): Guest {
   return {
     id: row.id,
@@ -25,7 +37,7 @@ function toGuest(row: typeof guests.$inferSelect): Guest {
     notes: row.notes,
     company: row.company ?? null,
     crmSource: row.crmSource ?? null,
-    createdAt: row.createdAt.toISOString(),
+    createdAt: rowCreatedAtToIso(row.createdAt),
   };
 }
 
@@ -200,16 +212,17 @@ export async function createGuest(input: CreateGuestInput): Promise<Guest> {
       email: input.email?.trim() || null,
       phone: input.phone?.trim() || null,
       niveau: input.niveau ?? "anfaenger",
-      language: input.language ?? "de",
+      language: input.language ?? brand.defaultGuestLanguage,
       notes: input.notes?.trim() || null,
       company: input.company?.trim() || null,
       crmSource: input.crmSource?.trim() || null,
     })
     .returning();
-  if (!row)
-    throw new Error(
+  if (!row) {
+    throw new ValidationError(
       `${brand.labels.clientSingular} konnte nicht angelegt werden`
     );
+  }
   return toGuest(row);
 }
 

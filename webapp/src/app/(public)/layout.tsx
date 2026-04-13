@@ -23,6 +23,12 @@ export default function PublicLayout({
             <Link href="/" className="hover:text-sk-brand">
               {brand.labels.navHome}
             </Link>
+            <Link href="/datenschutz" className="hover:text-sk-brand">
+              {brand.labels.navPrivacy}
+            </Link>
+            <Link href="/impressum" className="hover:text-sk-brand">
+              {brand.labels.navImpressum}
+            </Link>
           </nav>
         </div>
       </header>
@@ -35,8 +41,22 @@ export default function PublicLayout({
         <Link href="/datenschutz" className="underline hover:text-sk-brand">
           {brand.labels.navPrivacy}
         </Link>
+        {" · "}
+        <Link href="/impressum" className="underline hover:text-sk-brand">
+          {brand.labels.navImpressum}
+        </Link>
         <div className="mt-2 text-[10px] text-sk-ink/60">
-          Datenschutz-Hinweis: Hosting und/oder Support kann ueber mmind.ai erfolgen.
+          {brand.labels.publicFooterLegalPrefix}{" "}
+          {brand.labels.privacyHostingNoteBeforeLink}
+          <a
+            className="underline hover:text-sk-brand"
+            href={brand.labels.privacyHostingNoteLinkUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {brand.labels.privacyHostingNoteLinkText}
+          </a>
+          {brand.labels.privacyHostingNoteAfterLink}
         </div>
       </footer>
     </div>

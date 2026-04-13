@@ -3,8 +3,11 @@ import { NextResponse } from "next/server";
 import { courseTypes } from "../../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { brand } from "@/config/brand";
 import { getDb } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 
 function isPostgresFkViolation(e: unknown): boolean {
   const code = (x: unknown) =>
@@ -37,10 +40,7 @@ export async function PATCH(
   if (typeof json.isPublic === "boolean") patch.isPublic = json.isPublic;
   if (typeof json.isActive === "boolean") patch.isActive = json.isActive;
   if (Object.keys(patch).length === 0) {
-    return NextResponse.json(
-      { error: brand.labels.apiPatchNoFields },
-      { status: 400 }
-    );
+    return apiClientError(brand.labels.apiPatchNoFields, 400, "INVALID_INPUT");
   }
   const res = await getDb()
     .update(courseTypes)
@@ -48,10 +48,7 @@ export async function PATCH(
     .where(eq(courseTypes.id, params.id))
     .returning();
   if (res.length === 0) {
-    return NextResponse.json(
-      { error: brand.labels.apiNotFound },
-      { status: 404 }
-    );
+    return apiClientError(brand.labels.apiNotFound, 404);
   }
   return NextResponse.json(res[0]);
 }
@@ -67,9 +64,15 @@ export async function DELETE(
       .where(eq(courseTypes.id, params.id))
       .returning({ id: courseTypes.id });
     if (res.length === 0) {
-      return NextResponse.json(
-        { error: `${brand.labels.serviceTypeSingular} nicht gefunden` },
-        { status: 404 }
+      return apiClientError(
+        brand.labels.msgEntityNotFound.replace(
+          "{entity}",
+          brand.labels.serviceTypeSingular
+        ),
+        404,
+        undefined,
+        undefined,
+        request
       );
     }
     await writeAuditLog({
@@ -81,13 +84,14 @@ export async function DELETE(
     return new NextResponse(null, { status: 204 });
   } catch (e: unknown) {
     if (isPostgresFkViolation(e)) {
-      return NextResponse.json(
-        {
-          error: `${brand.labels.serviceTypeSingular} ist noch mit ${brand.labels.bookingPlural} oder ${brand.labels.bookingRequestPlural} verknüpft und kann nicht gelöscht werden.`,
-        },
-        { status: 409 }
+      return apiClientError(
+        brand.labels.apiAdminCourseTypeDeleteBlockedTemplate
+          .replace("{serviceTypeSingular}", brand.labels.serviceTypeSingular)
+          .replace("{bookingPlural}", brand.labels.bookingPlural)
+          .replace("{bookingRequestPlural}", brand.labels.bookingRequestPlural),
+        409
       );
     }
-    throw e;
+    return apiErrorResponse(e, "DELETE /api/admin/course-types/[id]");
   }
 }

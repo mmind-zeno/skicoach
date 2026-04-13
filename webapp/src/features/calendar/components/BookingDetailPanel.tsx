@@ -1,8 +1,12 @@
 "use client";
 
+import { useAppToast } from "@/components/app-toast";
+import { useState } from "react";
 import { CHFAmount } from "@/components/ui/CHFAmount";
 import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
 import type { BookingStatus, BookingWithDetailsDto } from "../types";
 
 export function BookingDetailPanel({
@@ -14,38 +18,51 @@ export function BookingDetailPanel({
   onClose: () => void;
   onUpdated: (patch?: BookingWithDetailsDto) => void;
 }) {
+  const { showToast } = useAppToast();
+  const [banner, setBanner] = useState<UiErrorInfo | null>(null);
+  const [pending, setPending] = useState(false);
+
   async function patchStatus(status: BookingStatus) {
-    const r = await fetch(`/api/bookings/${booking.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      alert(
-        (j as { error?: string }).error ?? brand.labels.uiSaveFailed
+    setBanner(null);
+    setPending(true);
+    try {
+      const updated = await fetchJson<BookingWithDetailsDto>(
+        `/api/bookings/${booking.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        }
       );
-      return;
+      onUpdated(updated);
+    } catch (e) {
+      setBanner(getUiErrorInfo(e, brand.labels.uiSaveFailed));
+    } finally {
+      setPending(false);
     }
-    const updated = (await r.json()) as BookingWithDetailsDto;
-    onUpdated(updated);
   }
 
   async function remove() {
     if (
-      !confirm(`${brand.labels.appointmentSingular} wirklich löschen?`)
+      !confirm(
+        brand.labels.bookingConfirmDeleteTemplate.replace(
+          "{appointment}",
+          brand.labels.appointmentSingular
+        )
+      )
     )
       return;
-    const r = await fetch(`/api/bookings/${booking.id}`, { method: "DELETE" });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      alert(
-        (j as { error?: string }).error ?? brand.labels.uiDeleteFailed
-      );
-      return;
+    setBanner(null);
+    setPending(true);
+    try {
+      await fetchJson(`/api/bookings/${booking.id}`, { method: "DELETE" });
+      onClose();
+      onUpdated();
+    } catch (e) {
+      setBanner(getUiErrorInfo(e, brand.labels.uiDeleteFailed));
+    } finally {
+      setPending(false);
     }
-    onClose();
-    onUpdated();
   }
 
   return (
@@ -62,6 +79,17 @@ export function BookingDetailPanel({
           {brand.labels.uiClose}
         </button>
       </div>
+
+      {banner ? (
+        <p className="mb-3 text-sm text-red-700" role="alert">
+          {banner.message}
+          {banner.requestId ? (
+            <span className="block text-xs text-red-800/80">
+              Ref: {banner.requestId}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
 
       <dl className="space-y-2 text-sm">
         <div>
@@ -123,49 +151,60 @@ export function BookingDetailPanel({
         </button>
         <button
           type="button"
-          onClick={() => patchStatus("durchgefuehrt")}
-          className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+          disabled={pending}
+          onClick={() => void patchStatus("durchgefuehrt")}
+          className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
         >
           {brand.labels.statusDurchgefuehrt}
         </button>
         <button
           type="button"
-          onClick={() => patchStatus("storniert")}
-          className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium text-zinc-800 hover:bg-zinc-300"
+          disabled={pending}
+          onClick={() => void patchStatus("storniert")}
+          className="rounded bg-zinc-200 px-2 py-1 text-xs font-medium text-zinc-800 hover:bg-zinc-300 disabled:opacity-50"
         >
           {brand.labels.bookingActionStornieren}
         </button>
         <button
           type="button"
-          onClick={remove}
-          className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+          disabled={pending}
+          onClick={() => void remove()}
+          className="rounded border border-red-200 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
         >
           {brand.labels.uiDelete}
         </button>
       </div>
       <button
         type="button"
-        className="mt-3 w-full rounded border border-sk-brand px-3 py-2 text-sm font-medium text-sk-brand hover:bg-[#E8F0FA]"
+        disabled={pending}
+        className="mt-3 w-full rounded border border-sk-brand px-3 py-2 text-sm font-medium text-sk-brand hover:bg-[#E8F0FA] disabled:opacity-50"
         onClick={async () => {
-          const r = await fetch("/api/invoices", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ bookingId: booking.id }),
-          });
-          if (!r.ok) {
-            const j = await r.json().catch(() => ({}));
-            alert(
-              (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
+          setBanner(null);
+          setPending(true);
+          try {
+            await fetchJson("/api/invoices", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ bookingId: booking.id }),
+            });
+            showToast(
+              brand.labels.invoiceCreatedAlertTemplate
+                .replace("{invoice}", brand.labels.invoiceSingular)
+                .replace("{navInvoices}", brand.labels.navInvoices),
+              "success"
             );
-            return;
+            onUpdated();
+          } catch (e) {
+            setBanner(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
+          } finally {
+            setPending(false);
           }
-          alert(
-            `${brand.labels.invoiceSingular} erstellt — unter ${brand.labels.navInvoices} / PDF.`
-          );
-          onUpdated();
         }}
       >
-        {brand.labels.invoiceSingular} erstellen
+        {brand.labels.invoiceCreateButtonTemplate.replace(
+          "{invoice}",
+          brand.labels.invoiceSingular
+        )}
       </button>
     </aside>
   );

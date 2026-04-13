@@ -7,10 +7,12 @@ import {
   format,
   startOfMonth,
 } from "date-fns";
-import { de } from "date-fns/locale";
 import { useEffect, useMemo, useState } from "react";
 import { PublicTurnstile } from "./PublicTurnstile";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
+import { appDateFnsLocale } from "@/lib/locale";
 
 const TURNSTILE_SITE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
@@ -55,7 +57,8 @@ export function BookingWizard() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [doneId, setDoneId] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<UiErrorInfo | null>(null);
+  const [loadErr, setLoadErr] = useState<UiErrorInfo | null>(null);
 
   const selectedCourse = courses.find((c) => c.id === courseId) ?? null;
 
@@ -86,35 +89,48 @@ export function BookingWizard() {
 
   useEffect(() => {
     void (async () => {
-      const r = await fetch("/api/public/course-types");
-      if (!r.ok) return;
-      const data = (await r.json()) as Course[];
-      setCourses(data);
-      setCourseId((id) => id ?? data[0]?.id ?? null);
+      try {
+        const data = await fetchJson<Course[]>("/api/public/course-types");
+        setCourses(data);
+        setCourseId((id) => id ?? data[0]?.id ?? null);
+        setLoadErr(null);
+      } catch (e) {
+        setCourses([]);
+        setCourseId(null);
+        setLoadErr(getUiErrorInfo(e, brand.labels.publicWizardCoursesLoadFailed));
+      }
     })();
   }, []);
 
   async function loadMonth(m: Date) {
     if (!courseId) return;
-    const key = format(m, "yyyy-MM");
-    const r = await fetch(
-      `/api/public/availability?courseTypeId=${courseId}&month=${key}`
-    );
-    if (!r.ok) return;
-    const j = (await r.json()) as { availability: Avail };
-    setAvailability(j.availability ?? {});
+    try {
+      const key = format(m, "yyyy-MM");
+      const j = await fetchJson<{ availability: Avail }>(
+        `/api/public/availability?courseTypeId=${courseId}&month=${key}`
+      );
+      setAvailability(j.availability ?? {});
+      setLoadErr(null);
+    } catch (e) {
+      setAvailability({});
+      setLoadErr(getUiErrorInfo(e, brand.labels.publicWizardAvailabilityLoadFailed));
+    }
   }
 
   async function loadSlots(d: string) {
     if (!courseId) return;
-    const r = await fetch(
-      `/api/public/slots?courseTypeId=${courseId}&date=${d}`
-    );
-    if (!r.ok) return;
-    const j = (await r.json()) as {
-      slots: { time: string; available: boolean }[];
-    };
-    setSlots(j.slots ?? []);
+    try {
+      const j = await fetchJson<{
+        slots: { time: string; available: boolean }[];
+      }>(
+        `/api/public/slots?courseTypeId=${courseId}&date=${d}`
+      );
+      setSlots(j.slots ?? []);
+      setLoadErr(null);
+    } catch (e) {
+      setSlots([]);
+      setLoadErr(getUiErrorInfo(e, brand.labels.publicWizardSlotsLoadFailed));
+    }
   }
 
   const { pad, days } = useMemo(() => {
@@ -128,46 +144,45 @@ export function BookingWizard() {
   async function submit() {
     setErr(null);
     if (!courseId || !day || !slotTime) {
-      setErr(
-        brand.labels.publicWizardSubmitMissingTemplate.replace(
+      setErr({
+        message: brand.labels.publicWizardSubmitMissingTemplate.replace(
           "{service}",
           brand.labels.serviceSingular
-        )
-      );
+        ),
+      });
       return;
     }
     const guestName = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (guestName.length < 2 || !email.includes("@")) {
-      setErr(brand.labels.uiValidationNameAndEmail);
+      setErr({ message: brand.labels.uiValidationNameAndEmail });
       return;
     }
     setLoading(true);
     try {
-      const r = await fetch("/api/public/requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          courseTypeId: courseId,
-          date: day,
-          startTime: slotTime.length === 5 ? `${slotTime}:00` : slotTime,
-          guestName,
-          guestEmail: email.trim(),
-          guestPhone: phone.trim() || undefined,
-          guestNiveau: niveau,
-          message: message.trim() || undefined,
-          website: website || undefined,
-          turnstileToken: turnstileToken || undefined,
-        }),
-      });
-      const j = await r.json();
-      if (!r.ok) {
-        setErr(
-          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-        );
-        return;
-      }
-      setDoneId((j as { requestId?: string }).requestId ?? "ok");
+      const j = await fetchJson<{ requestId?: string }>(
+        "/api/public/requests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            courseTypeId: courseId,
+            date: day,
+            startTime: slotTime.length === 5 ? `${slotTime}:00` : slotTime,
+            guestName,
+            guestEmail: email.trim(),
+            guestPhone: phone.trim() || undefined,
+            guestNiveau: niveau,
+            message: message.trim() || undefined,
+            website: website || undefined,
+            turnstileToken: turnstileToken || undefined,
+          }),
+        }
+      );
+      setDoneId(j.requestId ?? "ok");
       setStep(4);
+      setErr(null);
+    } catch (e) {
+      setErr(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
     } finally {
       setLoading(false);
     }
@@ -180,6 +195,7 @@ export function BookingWizard() {
     setSlotTime(null);
     setSlots([]);
     setErr(null);
+    setLoadErr(null);
   }
 
   return (
@@ -203,6 +219,16 @@ export function BookingWizard() {
               brand.labels.serviceTypeSingular
             )}
           </h2>
+          {loadErr ? (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {loadErr.message}
+              {loadErr.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {loadErr.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {courses.map((c) => (
               <button
@@ -232,6 +258,7 @@ export function BookingWizard() {
             className="mt-6 rounded-lg bg-sk-brand px-4 py-2 text-white hover:bg-sk-hover disabled:opacity-50"
             disabled={!courseId}
             onClick={() => {
+              setLoadErr(null);
               setStep(2);
               void loadMonth(month);
             }}
@@ -246,6 +273,16 @@ export function BookingWizard() {
           <h2 className="text-lg font-semibold text-sk-ink">
             {brand.labels.publicWizardPickDate}
           </h2>
+          {loadErr ? (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {loadErr.message}
+              {loadErr.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {loadErr.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <div className="mt-4 flex items-center justify-between">
             <button
               type="button"
@@ -259,7 +296,7 @@ export function BookingWizard() {
               ←
             </button>
             <span className="font-medium capitalize">
-              {format(month, "MMMM yyyy", { locale: de })}
+              {format(month, "MMMM yyyy", { locale: appDateFnsLocale })}
             </span>
             <button
               type="button"
@@ -328,7 +365,10 @@ export function BookingWizard() {
             <button
               type="button"
               className="rounded border px-4 py-2"
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setLoadErr(null);
+                setStep(1);
+              }}
             >
               {brand.labels.calPrevious}
             </button>
@@ -336,7 +376,11 @@ export function BookingWizard() {
               type="button"
               className="rounded bg-sk-brand px-4 py-2 text-white disabled:opacity-50"
               disabled={!day}
-              onClick={() => setStep(3)}
+              onClick={() => {
+                setLoadErr(null);
+                setErr(null);
+                setStep(3);
+              }}
             >
               {brand.labels.calNext}
             </button>
@@ -349,6 +393,16 @@ export function BookingWizard() {
           <h2 className="text-lg font-semibold text-sk-ink">
             {brand.labels.publicWizardTimeAndContact}
           </h2>
+          {loadErr ? (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {loadErr.message}
+              {loadErr.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {loadErr.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
             <div>
               <div className="text-sm font-medium text-sk-ink">
@@ -449,7 +503,7 @@ export function BookingWizard() {
               {TURNSTILE_SITE ? (
                 <div className="mt-3 rounded border border-sk-ink/10 bg-white/80 p-3">
                   <p className="mb-2 text-xs text-sk-ink/60">
-                    Sicherheitsprüfung
+                    {brand.labels.publicTurnstileLabel}
                   </p>
                   <PublicTurnstile
                     siteKey={TURNSTILE_SITE}
@@ -478,12 +532,25 @@ export function BookingWizard() {
               ) : null}
             </div>
           </div>
-          {err ? <p className="mt-2 text-sm text-red-600">{err}</p> : null}
+          {err ? (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {err.message}
+              {err.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {err.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <div className="mt-6 flex gap-2">
             <button
               type="button"
               className="rounded border px-4 py-2"
-              onClick={() => setStep(2)}
+              onClick={() => {
+                setLoadErr(null);
+                setErr(null);
+                setStep(2);
+              }}
             >
               {brand.labels.calPrevious}
             </button>
@@ -493,7 +560,10 @@ export function BookingWizard() {
               className="rounded bg-sk-brand px-4 py-2 text-white disabled:opacity-50"
               onClick={() => void submit()}
             >
-              {brand.labels.requestSingular} senden →
+              {brand.labels.publicWizardSubmitRequestCtaTemplate.replace(
+                "{requestSingular}",
+                brand.labels.requestSingular
+              )}
             </button>
           </div>
         </section>
@@ -534,7 +604,10 @@ export function BookingWizard() {
             className="mt-8 rounded-xl border-2 border-sk-brand/30 bg-white px-5 py-2.5 text-sm font-medium text-sk-brand shadow-sm transition hover:border-sk-brand hover:bg-sk-surface"
             onClick={reset}
           >
-            Neue {brand.labels.requestSingular} stellen
+            {brand.labels.publicWizardNewRequestAgainTemplate.replace(
+              "{requestSingular}",
+              brand.labels.requestSingular
+            )}
           </button>
         </section>
       ) : null}

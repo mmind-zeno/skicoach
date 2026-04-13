@@ -1,27 +1,13 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import {
-  Calendar,
-  dateFnsLocalizer,
-  Views,
-  type SlotInfo,
-  type View,
-} from "react-big-calendar";
-import { format, getDay, startOfWeek } from "date-fns";
-import { de } from "date-fns/locale";
+import { Calendar, Views, type SlotInfo, type View } from "react-big-calendar";
 import { brand } from "@/config/brand";
 import { teacherCalendarStyle } from "@/lib/colors";
 import { bookingDateTimesToRange } from "@/lib/datetime";
+import { calendarCulture, calendarLocalizer } from "@/lib/locale";
 import type { BookingWithDetailsDto, CalendarEventItem } from "../types";
 import "../calendar.css";
-
-const localizer = dateFnsLocalizer({
-  format,
-  startOfWeek: (d: Date) => startOfWeek(d, { weekStartsOn: 1 }),
-  getDay,
-  locales: { de },
-});
 
 const messages = {
   next: brand.labels.calNext,
@@ -92,8 +78,8 @@ export function CalendarView({
   return (
     <div className="h-[min(720px,calc(100vh-220px))] min-h-[480px] rounded-lg border border-sk-ink/10 bg-white p-2 shadow-sm">
       <Calendar
-        culture="de"
-        localizer={localizer}
+        culture={calendarCulture}
+        localizer={calendarLocalizer}
         events={events}
         startAccessor="start"
         endAccessor="end"

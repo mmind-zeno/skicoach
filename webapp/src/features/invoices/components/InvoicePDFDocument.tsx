@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import { brand } from "@/config/brand";
+import { appDateOnlyLocale } from "@/lib/locale";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
@@ -60,7 +61,7 @@ export function InvoicePDFDocument({
   bankIban: string;
   bankAddress: string;
 }) {
-  const dateStr = new Date(issuedAt).toLocaleDateString("de-LI");
+  const dateStr = new Date(issuedAt).toLocaleDateString(appDateOnlyLocale);
 
   return (
     <Document>
@@ -91,8 +92,12 @@ export function InvoicePDFDocument({
 
         <View style={styles.table}>
           <View style={styles.th}>
-            <Text style={styles.col1}>Beschreibung</Text>
-            <Text style={styles.col2}>Betrag CHF</Text>
+            <Text style={styles.col1}>
+              {brand.labels.invoicePdfDescription}
+            </Text>
+            <Text style={styles.col2}>
+              {brand.labels.invoicePdfAmountChf}
+            </Text>
           </View>
           <View style={styles.tr}>
             <Text style={styles.col1}>

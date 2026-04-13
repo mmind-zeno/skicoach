@@ -1,7 +1,10 @@
 "use client";
 
+import { useAppToast } from "@/components/app-toast";
 import { useState } from "react";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
 import type { GuestNiveau } from "../types";
 
 export function GuestCreateModal({
@@ -13,6 +16,7 @@ export function GuestCreateModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { showToast } = useAppToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -20,20 +24,19 @@ export function GuestCreateModal({
   const [company, setCompany] = useState("");
   const [crmSource, setCrmSource] = useState("");
   const [notes, setNotes] = useState("");
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<UiErrorInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function submit() {
     setErr(null);
     if (name.trim().length < 2) {
-      setErr(brand.labels.uiNameRequired);
+      setErr({ message: brand.labels.uiNameRequired });
       return;
     }
     setLoading(true);
     try {
-      const r = await fetch("/api/guests", {
+      await fetchJson("/api/guests", {
         method: "POST",
-        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
@@ -45,21 +48,23 @@ export function GuestCreateModal({
           notes: notes.trim() || undefined,
         }),
       });
-      if (!r.ok) {
-        const j = await r.json().catch(() => ({}));
-        setErr(
-          (j as { error?: string }).error ?? brand.labels.uiErrorGeneric
-        );
-        return;
-      }
       setName("");
       setEmail("");
       setPhone("");
       setCompany("");
       setCrmSource("");
       setNotes("");
+      showToast(
+        brand.labels.guestCreatedToastTemplate.replace(
+          "{clientSingular}",
+          brand.labels.clientSingular
+        ),
+        "success"
+      );
       onCreated();
       onClose();
+    } catch (e) {
+      setErr(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
     } finally {
       setLoading(false);
     }
@@ -71,7 +76,10 @@ export function GuestCreateModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
       <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
         <h2 className="text-lg font-semibold text-sk-ink">
-          Neuer {brand.labels.clientSingular}
+          {brand.labels.guestCreateModalTitleTemplate.replace(
+            "{clientSingular}",
+            brand.labels.clientSingular
+          )}
         </h2>
         <div className="mt-4 space-y-3 text-sm">
           <label className="block text-sk-ink">
@@ -83,7 +91,7 @@ export function GuestCreateModal({
             />
           </label>
           <label className="block text-sk-ink">
-            E-Mail
+            {brand.labels.labelEmail}
             <input
               type="email"
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
@@ -100,7 +108,7 @@ export function GuestCreateModal({
             />
           </label>
           <label className="block text-sk-ink">
-            Firma
+            {brand.labels.labelCompany}
             <input
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
               value={company}
@@ -108,7 +116,7 @@ export function GuestCreateModal({
             />
           </label>
           <label className="block text-sk-ink">
-            CRM-Quelle
+            {brand.labels.labelCrmSource}
             <input
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
               value={crmSource}
@@ -131,7 +139,7 @@ export function GuestCreateModal({
             </select>
           </label>
           <label className="block text-sk-ink">
-            Notizen
+            {brand.labels.fieldNotes}
             <textarea
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2"
               rows={2}
@@ -140,7 +148,16 @@ export function GuestCreateModal({
             />
           </label>
         </div>
-        {err ? <p className="mt-2 text-sm text-red-600">{err}</p> : null}
+        {err ? (
+          <p className="mt-2 text-sm text-red-600" role="alert">
+            {err.message}
+            {err.requestId ? (
+              <span className="block text-xs text-red-700/80">
+                Ref: {err.requestId}
+              </span>
+            ) : null}
+          </p>
+        ) : null}
         <div className="mt-4 flex justify-end gap-2">
           <button
             type="button"

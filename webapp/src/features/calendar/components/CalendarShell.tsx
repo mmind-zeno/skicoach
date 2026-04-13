@@ -12,17 +12,19 @@ import { BookingDetailPanel } from "./BookingDetailPanel";
 import { CalendarView } from "./CalendarView";
 import { TeacherLegend, type TeacherLegendItem } from "./TeacherLegend";
 import { brand } from "@/config/brand";
+import { FetchJsonError, fetchJson } from "@/lib/client-fetch";
 
 async function teachersFetcher(url: string): Promise<TeacherLegendItem[]> {
-  const r = await fetch(url);
-  if (!r.ok) {
-    const j = (await r.json().catch(() => ({}))) as { error?: string };
+  try {
+    return await fetchJson<TeacherLegendItem[]>(url);
+  } catch (e) {
+    const status = e instanceof FetchJsonError ? e.status : 0;
     throw new Error(
-      j.error ??
-        `${brand.labels.staffCollectivePlural}liste (${r.status})`
+      e instanceof Error
+        ? e.message
+        : `${brand.labels.staffCollectivePlural}liste (${status})`
     );
   }
-  return r.json() as Promise<TeacherLegendItem[]>;
 }
 
 function normalizeRange(
@@ -60,6 +62,7 @@ export function CalendarShell({
     isLoading: teachersLoading,
   } = useSWR<TeacherLegendItem[]>("/api/teachers", teachersFetcher, {
     revalidateOnFocus: true,
+    keepPreviousData: true,
   });
   const [selected, setSelected] = useState<BookingWithDetailsDto | null>(null);
   const [slot, setSlot] = useState<SlotInfo | null>(null);
@@ -112,7 +115,10 @@ export function CalendarShell({
         <div className="flex flex-col gap-2 text-sm text-sk-ink">
           {teachersLoading ? (
             <p className="text-sk-ink/60">
-              {brand.labels.staffCollectivePlural}liste wird geladen…
+              {brand.labels.staffCollectiveListLoadingTemplate.replace(
+                "{staffCollectivePlural}",
+                brand.labels.staffCollectivePlural
+              )}
             </p>
           ) : null}
           {teachersError ? (
@@ -122,9 +128,13 @@ export function CalendarShell({
           ) : null}
           {!teachersLoading && !teachersError && teachers.length === 0 ? (
             <p className="text-sk-ink/60">
-              Keine {brand.labels.staffPlural} gefunden.{" "}
-              {brand.labels.staffCollectivePlural} per Admin einladen oder
-              Datenbank prüfen.
+              {brand.labels.staffListEmptyTemplate
+                .replace("{staffPlural}", brand.labels.staffPlural)
+                .replace(
+                  "{staffCollectivePlural}",
+                  brand.labels.staffCollectivePlural
+                )
+                .replace("{navAdmin}", brand.labels.navAdmin)}
             </p>
           ) : null}
           {isAdmin ? (
@@ -134,13 +144,19 @@ export function CalendarShell({
                 checked={showAll}
                 onChange={(e) => setShowAll(e.target.checked)}
               />
-              Alle {brand.labels.staffCollectivePlural} anzeigen
+              {brand.labels.calendarFilterShowAllStaffTemplate.replace(
+                "{staffCollectivePlural}",
+                brand.labels.staffCollectivePlural
+              )}
             </label>
           ) : null}
           {isAdmin && !showAll ? (
             <label className="flex flex-col gap-1">
               <span className="text-sk-ink/70">
-                {brand.labels.staffSingular} filtern
+                {brand.labels.calendarFilterTeacherByTemplate.replace(
+                  "{staffSingular}",
+                  brand.labels.staffSingular
+                )}
               </span>
               <select
                 className="max-w-xs rounded border border-sk-ink/20 px-2 py-2"

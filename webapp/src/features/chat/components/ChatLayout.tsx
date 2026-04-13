@@ -4,6 +4,9 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { brand } from "@/config/brand";
+import { appDateTimeLocale } from "@/lib/locale";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorMessage } from "@/lib/client-error-message";
 import { disconnectChatSocket, getChatSocket } from "@/lib/socket";
 
 type Channel = { id: string; name: string; isGeneral: boolean };
@@ -18,10 +21,8 @@ type Msg = {
   sender: { id: string; name: string | null; email: string } | null;
 };
 
-async function f<T>(url: string): Promise<T> {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+function f<T>(url: string): Promise<T> {
+  return fetchJson<T>(url);
 }
 
 function appendDedupe(prev: Msg[] | undefined, msg: Msg): Msg[] {
@@ -35,14 +36,17 @@ export function ChatLayout() {
   const [channelId, setChannelId] = useState<string | null>(null);
   const [dmUserId, setDmUserId] = useState<string | null>(null);
   const [text, setText] = useState("");
+  const [sendErr, setSendErr] = useState<string | null>(null);
   const [sockLive, setSockLive] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const { data: channels } = useSWR<Channel[]>("/api/chat/channels", f, {
     refreshInterval: 60_000,
+    keepPreviousData: true,
   });
   const { data: users } = useSWR<ChatUser[]>("/api/chat/users", f, {
     refreshInterval: 60_000,
+    keepPreviousData: true,
   });
 
   const msgKey =
@@ -55,6 +59,7 @@ export function ChatLayout() {
   const pollMs = sockLive ? 45_000 : 4_000;
   const { data: messages, mutate } = useSWR<Msg[]>(msgKey, f, {
     refreshInterval: pollMs,
+    keepPreviousData: true,
   });
 
   useEffect(() => {
@@ -129,15 +134,18 @@ export function ChatLayout() {
     const body = channelId
       ? { channelId, content: text.trim() }
       : { recipientId: dmUserId, content: text.trim() };
-    const r = await fetch("/api/chat/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) return;
-    const saved = (await r.json()) as Msg;
-    setText("");
-    void mutate((prev) => appendDedupe(prev, saved), { revalidate: false });
+    try {
+      const saved = await fetchJson<Msg>("/api/chat/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      setSendErr(null);
+      setText("");
+      void mutate((prev) => appendDedupe(prev, saved), { revalidate: false });
+    } catch (e) {
+      setSendErr(getUiErrorMessage(e, brand.labels.uiErrorGeneric));
+    }
   }, [text, channelId, dmUserId, session?.user?.id, mutate]);
 
   const send = useCallback(async () => {
@@ -158,6 +166,7 @@ export function ChatLayout() {
             return;
           }
           if (saved) {
+            setSendErr(null);
             setText("");
             void mutate((prev) => appendDedupe(prev, saved), {
               revalidate: false,
@@ -236,6 +245,11 @@ export function ChatLayout() {
         </aside>
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+            {messages?.length === 0 && (channelId || dmUserId) ? (
+              <p className="py-6 text-center text-sm text-sk-ink/50">
+                {brand.labels.chatEmptyConversationHint}
+              </p>
+            ) : null}
             {messages?.map((m) => {
               const mine = m.senderId === session?.user?.id;
               return (
@@ -257,7 +271,7 @@ export function ChatLayout() {
                     ) : null}
                     <div className="whitespace-pre-wrap">{m.content}</div>
                     <div className="mt-1 text-[10px] opacity-60">
-                      {new Date(m.createdAt).toLocaleString("de-CH")}
+                      {new Date(m.createdAt).toLocaleString(appDateTimeLocale)}
                     </div>
                   </div>
                 </div>
@@ -266,13 +280,21 @@ export function ChatLayout() {
             <div ref={bottomRef} />
           </div>
           <div className="border-t border-sk-ink/10 p-2">
+            {sendErr ? (
+              <p className="mb-2 text-xs text-red-600" role="alert">
+                {sendErr}
+              </p>
+            ) : null}
             <div className="flex gap-2">
               <textarea
                 className="min-h-[40px] flex-1 resize-none rounded border border-sk-ink/20 px-2 py-2 text-sm"
                 placeholder={brand.labels.chatComposerPlaceholder}
                 value={text}
                 rows={2}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  if (sendErr) setSendErr(null);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

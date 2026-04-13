@@ -1,4 +1,6 @@
-const fmt = new Intl.NumberFormat("de-CH", {
+import { currencyFormatLocale } from "@/lib/locale";
+
+const fmt = new Intl.NumberFormat(currencyFormatLocale, {
   style: "currency",
   currency: "CHF",
 });

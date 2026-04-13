@@ -1,4 +1,6 @@
 import type { NextAuthConfig } from "next-auth";
+import { NextResponse } from "next/server";
+import { brand } from "@/config/brand";
 
 /**
  * Edge/Middleware-tauglich: kein Drizzle/pg.
@@ -42,6 +44,7 @@ export const authConfig = {
         path.startsWith("/login") ||
         path.startsWith("/buchen") ||
         path.startsWith("/datenschutz") ||
+        path.startsWith("/impressum") ||
         path.startsWith("/api/auth") ||
         path.startsWith("/api/public")
       ) {
@@ -63,7 +66,13 @@ export const authConfig = {
       }
 
       if (path.startsWith("/api/")) {
-        return !!auth?.user;
+        if (!auth?.user) {
+          return NextResponse.json(
+            { error: brand.labels.apiUnauthorized },
+            { status: 401 }
+          );
+        }
+        return true;
       }
 
       return true;

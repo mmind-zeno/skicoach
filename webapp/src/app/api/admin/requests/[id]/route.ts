@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiErrorResponse } from "@/lib/api-error";
 import { findRequestById } from "@/services/booking-request.service";
 
 export async function GET(
@@ -12,9 +12,6 @@ export async function GET(
     const r = await findRequestById(params.id);
     return NextResponse.json(r);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/admin/requests/[id]");
   }
 }

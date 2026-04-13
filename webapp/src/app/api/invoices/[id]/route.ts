@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { patchInvoiceBodySchema } from "@/lib/validators/invoice";
 import {
   cancelInvoice,
@@ -11,7 +11,7 @@ import {
 } from "@/services/invoice.service";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const session = await requireAuthSession();
@@ -22,17 +22,11 @@ export async function GET(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     return NextResponse.json(await findById(params.id));
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/invoices/[id]", { request });
   }
 }
 
@@ -48,10 +42,7 @@ export async function PATCH(
       session.user.role
     );
     if (!ok) {
-      return NextResponse.json(
-        { error: brand.labels.apiForbidden },
-        { status: 403 }
-      );
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
     const json = await request.json();
     const body = patchInvoiceBodySchema.parse(json);
@@ -63,17 +54,18 @@ export async function PATCH(
       const inv = await cancelInvoice(params.id);
       return NextResponse.json(inv);
     }
-    return NextResponse.json(
-      { error: brand.labels.apiNothingToUpdate },
-      { status: 400 }
+    return apiClientError(
+      brand.labels.apiNothingToUpdate,
+      400,
+      "INVALID_INPUT",
+      undefined,
+      request
     );
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "PATCH /api/invoices/[id]", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+      request,
+    });
   }
 }

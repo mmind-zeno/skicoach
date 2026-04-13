@@ -55,3 +55,27 @@ export function parseFlexibleDate(input: string | Date): Date {
   }
   return parseISO(input);
 }
+
+/**
+ * Kalendertag für DB-Abfragen (`bookings.date`, Verfügbarkeit).
+ * Postgres `date` wird von node-pg oft als `Date` an **UTC-Mitternacht**
+ * des Kalendertags geliefert — `getUTC*` liefert den richtigen Tag unabhängig
+ * von der lokalen Zeitzone.
+ */
+export function calendarDateFromStored(value: Date | string): Date {
+  if (typeof value === "string") {
+    return parseLocalDateOnly(value.slice(0, 10));
+  }
+  return new Date(
+    value.getUTCFullYear(),
+    value.getUTCMonth(),
+    value.getUTCDate()
+  );
+}
+
+/** `HH:mm` → `HH:mm:ss` für konsistente Zeit-Vergleiche in SQL */
+export function ensureTimeWithSeconds(t: string): string {
+  const s = t.trim();
+  if (s.length === 5 && s[2] === ":") return `${s}:00`;
+  return s;
+}

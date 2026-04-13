@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { users } from "../../../../../drizzle/schema";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { getDb } from "@/lib/db";
 import { sendTeacherInviteMagicLink } from "@/lib/invite-magic-link";
 import { consumeRateLimitBucket } from "@/lib/rate-limit-db";
 import { brand } from "@/config/brand";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   await requireAdminSession();
@@ -39,9 +41,12 @@ export async function POST(request: Request) {
       allowed = true;
     }
     if (!allowed) {
-      return NextResponse.json(
-        { error: brand.labels.apiAdminInviteRateLimited },
-        { status: 429 }
+      return apiClientError(
+        brand.labels.apiAdminInviteRateLimited,
+        429,
+        undefined,
+        undefined,
+        request
       );
     }
 
@@ -52,9 +57,12 @@ export async function POST(request: Request) {
         ? json.name.trim()
         : email.split("@")[0] ?? brand.labels.staffSingular;
     if (!email.includes("@")) {
-      return NextResponse.json(
-        { error: brand.labels.apiInvalidEmail },
-        { status: 400 }
+      return apiClientError(
+        brand.labels.apiInvalidEmail,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
       );
     }
     const db = getDb();
@@ -62,12 +70,12 @@ export async function POST(request: Request) {
       where: eq(users.email, email),
     });
     if (exists) {
-      return NextResponse.json(
-        {
-          error: brand.labels.apiAdminUserExists,
-          code: "USER_EXISTS",
-        },
-        { status: 409 }
+      return apiClientError(
+        brand.labels.apiAdminUserExists,
+        409,
+        "USER_EXISTS",
+        undefined,
+        request
       );
     }
     await db.insert(users).values({
@@ -86,12 +94,9 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ ok: true, email }, { status: 201 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInviteFailed },
-      { status: 500 }
-    );
+    return apiErrorResponse(e, "POST /api/admin/users", {
+      fallbackMessage: brand.labels.apiInviteFailed,
+      request,
+    });
   }
 }

@@ -1,5 +1,7 @@
 /** Magic-Link-Mail (inhaltlich angelehnt an @auth/core, ohne nicht exportiertes Subpath-Import). */
 
+import { brand } from "@/config/brand";
+
 type MailTheme = { brandColor?: string; buttonText?: string };
 
 export function magicLinkHtml(params: {
@@ -9,6 +11,12 @@ export function magicLinkHtml(params: {
 }): string {
   const { url, host, theme } = params;
   const escapedHost = host.replace(/\./g, "&#8203;.");
+  const heading = brand.labels.emailMagicLinkHeadingTemplate.replace(
+    "{host}",
+    `<strong>${escapedHost}</strong>`
+  );
+  const buttonLabel = brand.labels.emailMagicLinkButton;
+  const disclaimer = brand.labels.emailMagicLinkDisclaimer;
   const brandColor = theme?.brandColor ?? "#346df1";
   const buttonText = theme?.buttonText ?? "#fff";
   const color = {
@@ -26,7 +34,7 @@ export function magicLinkHtml(params: {
     <tr>
       <td align="center"
         style="padding: 10px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${color.text};">
-        Anmeldung bei <strong>${escapedHost}</strong>
+        ${heading}
       </td>
     </tr>
     <tr>
@@ -35,7 +43,7 @@ export function magicLinkHtml(params: {
           <tr>
             <td align="center" style="border-radius: 5px;" bgcolor="${color.buttonBackground}"><a href="${url}"
                 target="_blank"
-                style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${color.buttonText}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${color.buttonBorder}; display: inline-block; font-weight: bold;">Anmelden</a></td>
+                style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${color.buttonText}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${color.buttonBorder}; display: inline-block; font-weight: bold;">${buttonLabel}</a></td>
           </tr>
         </table>
       </td>
@@ -43,7 +51,7 @@ export function magicLinkHtml(params: {
     <tr>
       <td align="center"
         style="padding: 0px 0px 10px 0px; font-size: 16px; line-height: 22px; font-family: Helvetica, Arial, sans-serif; color: ${color.text};">
-        Wenn du diese E-Mail nicht angefordert hast, kannst du sie ignorieren.
+        ${disclaimer}
       </td>
     </tr>
   </table>
@@ -52,5 +60,9 @@ export function magicLinkHtml(params: {
 }
 
 export function magicLinkText(params: { url: string; host: string }): string {
-  return `Anmeldung bei ${params.host}\n${params.url}\n\n`;
+  const line = brand.labels.emailMagicLinkTextIntroTemplate.replace(
+    "{host}",
+    params.host
+  );
+  return `${line}\n${params.url}\n\n`;
 }

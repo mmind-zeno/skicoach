@@ -19,11 +19,17 @@ export function GuestsPageClient() {
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const { guests, mutate: mutateList, isLoading } = useGuestList(
-    debounced,
-    niveau
-  );
-  const { guest, mutate: mutateDetail } = useGuestDetail(selectedId);
+  const {
+    guests,
+    mutate: mutateList,
+    isLoading,
+    error: listError,
+  } = useGuestList(debounced, niveau);
+  const {
+    guest,
+    mutate: mutateDetail,
+    error: detailError,
+  } = useGuestDetail(selectedId);
 
   const refresh = () => {
     void mutateList();
@@ -63,7 +69,32 @@ export function GuestsPageClient() {
             {brand.labels.uiLoadingEllipsis}
           </span>
         ) : null}
+        {listError ? (
+          <div className="flex w-full max-w-md flex-wrap items-center gap-2 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 md:ml-auto">
+            <span className="min-w-0 flex-1">{listError.message}</span>
+            <button
+              type="button"
+              className="shrink-0 rounded border border-red-300 bg-white px-2 py-1 text-xs font-medium text-red-900 hover:bg-red-100"
+              onClick={() => void mutateList()}
+            >
+              {brand.labels.uiRefresh}
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      {detailError && selectedId ? (
+        <div className="flex flex-wrap items-center gap-2 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          <span className="min-w-0 flex-1">{detailError.message}</span>
+          <button
+            type="button"
+            className="shrink-0 rounded border border-amber-300 bg-white px-2 py-1 text-xs font-medium text-amber-950 hover:bg-amber-100"
+            onClick={() => void mutateDetail()}
+          >
+            {brand.labels.uiRefresh}
+          </button>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <GuestList

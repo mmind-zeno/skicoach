@@ -15,13 +15,25 @@ export async function sendBookingRequestConfirmation(
 ): Promise<void> {
   const r = client();
   if (!r) return;
+  const L = brand.labels;
+  const subject = L.emailBookingRequestSubjectTemplate
+    .replace("{bookingRequest}", L.bookingRequestSingular)
+    .replace("{siteName}", brand.siteName);
+  const bodyLine = L.emailBookingRequestBodyLineTemplate.replace(
+    "{serviceSingular}",
+    escapeHtml(L.serviceSingular)
+  );
+  const signoff = L.emailSignoffWithSiteTemplate.replace(
+    "{siteName}",
+    escapeHtml(brand.siteName)
+  );
   await r.emails.send({
     from: from(),
     to,
-    subject: `Wir haben Ihre ${brand.labels.bookingRequestSingular} erhalten — ${brand.siteName}`,
+    subject,
     html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>vielen Dank für Ihre ${escapeHtml(brand.labels.serviceSingular)}anfrage. Wir melden uns in der Regel innerhalb von 24 Stunden.</p>
-<p>Freundliche Grüsse<br/>${escapeHtml(brand.siteName)}</p>`,
+<p>${bodyLine}</p>
+<p>${signoff}</p>`,
   });
 }
 
@@ -37,17 +49,27 @@ export async function sendAdminNewRequest(payload: {
   const r = client();
   if (!r || !adminTo) return;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const L = brand.labels;
+  const subject = L.emailAdminNewRequestSubjectTemplate
+    .replace("{bookingRequest}", L.bookingRequestSingular)
+    .replace("{guestName}", payload.guestName);
+  const intro = L.emailAdminNewRequestIntroTemplate.replace(
+    "{bookingRequest}",
+    escapeHtml(L.bookingRequestSingular)
+  );
+  const dateTimeLabel = escapeHtml(L.emailAdminNewRequestDateTimeLabel);
+  const cta = escapeHtml(L.emailCtaOpenAdmin);
   await r.emails.send({
     from: from(),
     to: adminTo,
-    subject: `Neue ${brand.labels.bookingRequestSingular}: ${payload.guestName}`,
-    html: `<p>Neue ${escapeHtml(brand.labels.bookingRequestSingular)} im Portal.</p>
+    subject,
+    html: `<p>${intro}</p>
 <ul>
-<li>${escapeHtml(brand.labels.clientSingular)}: ${escapeHtml(payload.guestName)} (${escapeHtml(payload.guestEmail)})</li>
-<li>${escapeHtml(brand.labels.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
-<li>Datum/Zeit: ${escapeHtml(payload.date)} ${escapeHtml(payload.startTime)}</li>
+<li>${escapeHtml(L.clientSingular)}: ${escapeHtml(payload.guestName)} (${escapeHtml(payload.guestEmail)})</li>
+<li>${escapeHtml(L.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
+<li>${dateTimeLabel} ${escapeHtml(payload.date)} ${escapeHtml(payload.startTime)}</li>
 </ul>
-<p><a href="${escapeHtml(appUrl)}/admin/anfragen">Im Admin öffnen</a></p>`,
+<p><a href="${escapeHtml(appUrl)}/admin/anfragen">${cta}</a></p>`,
   });
 }
 
@@ -61,17 +83,39 @@ export async function sendTeacherInviteMagicLinkEmail(
   if (!r) {
     throw new Error(brand.labels.configResendApiKeyMissing);
   }
+  const L = brand.labels;
+  const subject = L.emailInviteSubjectTemplate.replace(
+    "{siteName}",
+    brand.siteName
+  );
+  const greeting = L.emailInviteGreetingTemplate.replace(
+    "{name}",
+    escapeHtml(displayName)
+  );
+  const bodyIntro = L.emailInviteBodyIntroTemplate
+    .replace("{staffRole}", escapeHtml(L.staffRoleInInvite))
+    .replace("{siteName}", escapeHtml(brand.siteName));
+  const ctaLabel = L.emailInviteCtaSignInTemplate.replace(
+    "{siteName}",
+    escapeHtml(brand.siteName)
+  );
+  const fallback = L.emailInviteLoginFallbackLineTemplate.replace(
+    "{loginUrl}",
+    escapeHtml(loginPageUrl)
+  );
+  const signoff = L.emailSignoffWithSiteTemplate.replace(
+    "{siteName}",
+    escapeHtml(brand.siteName)
+  );
   await r.emails.send({
     from: from(),
     to,
-    subject: `Einladung zu ${brand.siteName} — Anmeldung`,
-    html: `<p>Hallo ${escapeHtml(displayName)},</p>
-<p>du wurdest als ${escapeHtml(brand.labels.staffRoleInInvite)} für ${escapeHtml(brand.siteName)} eingeladen. Mit dem folgenden Link meldest du dich an (einmal gültig, ca. 24&nbsp;Stunden):</p>
-<p><a href="${escapeHtml(magicLinkUrl)}">Bei ${escapeHtml(brand.siteName)} anmelden</a></p>
-<p>Falls der Link abläuft, fordere auf der <a href="${escapeHtml(
-      loginPageUrl
-    )}">Login-Seite</a> mit derselben E-Mail-Adresse einen neuen Magic-Link an.</p>
-<p>Freundliche Grüsse<br/>${escapeHtml(brand.siteName)}</p>`,
+    subject,
+    html: `<p>${greeting}</p>
+<p>${bodyIntro}</p>
+<p><a href="${escapeHtml(magicLinkUrl)}">${ctaLabel}</a></p>
+<p>${fallback}</p>
+<p>${signoff}</p>`,
   });
 }
 
@@ -82,17 +126,26 @@ export async function sendBookingConfirmed(
 ): Promise<void> {
   const r = client();
   if (!r) return;
+  const L = brand.labels;
+  const subject = L.emailBookingConfirmedSubjectTemplate
+    .replace("{serviceSingular}", L.serviceSingular)
+    .replace("{siteName}", brand.siteName);
+  const intro = L.emailBookingConfirmedIntroTemplate.replace(
+    "{bookingSingular}",
+    escapeHtml(L.bookingSingular)
+  );
+  const closing = escapeHtml(L.emailBookingConfirmedClosing);
   await r.emails.send({
     from: from(),
     to,
-    subject: `Ihr ${brand.labels.serviceSingular} ist bestätigt — ${brand.siteName}`,
+    subject,
     html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>Ihre ${escapeHtml(brand.labels.bookingSingular)} ist bestätigt:</p>
+<p>${intro}</p>
 <ul>
 <li>${escapeHtml(details.courseName)}</li>
 <li>${escapeHtml(details.date)} um ${escapeHtml(details.startTime)}</li>
 </ul>
-<p>Wir freuen uns auf Sie!</p>`,
+<p>${closing}</p>`,
   });
 }
 

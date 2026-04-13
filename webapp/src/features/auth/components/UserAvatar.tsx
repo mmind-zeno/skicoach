@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import { brand } from "@/config/brand";
 
 function initials(name: string | null | undefined, email: string | null | undefined) {
   if (name?.trim()) {
@@ -61,7 +62,7 @@ export function UserAvatar() {
         onClick={() => signOut({ callbackUrl: "/" })}
         className="mt-2 w-full rounded bg-white/10 px-2 py-1.5 text-xs font-medium hover:bg-white/20"
       >
-        Abmelden
+        {brand.labels.navSignOut}
       </button>
     </div>
   );

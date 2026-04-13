@@ -2,16 +2,12 @@
 
 import { useMemo } from "react";
 import useSWR from "swr";
+import { fetchJson } from "@/lib/client-fetch";
 import { formatLocalDateISO } from "@/lib/datetime";
 import type { BookingWithDetailsDto } from "../types";
 
-async function fetcher(url: string): Promise<BookingWithDetailsDto[]> {
-  const r = await fetch(url);
-  if (!r.ok) {
-    const err = await r.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error ?? r.statusText);
-  }
-  return r.json();
+function fetcher(url: string): Promise<BookingWithDetailsDto[]> {
+  return fetchJson<BookingWithDetailsDto[]>(url);
 }
 
 export function useBookings(
@@ -33,7 +29,9 @@ export function useBookings(
     return `/api/bookings?dateFrom=${from}&dateTo=${to}&teacherId=${opts.teacherId}`;
   }, [range, opts.isAdmin, opts.showAll, opts.teacherId]);
 
-  const swr = useSWR<BookingWithDetailsDto[]>(key, fetcher);
+  const swr = useSWR<BookingWithDetailsDto[]>(key, fetcher, {
+    keepPreviousData: true,
+  });
 
   return {
     bookings: swr.data ?? [],

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { confirmRequest } from "@/services/booking-request.service";
 
 export async function POST(
@@ -11,12 +11,20 @@ export async function POST(
 ) {
   const session = await requireAdminSession();
   try {
-    const json = await request.json();
-    const teacherId = typeof json.teacherId === "string" ? json.teacherId : "";
+    const json = (await request.json().catch(() => null)) as unknown;
+    const body =
+      json && typeof json === "object" && json !== null
+        ? (json as Record<string, unknown>)
+        : {};
+    const teacherId =
+      typeof body.teacherId === "string" ? body.teacherId.trim() : "";
     if (!teacherId) {
-      return NextResponse.json(
-        { error: brand.labels.apiAdminTeacherIdMissing },
-        { status: 400 }
+      return apiClientError(
+        brand.labels.apiAdminTeacherIdMissing,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
       );
     }
     const booking = await confirmRequest(
@@ -33,12 +41,6 @@ export async function POST(
     });
     return NextResponse.json(booking);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.uiErrorGeneric },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "POST /api/admin/requests/[id]/confirm", { request });
   }
 }

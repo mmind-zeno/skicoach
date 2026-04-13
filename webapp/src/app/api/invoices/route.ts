@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiErrorResponse } from "@/lib/api-error";
 import { createInvoiceBodySchema } from "@/lib/validators/invoice";
 import { createFromBooking, findAll } from "@/services/invoice.service";
 
@@ -23,10 +23,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(list);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/invoices");
   }
 }
 
@@ -38,12 +35,9 @@ export async function POST(request: Request) {
     const inv = await createFromBooking(body.bookingId);
     return NextResponse.json(inv, { status: 201 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "POST /api/invoices", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+    });
   }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { requireAdminSession, requireAuthSession } from "@/lib/auth-helpers";
-import { AppError } from "@/lib/errors";
+import { apiErrorResponse } from "@/lib/api-error";
 import { updateGuestBodySchema } from "@/lib/validators/guest-full";
 import {
   deleteGuest,
@@ -18,10 +18,7 @@ export async function GET(
     const guest = await findByIdWithBookings(params.id);
     return NextResponse.json(guest);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "GET /api/guests/[id]");
   }
 }
 
@@ -45,13 +42,10 @@ export async function PATCH(
     });
     return NextResponse.json(guest);
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    return NextResponse.json(
-      { error: brand.labels.apiInvalidData },
-      { status: 400 }
-    );
+    return apiErrorResponse(e, "PATCH /api/guests/[id]", {
+      handleZod: true,
+      badRequestMessage: brand.labels.apiInvalidData,
+    });
   }
 }
 
@@ -64,9 +58,6 @@ export async function DELETE(
     await deleteGuest(params.id);
     return new NextResponse(null, { status: 204 });
   } catch (e) {
-    if (e instanceof AppError) {
-      return NextResponse.json({ error: e.message }, { status: e.statusCode });
-    }
-    throw e;
+    return apiErrorResponse(e, "DELETE /api/guests/[id]");
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { brand } from "@/config/brand";
+import { FetchJsonError, fetchJson } from "@/lib/client-fetch";
 import useSWR from "swr";
 
 type Row = {
@@ -14,41 +15,35 @@ type Row = {
 };
 
 async function fetchLogs(url: string): Promise<Row[]> {
-  const r = await fetch(url, { credentials: "same-origin" });
-  if (r.ok) return r.json() as Promise<Row[]>;
-  let detail = "";
   try {
-    const j = (await r.json()) as { error?: string };
-    detail = j.error ?? "";
-  } catch {
-    detail = (await r.text()).slice(0, 200);
+    const rows = await fetchJson<unknown>(url);
+    if (!Array.isArray(rows)) {
+      throw new Error(brand.labels.auditLogServerError);
+    }
+    return rows as Row[];
+  } catch (e) {
+    const status = e instanceof FetchJsonError ? e.status : NaN;
+    if (status === 401) {
+      throw new Error(brand.labels.auditLogUnauthorized);
+    }
+    if (status === 403) {
+      throw new Error(
+        brand.labels.auditLogForbiddenTemplate.replace(
+          "{navAuditLog}",
+          brand.labels.navAuditLog
+        )
+      );
+    }
+    throw e instanceof Error ? e : new Error(brand.labels.auditLogServerError);
   }
-  if (r.status === 401) {
-    throw new Error(brand.labels.auditLogUnauthorized);
-  }
-  if (r.status === 403) {
-    throw new Error(
-      brand.labels.auditLogForbiddenTemplate.replace(
-        "{navAuditLog}",
-        brand.labels.navAuditLog
-      )
-    );
-  }
-  throw new Error(
-    detail ||
-      (r.status === 500
-        ? brand.labels.auditLogServerError
-        : brand.labels.auditLogHttpErrorTemplate.replace(
-            "{status}",
-            String(r.status)
-          ))
-  );
 }
 
 export function AdminAuditLogClient() {
-  const { data, error, isLoading } = useSWR("/api/admin/audit-logs?limit=120", fetchLogs, {
-    refreshInterval: 60_000,
-  });
+  const { data, error, isLoading, mutate, isValidating } = useSWR(
+    "/api/admin/audit-logs?limit=120",
+    fetchLogs,
+    { refreshInterval: 60_000 }
+  );
 
   if (isLoading) {
     return (
@@ -57,16 +52,55 @@ export function AdminAuditLogClient() {
   }
   if (error) {
     return (
-      <p className="text-sm text-red-600">
-        {brand.labels.auditLogLoadFailedPrefix} {error.message}
-      </p>
+      <div className="space-y-3">
+        <p className="text-sm text-red-600">
+          {brand.labels.auditLogLoadFailedPrefix} {error.message}
+        </p>
+        <button
+          type="button"
+          className="rounded border border-sk-ink/20 bg-white px-3 py-1.5 text-sm text-sk-brand hover:bg-sk-surface disabled:opacity-50"
+          disabled={isValidating}
+          onClick={() => void mutate()}
+        >
+          {isValidating
+            ? brand.labels.uiLoadingEllipsis
+            : brand.labels.uiRefresh}
+        </button>
+      </div>
     );
   }
   if (!data?.length) {
-    return <p className="text-sm text-sk-ink/60">Noch keine Einträge.</p>;
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-sk-ink/60">{brand.labels.uiNoEntriesYet}</p>
+        <button
+          type="button"
+          className="rounded border border-sk-ink/20 bg-white px-3 py-1.5 text-sm text-sk-brand hover:bg-sk-surface disabled:opacity-50"
+          disabled={isValidating}
+          onClick={() => void mutate()}
+        >
+          {isValidating
+            ? brand.labels.uiLoadingEllipsis
+            : brand.labels.uiRefresh}
+        </button>
+      </div>
+    );
   }
 
   return (
+    <div className="space-y-2">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          className="rounded border border-sk-ink/20 bg-white px-3 py-1.5 text-sm text-sk-brand hover:bg-sk-surface disabled:opacity-50"
+          disabled={isValidating}
+          onClick={() => void mutate()}
+        >
+          {isValidating
+            ? brand.labels.uiLoadingEllipsis
+            : brand.labels.uiRefresh}
+        </button>
+      </div>
     <div className="overflow-x-auto rounded-lg border border-sk-ink/10 bg-white shadow-sm">
       <table className="w-full min-w-[640px] text-left text-xs">
         <thead className="border-b border-sk-ink/10 bg-sk-surface text-sk-ink/70">
@@ -93,7 +127,7 @@ export function AdminAuditLogClient() {
           {data.map((row) => (
             <tr key={row.id} className="border-b border-sk-ink/5 last:border-0">
               <td className="whitespace-nowrap px-3 py-2 font-mono text-sk-ink/80">
-                {row.createdAt.replace("T", " ").slice(0, 19)}
+                {formatAuditTime(row.createdAt)}
               </td>
               <td className="px-3 py-2 text-sk-brand">{row.action}</td>
               <td className="max-w-[140px] truncate px-3 py-2 text-sk-ink/80">
@@ -113,6 +147,7 @@ export function AdminAuditLogClient() {
         </tbody>
       </table>
     </div>
+    </div>
   );
 }
 
@@ -123,4 +158,11 @@ function metaTitle(m: Record<string, unknown> | null): string {
   } catch {
     return "";
   }
+}
+
+function formatAuditTime(createdAt: string | undefined): string {
+  if (!createdAt || typeof createdAt !== "string") {
+    return brand.labels.uiEmDash;
+  }
+  return createdAt.replace("T", " ").slice(0, 19);
 }

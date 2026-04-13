@@ -2,8 +2,11 @@
 
 import { addMinutes, format } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAppToast } from "@/components/app-toast";
 import { formatLocalDateISO } from "@/lib/datetime";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorMessage } from "@/lib/client-error-message";
 import type { CourseTypeDto } from "../types";
 import type { TeacherLegendItem } from "./TeacherLegend";
 
@@ -32,6 +35,7 @@ export function BookingCreateModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { showToast } = useAppToast();
   const [teacherId, setTeacherId] = useState(defaultTeacherId);
   const [guestQuery, setGuestQuery] = useState("");
   const [guestOptions, setGuestOptions] = useState<
@@ -44,6 +48,7 @@ export function BookingCreateModal({
   const [priceOverride, setPriceOverride] = useState("");
   const [saving, setSaving] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
+  const [guestSearchError, setGuestSearchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -51,21 +56,16 @@ export function BookingCreateModal({
     setNotes("");
     setPriceOverride("");
     setWarn(null);
+    setGuestSearchError(null);
     setGuestOptions([]);
     if (prefillGuestId) {
       void (async () => {
         try {
-          const r = await fetch(`/api/guests/${prefillGuestId}`);
-          if (!r.ok) {
-            setGuestQuery("");
-            setGuestId(null);
-            return;
-          }
-          const g = (await r.json()) as {
+          const g = await fetchJson<{
             id: string;
             name: string;
             email: string | null;
-          };
+          }>(`/api/guests/${prefillGuestId}`);
           setGuestId(g.id);
           setGuestQuery(
             g.email ? `${g.name} — ${g.email}` : g.name
@@ -73,6 +73,7 @@ export function BookingCreateModal({
         } catch {
           setGuestQuery("");
           setGuestId(null);
+          setWarn(brand.labels.bookingModalGuestPrefetchFailed);
         }
       })();
     } else {
@@ -84,13 +85,17 @@ export function BookingCreateModal({
   useEffect(() => {
     if (!open) return;
     void (async () => {
-      const r = await fetch("/api/course-types");
-      if (!r.ok) return;
-      const data = (await r.json()) as CourseTypeDto[];
-      setCourseTypes(data);
-      setCourseTypeId((prev) =>
-        prev && data.some((c) => c.id === prev) ? prev : data[0]?.id ?? ""
-      );
+      try {
+        const data = await fetchJson<CourseTypeDto[]>("/api/course-types");
+        setCourseTypes(data);
+        setCourseTypeId((prev) =>
+          prev && data.some((c) => c.id === prev) ? prev : data[0]?.id ?? ""
+        );
+      } catch {
+        setCourseTypes([]);
+        setCourseTypeId("");
+        setWarn(brand.labels.bookingModalCourseTypesLoadFailed);
+      }
     })();
   }, [open]);
 
@@ -107,18 +112,21 @@ export function BookingCreateModal({
   const searchGuests = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
       setGuestOptions([]);
+      setGuestSearchError(null);
       return;
     }
-    const r = await fetch(
-      `/api/guests?q=${encodeURIComponent(q.trim())}&limit=30`
-    );
-    if (!r.ok) return;
-    const rows = (await r.json()) as {
-      id: string;
-      name: string;
-      email: string | null;
-    }[];
-    setGuestOptions(rows);
+    try {
+      const rows = await fetchJson<
+        { id: string; name: string; email: string | null }[]
+      >(
+        `/api/guests?q=${encodeURIComponent(q.trim())}&limit=30`
+      );
+      setGuestOptions(rows);
+      setGuestSearchError(null);
+    } catch {
+      setGuestOptions([]);
+      setGuestSearchError(brand.labels.bookingModalGuestSearchFailed);
+    }
   }, []);
 
   useEffect(() => {
@@ -139,20 +147,22 @@ export function BookingCreateModal({
       );
       return;
     }
-    const r = await fetch("/api/guests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-    if (!r.ok) {
+    try {
+      const g = await fetchJson<{ id: string }>("/api/guests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      setGuestId(g.id);
+      setWarn(null);
+    } catch {
       setWarn(
-        `${brand.labels.clientSingular} konnte nicht angelegt werden.`
+        brand.labels.bookingModalGuestCreateFailedTemplate.replace(
+          "{client}",
+          brand.labels.clientSingular
+        )
       );
-      return;
     }
-    const g = (await r.json()) as { id: string };
-    setGuestId(g.id);
-    setWarn(null);
   }
 
   async function submit() {
@@ -192,20 +202,22 @@ export function BookingCreateModal({
         priceCHF: priceOverride.trim() || undefined,
         source: "intern" as const,
       };
-      const r = await fetch("/api/bookings", {
+      await fetchJson("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!r.ok) {
-        const j = await r.json().catch(() => ({}));
-        setWarn(
-          (j as { error?: string }).error ?? brand.labels.uiSaveFailed
-        );
-        return;
-      }
+      showToast(
+        brand.labels.bookingCreatedToastTemplate.replace(
+          "{appointmentSingular}",
+          brand.labels.appointmentSingular
+        ),
+        "success"
+      );
       onCreated();
       onClose();
+    } catch (e) {
+      setWarn(getUiErrorMessage(e, brand.labels.uiSaveFailed));
     } finally {
       setSaving(false);
     }
@@ -258,7 +270,10 @@ export function BookingCreateModal({
             >
               {courseTypes.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c.durationMin} Min, {c.priceCHF} CHF)
+                  {brand.labels.bookingModalCourseTypeOptionTemplate
+                    .replace("{name}", c.name)
+                    .replace("{durationMin}", String(c.durationMin))
+                    .replace("{priceCHF}", c.priceCHF)}
                 </option>
               ))}
             </select>
@@ -282,6 +297,11 @@ export function BookingCreateModal({
                   "{client}",
                   brand.labels.clientSingular
                 )}
+              </p>
+            ) : null}
+            {guestSearchError ? (
+              <p className="mt-1 text-xs text-red-600" role="alert">
+                {guestSearchError}
               </p>
             ) : null}
             {guestOptions.length > 0 ? (
@@ -311,12 +331,15 @@ export function BookingCreateModal({
               className="mt-2 text-xs font-medium text-sk-brand underline"
               onClick={() => void createQuickGuest()}
             >
-              Neuen {brand.labels.clientSingular} mit eingegebenem Namen anlegen
+              {brand.labels.bookingModalQuickCreateGuestTemplate.replace(
+                "{client}",
+                brand.labels.clientSingular
+              )}
             </button>
           </div>
 
           <label className="block text-sm text-sk-ink">
-            Notizen
+            {brand.labels.fieldNotes}
             <textarea
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2 text-sk-ink"
               rows={2}
@@ -326,7 +349,7 @@ export function BookingCreateModal({
           </label>
 
           <label className="block text-sm text-sk-ink">
-            Preis (CHF, optional)
+            {brand.labels.bookingModalPriceChfOptionalLabel}
             <input
               type="text"
               className="mt-1 w-full rounded border border-sk-ink/20 px-2 py-2 text-sk-ink"

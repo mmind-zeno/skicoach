@@ -16,7 +16,7 @@ export function guestFacingDbMessage(e: unknown): string | null {
 }
 
 export function genericApiErrorMessage(e: unknown): string {
-  return (
-    guestFacingDbMessage(e) ?? brand.labels.apiTechnicalErrorGeneric
-  );
+  const drift = guestFacingDbMessage(e);
+  if (drift) return drift;
+  return brand.labels.apiTechnicalErrorGeneric;
 }

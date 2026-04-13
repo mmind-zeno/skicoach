@@ -15,12 +15,18 @@ Datei **`FORK_DEFAULTS`** bearbeiten:
 | `homeLead` | Absatz auf der Startseite |
 | `htmlLang` | `de` oder `en` (`<html lang>`) |
 | `issuerLocation` | Ort auf der Rechnung (z. B. Land) |
+| `legalPostalAddress` | Vollständige postalische Anschrift für Datenschutz & Impressum (oder `NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS`, Zeilenumbrüche als `\n`) |
 | `serviceSlug` | Wert von `service` im JSON von `/api/public/health` |
 | `defaultResendFrom` / `authResendFallback` | Resend-Absender-Fallbacks (siehe unten) |
-| `labels.*` | u. a. `client*`, `service*`, `serviceType*`, `staff*`, `appointment*`, `booking*`, `invoice*`, `bookingRequest*`, `request*`, `nav*` (inkl. `navDashboard`, `navHome`, `navContact`, `navPrivacy`), `clientSkillFilterLabel`, `chatChannelsHeading`, `chatDirectHeading`, `chatConnectionLive`/`chatConnectionPolling`, Kalender-Toolbar (`cal*`), Status-Badges (`status*`), Kurz-UI (`ui*`, z. B. Speichern/Fehler/Löschen), Platzhalter (`placeholder*`), Team-Login (`login*`), Kalender-Hinweis (`calendarPickAppointmentHintTemplate`), Buchungsmodal (`bookingModal*`), öffentlicher Wizard (`publicWizard*`), Gäste-Hinweise (`guestPageSelectClientHintTemplate`, `guestPlaceholderLanguage`, `placeholderCrmSourceExample`), Resend-Konfig (`configResendApiKeyMissing`). Automatisch: `teamAreaLead`, `sourceFromBookingPortal`. |
+| `labels.*` | u. a. `client*`, `service*`, `serviceType*`, `staff*`, `appointment*`, `booking*`, `invoice*`, `bookingRequest*`, `request*`, `nav*` (inkl. `navDashboard`, `navHome`, `navContact`, `navPrivacy`), `clientSkillFilterLabel`, `chatChannelsHeading`, `chatDirectHeading`, `chatConnectionLive`/`chatConnectionPolling`, Kalender-Toolbar (`cal*`), Status-Badges (`status*`), Kurz-UI (`ui*`, z. B. Speichern/Fehler/Löschen), Platzhalter (`placeholder*`), REST-Fehlertexte (`api*`, u. a. `apiUnauthorized`/`apiForbidden`), Team-Login (`login*`), Kalender-Hinweis (`calendarPickAppointmentHintTemplate`), Buchungsmodal (`bookingModal*`), öffentlicher Wizard (`publicWizard*`), Gäste-Hinweise (`guestPageSelectClientHintTemplate`, `guestPlaceholderLanguage`, `placeholderCrmSourceExample`), Resend-Konfig (`configResendApiKeyMissing`), Transaktions-E-Mails (`email*`, `mail.ts` + NextAuth Magic-Link in `auth-email-templates.ts`), Datenschutz- & Impressum-Mustertexte (`privacy*`, `imprint*`, `navImpressum`, `publicFooterLegalPrefix`; rechtlich prüfen und anpassen). Automatisch: `teamAreaLead`, `sourceFromBookingPortal`, `guestPlaceholderLanguage` je nach `htmlLang`. |
+| `demoTeamChannelSeedMessages` | Demo-Zeilen für den Team-Chat bei `npm run db:seed` (DE in `FORK_DEFAULTS`; bei `NEXT_PUBLIC_HTML_LANG=en` englische Texte aus `brand-labels-en.ts` über `brand.demoTeamChannelSeedMessages`) |
 | `features.*` | Reserviert für spätere Feature-Flags (aktuell Dokumentation) |
 
 Optional können dieselben Werte **ohne Codeänderung** per Build-/Deploy-Umgebung gesetzt werden (siehe `.env.example`, Variablen `NEXT_PUBLIC_*`).
+
+**Locale / Kalender / Daten:** `webapp/src/lib/locale.ts` nutzt `brand.htmlLang` (`NEXT_PUBLIC_HTML_LANG`): `react-big-calendar`, Monatskopf im öffentlichen Buchungswizard, Chat- und Gäste-Zeitstempel, Rechnungs-PDF-Datum, **CHF-Zahlenformat** (`CHFAmount`) sowie `brand.defaultGuestLanguage` (neue Gäste ohne Sprachangabe).
+
+**Englische UI (`NEXT_PUBLIC_HTML_LANG=en`):** Overlay in `webapp/src/config/brand-labels-en.ts` (wird in `brand.ts` über `FORK_DEFAULTS.labels` gelegt). Nicht übersetzte Keys bleiben deutsch — Fork kann `BRAND_LABELS_EN` erweitern. Zusätzlich `NEXT_PUBLIC_MARKETING_TAGLINE` / `NEXT_PUBLIC_HOME_LEAD` für englische Startseite setzen.
 
 ## 2. Umgebungsvariablen (Repo-Root `.env.example`)
 
@@ -41,11 +47,11 @@ Nach einem Fork typischerweise anpassen:
 
 Ein Fork sollte gezielt suchen nach:
 
-- Routen wie `/gaeste` (URL bleibt deutsch; Inhalt kommt aus `brand.labels`)
+- Routen wie `/gaeste` (URL bleibt deutsch; Inhalt kommt aus `brand.labels`); öffentlich: `/datenschutz`, `/impressum` (Mustertexte in `brand.labels.privacy*` / `imprint*` + `brand.legalPostalAddress` — vor Go-Live juristisch prüfen)
 - Drizzle-Enums und Tabellennamen (`guests`, `teachers` in der UI nur indirekt) — Umbenennung der **Datenbank** ist ein größeres Migrationsthema und für viele Verticals nicht nötig, solange die **Oberfläche** über `brand.labels` stimmt
-- `webapp/scripts/seed.ts` und `issue-admin-login.ts`: Test-E-Mail-Adressen an eigene Domain anpassen
+- `webapp/scripts/seed.ts` und `issue-admin-login.ts`: Demo-Adressen über `SEED_EMAIL_DOMAIN` oder `NEXT_PUBLIC_SITE_DOMAIN` (optional `SEED_ADMIN_EMAIL`, `ADMIN_BOOTSTRAP_EMAIL`) — siehe `.env.example`
 - `webapp/drizzle.config.ts`: Default-DB-Name
-- Rechtstexte: `webapp/src/app/(public)/datenschutz/page.tsx` durch echte Erklärung ersetzen
+- Rechtstexte: Inhalt über `brand.labels` und `brand.legalPostalAddress`; bei Bedarf Seiten oder Texte durch vom Anwalt freigegebene Fassung ersetzen
 
 ## 5. Wartung mehrerer Forks
 

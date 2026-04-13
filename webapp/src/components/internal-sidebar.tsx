@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
+import { useAppToast } from "@/components/app-toast";
 import { UserAvatar } from "@/features/auth/components/UserAvatar";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
 
 function navActive(href: string, pathname: string): boolean {
   if (href === "/admin") return pathname === "/admin";
@@ -17,10 +19,18 @@ export function InternalSidebar({
   isAdmin: boolean;
 }) {
   const pathname = usePathname() ?? "";
+  const {
+    successToastsEnabled,
+    infoToastsEnabled,
+    sessionQuietModeEnabled,
+    toggleSuccessToasts,
+    toggleInfoToasts,
+    toggleSessionQuietMode,
+  } = useAppToast();
   const { data } = useSWR<{ count: number }>(
     isAdmin ? "/api/admin/requests/count" : null,
-    (url) => fetch(url).then((r) => r.json()),
-    { refreshInterval: 30_000 }
+    (url) => fetchJson<{ count: number }>(url),
+    { refreshInterval: 30_000, keepPreviousData: true }
   );
   const badge = data?.count ?? 0;
 
@@ -40,6 +50,16 @@ export function InternalSidebar({
         <div className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-white/50">
           {brand.labels.navTeam}
         </div>
+        {sessionQuietModeEnabled ? (
+          <button
+            type="button"
+            onClick={toggleSessionQuietMode}
+            className="mt-2 inline-block rounded-full bg-amber-400/90 px-2 py-0.5 text-[10px] font-semibold text-sk-ink hover:bg-amber-300"
+            title={brand.labels.toastSessionQuietOff}
+          >
+            {brand.labels.toastSessionQuietBadge}
+          </button>
+        ) : null}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-3 text-sm">
         <Link className={linkClass("/kalender")} href="/kalender">
@@ -49,10 +69,10 @@ export function InternalSidebar({
           {brand.labels.clientPlural}
         </Link>
         <Link className={linkClass("/rechnungen")} href="/rechnungen">
-          Rechnungen
+          {brand.labels.navInvoices}
         </Link>
         <Link className={linkClass("/chat")} href="/chat">
-          Chat
+          {brand.labels.navChat}
         </Link>
         {isAdmin ? (
           <>
@@ -77,8 +97,37 @@ export function InternalSidebar({
           </>
         ) : null}
       </nav>
-      <div className="border-t border-white/10 px-4 py-2 text-[10px] text-white/50">
-        v{process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
+      <div className="border-t border-white/10 px-4 py-2">
+        <button
+          type="button"
+          onClick={toggleSuccessToasts}
+          className="mb-1 block rounded px-1 py-0.5 text-[10px] text-white/65 hover:bg-white/10 hover:text-white"
+        >
+          {successToastsEnabled
+            ? brand.labels.toastSuccessOn
+            : brand.labels.toastSuccessOff}
+        </button>
+        <button
+          type="button"
+          onClick={toggleSessionQuietMode}
+          className="mb-1 block rounded px-1 py-0.5 text-[10px] text-white/65 hover:bg-white/10 hover:text-white"
+        >
+          {sessionQuietModeEnabled
+            ? brand.labels.toastSessionQuietOn
+            : brand.labels.toastSessionQuietOff}
+        </button>
+        <button
+          type="button"
+          onClick={toggleInfoToasts}
+          className="mb-1 block rounded px-1 py-0.5 text-[10px] text-white/65 hover:bg-white/10 hover:text-white"
+        >
+          {infoToastsEnabled
+            ? brand.labels.toastInfoOn
+            : brand.labels.toastInfoOff}
+        </button>
+        <div className="px-1 text-[10px] text-white/50">
+          v{process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
+        </div>
       </div>
       <UserAvatar />
     </aside>

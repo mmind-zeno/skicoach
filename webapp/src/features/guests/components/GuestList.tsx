@@ -33,10 +33,14 @@ export function GuestList({
         <table className="w-full text-left text-sm">
           <thead className="sticky top-0 bg-sk-surface text-xs text-sk-ink/60">
             <tr>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2 hidden sm:table-cell">E-Mail</th>
-              <th className="px-3 py-2">Tel.</th>
-              <th className="px-3 py-2 hidden lg:table-cell">Firma</th>
+              <th className="px-3 py-2">{brand.labels.labelName}</th>
+              <th className="px-3 py-2 hidden sm:table-cell">
+                {brand.labels.labelEmail}
+              </th>
+              <th className="px-3 py-2">{brand.labels.guestListPhoneAbbrev}</th>
+              <th className="px-3 py-2 hidden lg:table-cell">
+                {brand.labels.labelCompany}
+              </th>
               <th className="px-3 py-2">
                 {brand.labels.clientSkillFilterLabel}
               </th>

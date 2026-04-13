@@ -2,22 +2,24 @@
 
 import { CHFAmount } from "@/components/ui/CHFAmount";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { useAppToast } from "@/components/app-toast";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { brand } from "@/config/brand";
+import { fetchJson } from "@/lib/client-fetch";
+import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
 
-async function f<T>(url: string): Promise<T> {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+function f<T>(url: string): Promise<T> {
+  return fetchJson<T>(url);
 }
 
 type Tab = "dash" | "users" | "courses";
 
 export function AdminHome() {
   const { data: session } = useSession();
+  const { showToast } = useAppToast();
   const meId = session?.user?.id ?? "";
   const [tab, setTab] = useState<Tab>("dash");
   const { data: statsPack } = useSWR(
@@ -32,7 +34,7 @@ export function AdminHome() {
       byTeacher: { teacher: string; revenue: number; bookingCount: number }[];
       byMonth: { month: number; count: number }[];
     }>,
-    { refreshInterval: 60_000 }
+    { refreshInterval: 60_000, keepPreviousData: true }
   );
 
   const { data: users, mutate: muUsers } = useSWR(
@@ -45,15 +47,24 @@ export function AdminHome() {
         role: string;
         isActive: boolean;
       }[]
-    >
+    >,
+    { keepPreviousData: true }
   );
 
   const { data: courses, mutate: muCourses } = useSWR(
     tab === "courses" ? "/api/admin/course-types" : null,
-    f<Record<string, unknown>[]>
+    f<Record<string, unknown>[]>,
+    { keepPreviousData: true }
   );
 
   const [inviteEmail, setInviteEmail] = useState("");
+  const [userActionError, setUserActionError] = useState<UiErrorInfo | null>(null);
+
+  useEffect(() => {
+    if (tab !== "users") {
+      setUserActionError(null);
+    }
+  }, [tab]);
 
   return (
     <div className="space-y-6">
@@ -63,7 +74,10 @@ export function AdminHome() {
             ["dash", brand.labels.navDashboard],
             [
               "users",
-              `${brand.labels.staffCollectivePlural} & Nutzer`,
+              brand.labels.adminTabStaffUsersTemplate.replace(
+                "{staffCollectivePlural}",
+                brand.labels.staffCollectivePlural
+              ),
             ],
             ["courses", brand.labels.serviceTypePlural],
           ] as const
@@ -99,29 +113,40 @@ export function AdminHome() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <MetricCard
-              label={`${brand.labels.bookingPlural} (Monat)`}
+              label={brand.labels.adminMetricBookingsMonthLabelTemplate.replace(
+                "{bookingPlural}",
+                brand.labels.bookingPlural
+              )}
               value={String(statsPack.stats.bookingsThisMonth)}
-              sub="Im laufenden Kalendermonat"
+              sub={brand.labels.adminMetricBookingsMonthSub}
             />
             <MetricCard
-              label="Umsatz"
+              label={brand.labels.adminMetricRevenueLabel}
               value={
                 <CHFAmount amount={statsPack.stats.revenueThisMonth} size="xl" />
               }
-              sub="Summe Preise (nicht storniert), aktueller Monat"
+              sub={brand.labels.adminMetricRevenueSub}
             />
             <MetricCard
-              label={`Aktive ${brand.labels.staffCollectivePlural}`}
+              label={brand.labels.adminMetricActiveStaffLabelTemplate.replace(
+                "{staffCollectivePlural}",
+                brand.labels.staffCollectivePlural
+              )}
               value={String(statsPack.stats.activeTeachers)}
             />
             <MetricCard
-              label={`${brand.labels.clientPlural} total`}
+              label={brand.labels.adminMetricGuestsTotalLabelTemplate.replace(
+                "{clientPlural}",
+                brand.labels.clientPlural
+              )}
               value={String(statsPack.stats.totalGuests)}
             />
           </div>
           <div>
             <h3 className="text-sm font-medium text-sk-ink">
-              {brand.labels.bookingPlural} pro Monat ({new Date().getFullYear()})
+              {brand.labels.adminChartBookingsByMonthTitleTemplate
+                .replace("{bookingPlural}", brand.labels.bookingPlural)
+                .replace("{year}", String(new Date().getFullYear()))}
             </h3>
             <div className="mt-2 flex h-36 items-end gap-1.5 rounded-lg bg-sk-surface/80 px-1 pb-1 pt-2">
               {(() => {
@@ -152,17 +177,20 @@ export function AdminHome() {
           </div>
           <div>
             <h3 className="text-sm font-medium text-sk-ink">
-              Umsatz pro {brand.labels.staffCollectivePlural} (Monat)
+              {brand.labels.adminChartRevenueByStaffTitleTemplate.replace(
+                "{staffCollectivePlural}",
+                brand.labels.staffCollectivePlural
+              )}
             </h3>
             <p className="mt-0.5 text-xs text-sk-ink/50">
-              Balken relativ zum höchsten Umsatz in der Liste
+              {brand.labels.adminChartRevenueByStaffHint}
             </p>
             <table className="mt-2 w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-sk-ink/60">
                   <th className="py-1">{brand.labels.staffSingular}</th>
                   <th>{brand.labels.bookingPlural}</th>
-                  <th>CHF</th>
+                  <th>{brand.labels.adminStatsTableHeaderChf}</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,6 +242,16 @@ export function AdminHome() {
               {brand.labels.adminUserListLoading}
             </p>
           ) : null}
+          {userActionError ? (
+            <p className="text-sm text-red-600" role="alert">
+              {userActionError.message}
+              {userActionError.requestId ? (
+                <span className="block text-xs text-red-700/80">
+                  Ref: {userActionError.requestId}
+                </span>
+              ) : null}
+            </p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <input
               className="rounded border px-2 py-2 text-sm"
@@ -225,26 +263,18 @@ export function AdminHome() {
               type="button"
               className="rounded bg-sk-brand px-3 py-2 text-sm text-white"
               onClick={async () => {
-                const res = await fetch("/api/admin/users", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ email: inviteEmail }),
-                });
-                const data = (await res.json().catch(() => ({}))) as {
-                  error?: string;
-                };
-                if (!res.ok) {
-                  window.alert(
-                    data.error ??
-                      brand.labels.uiErrorHttpTemplate.replace(
-                        "{status}",
-                        String(res.status)
-                      )
-                  );
-                  return;
+                setUserActionError(null);
+                try {
+                  await fetchJson("/api/admin/users", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: inviteEmail }),
+                  });
+                  setInviteEmail("");
+                  void muUsers();
+                } catch (e) {
+                  setUserActionError(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
                 }
-                setInviteEmail("");
-                void muUsers();
               }}
             >
               {brand.labels.adminSendMagicLink}
@@ -273,34 +303,28 @@ export function AdminHome() {
                   <td className="py-1">{u.name}</td>
                   <td>{u.email}</td>
                   <td>{u.role}</td>
-                  <td>{u.isActive ? "ja" : "nein"}</td>
+                  <td>
+                    {u.isActive ? brand.labels.uiYes : brand.labels.uiNo}
+                  </td>
                   <td className="space-x-2">
                     {u.isActive ? (
                       <button
                         type="button"
                         className="text-xs text-sk-brand underline"
                         onClick={async () => {
-                          const res = await fetch("/api/admin/users/resend-invite", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ email: u.email }),
-                          });
-                          const data = (await res.json().catch(() => ({}))) as {
-                            error?: string;
-                          };
-                          if (!res.ok) {
-                            window.alert(
-                              data.error ??
-                                brand.labels.uiErrorHttpTemplate.replace(
-                                  "{status}",
-                                  String(res.status)
-                                )
+                          setUserActionError(null);
+                          try {
+                            await fetchJson("/api/admin/users/resend-invite", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ email: u.email }),
+                            });
+                            showToast(brand.labels.adminMagicLinkResentToast, "success");
+                          } catch (e) {
+                            setUserActionError(
+                              getUiErrorInfo(e, brand.labels.uiErrorGeneric)
                             );
-                            return;
                           }
-                          window.alert(
-                            brand.labels.adminMagicLinkResentToast
-                          );
                         }}
                       >
                         {brand.labels.adminResendMagicLink}
@@ -310,21 +334,19 @@ export function AdminHome() {
                         type="button"
                         className="text-xs text-emerald-700 underline"
                         onClick={async () => {
-                          const res = await fetch(`/api/admin/users/${u.id}`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ isActive: true }),
-                          });
-                          const j = (await res.json().catch(() => ({}))) as {
-                            error?: string;
-                          };
-                          if (!res.ok) {
-                            window.alert(
-                              j.error ?? brand.labels.adminActivateUserFailed
+                          setUserActionError(null);
+                          try {
+                            await fetchJson(`/api/admin/users/${u.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ isActive: true }),
+                            });
+                            void muUsers();
+                          } catch (e) {
+                            setUserActionError(
+                              getUiErrorInfo(e, brand.labels.adminActivateUserFailed)
                             );
-                            return;
                           }
-                          void muUsers();
                         }}
                       >
                         {brand.labels.adminActivateUser}
@@ -340,23 +362,21 @@ export function AdminHome() {
                           : undefined
                       }
                       onClick={async () => {
-                        const res = await fetch(`/api/admin/users/${u.id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            role: u.role === "admin" ? "teacher" : "admin",
-                          }),
-                        });
-                        if (!res.ok) {
-                          const j = (await res.json().catch(() => ({}))) as {
-                            error?: string;
-                          };
-                          window.alert(
-                            j.error ?? brand.labels.adminRoleChangeFailed
+                        setUserActionError(null);
+                        try {
+                          await fetchJson(`/api/admin/users/${u.id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              role: u.role === "admin" ? "teacher" : "admin",
+                            }),
+                          });
+                          void muUsers();
+                        } catch (e) {
+                          setUserActionError(
+                            getUiErrorInfo(e, brand.labels.adminRoleChangeFailed)
                           );
-                          return;
                         }
-                        void muUsers();
                       }}
                     >
                       {brand.labels.adminRoleToggle}
@@ -368,24 +388,25 @@ export function AdminHome() {
                         onClick={async () => {
                           if (
                             !window.confirm(
-                              `${u.email} wirklich deaktivieren? Login ist danach nicht mehr möglich.`
+                              brand.labels.adminConfirmDeactivateUserTemplate.replace(
+                                "{email}",
+                                u.email
+                              )
                             )
                           ) {
                             return;
                           }
-                          const res = await fetch(`/api/admin/users/${u.id}`, {
-                            method: "DELETE",
-                          });
-                          const j = (await res.json().catch(() => ({}))) as {
-                            error?: string;
-                          };
-                          if (!res.ok) {
-                            window.alert(
-                              j.error ?? brand.labels.adminDeactivateUserFailed
+                          setUserActionError(null);
+                          try {
+                            await fetchJson(`/api/admin/users/${u.id}`, {
+                              method: "DELETE",
+                            });
+                            void muUsers();
+                          } catch (e) {
+                            setUserActionError(
+                              getUiErrorInfo(e, brand.labels.adminDeactivateUserFailed)
                             );
-                            return;
                           }
-                          void muUsers();
                         }}
                       >
                         {brand.labels.adminDeactivateUser}
@@ -421,17 +442,31 @@ function CourseTypeAdmin({
   const [price, setPrice] = useState("120");
   const [maxP, setMaxP] = useState(1);
   const [pub, setPub] = useState(true);
+  const [courseErr, setCourseErr] = useState<UiErrorInfo | null>(null);
 
   if (!list) {
     return (
       <p className="text-sm text-sk-ink/60">
-        {brand.labels.serviceTypePlural} werden geladen…
+        {brand.labels.adminCourseTypesLoadingTemplate.replace(
+          "{serviceTypePlural}",
+          brand.labels.serviceTypePlural
+        )}
       </p>
     );
   }
 
   return (
     <div className="space-y-4">
+      {courseErr ? (
+        <p className="text-sm text-red-600" role="alert">
+          {courseErr.message}
+          {courseErr.requestId ? (
+            <span className="block text-xs text-red-700/80">
+              Ref: {courseErr.requestId}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
       <div className="grid gap-2 rounded border border-sk-ink/10 p-3 text-sm sm:grid-cols-2">
         <input
           className="rounded border px-2 py-1"
@@ -471,27 +506,32 @@ function CourseTypeAdmin({
           type="button"
           className="rounded bg-sk-brand px-3 py-2 text-white"
           onClick={async () => {
-            const res = await fetch("/api/admin/course-types", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name,
-                durationMin: dur,
-                priceCHF: price,
-                maxParticipants: maxP,
-                isPublic: pub,
-              }),
-            });
-            const j = (await res.json().catch(() => ({}))) as { error?: string };
-            if (!res.ok) {
-              window.alert(
-                j.error ??
-                  `${brand.labels.serviceTypeSingular} konnte nicht angelegt werden`
+            setCourseErr(null);
+            try {
+              await fetchJson("/api/admin/course-types", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name,
+                  durationMin: dur,
+                  priceCHF: price,
+                  maxParticipants: maxP,
+                  isPublic: pub,
+                }),
+              });
+              setName("");
+              onChange();
+            } catch (e) {
+              setCourseErr(
+                getUiErrorInfo(
+                  e,
+                  brand.labels.adminCourseTypeCreateFailedTemplate.replace(
+                    "{serviceTypeSingular}",
+                    brand.labels.serviceTypeSingular
+                  )
+                )
               );
-              return;
             }
-            setName("");
-            onChange();
           }}
         >
           {brand.labels.adminCourseCreateButton}
@@ -499,8 +539,10 @@ function CourseTypeAdmin({
       </div>
       {list.length === 0 ? (
         <p className="text-sm text-sk-ink/60">
-          Noch keine {brand.labels.serviceTypePlural}. Oben anlegen oder per
-          Seed/Migration füllen.
+          {brand.labels.adminCourseTypesEmptyTemplate.replace(
+            "{serviceTypePlural}",
+            brand.labels.serviceTypePlural
+          )}
         </p>
       ) : (
         <ul className="space-y-2 text-sm">
@@ -510,26 +552,24 @@ function CourseTypeAdmin({
               className="flex flex-wrap items-center justify-between gap-2 rounded border border-sk-ink/10 px-3 py-2"
             >
               <span>
-                {String(c.name)} · {String(c.durationMin)} Min · CHF{" "}
-                {String(c.priceCHF)}
+                {brand.labels.adminCourseTypeRowSummaryTemplate
+                  .replace("{name}", String(c.name))
+                  .replace("{durationMin}", String(c.durationMin))
+                  .replace("{priceCHF}", String(c.priceCHF))}
               </span>
               <button
                 type="button"
                 className="text-xs text-red-600 underline"
                 onClick={async () => {
-                  const res = await fetch(`/api/admin/course-types/${c.id}`, {
-                    method: "DELETE",
-                  });
-                  const j = (await res.json().catch(() => ({}))) as {
-                    error?: string;
-                  };
-                  if (!res.ok) {
-                    window.alert(
-                      j.error ?? brand.labels.uiDeleteFailed
-                    );
-                    return;
+                  setCourseErr(null);
+                  try {
+                    await fetchJson(`/api/admin/course-types/${c.id}`, {
+                      method: "DELETE",
+                    });
+                    onChange();
+                  } catch (e) {
+                    setCourseErr(getUiErrorInfo(e, brand.labels.uiDeleteFailed));
                   }
-                  onChange();
                 }}
               >
                 {brand.labels.uiDelete}
