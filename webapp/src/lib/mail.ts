@@ -1,5 +1,11 @@
 import { Resend } from "resend";
 import { brand, getResendFromEmail } from "@/config/brand";
+import {
+  adminNewRequestMail,
+  bookingConfirmedMail,
+  bookingRequestConfirmationMail,
+  escapeHtml,
+} from "@/lib/mail/transactional-booking";
 
 function client() {
   const key = process.env.RESEND_API_KEY;
@@ -15,26 +21,8 @@ export async function sendBookingRequestConfirmation(
 ): Promise<void> {
   const r = client();
   if (!r) return;
-  const L = brand.labels;
-  const subject = L.emailBookingRequestSubjectTemplate
-    .replace("{bookingRequest}", L.bookingRequestSingular)
-    .replace("{siteName}", brand.siteName);
-  const bodyLine = L.emailBookingRequestBodyLineTemplate.replace(
-    "{serviceSingular}",
-    escapeHtml(L.serviceSingular)
-  );
-  const signoff = L.emailSignoffWithSiteTemplate.replace(
-    "{siteName}",
-    escapeHtml(brand.siteName)
-  );
-  await r.emails.send({
-    from: from(),
-    to,
-    subject,
-    html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>${bodyLine}</p>
-<p>${signoff}</p>`,
-  });
+  const { subject, html } = bookingRequestConfirmationMail(guestName);
+  await r.emails.send({ from: from(), to, subject, html });
 }
 
 export async function sendAdminNewRequest(payload: {
@@ -48,29 +36,8 @@ export async function sendAdminNewRequest(payload: {
   const adminTo = process.env.ADMIN_NOTIFICATION_EMAIL;
   const r = client();
   if (!r || !adminTo) return;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const L = brand.labels;
-  const subject = L.emailAdminNewRequestSubjectTemplate
-    .replace("{bookingRequest}", L.bookingRequestSingular)
-    .replace("{guestName}", payload.guestName);
-  const intro = L.emailAdminNewRequestIntroTemplate.replace(
-    "{bookingRequest}",
-    escapeHtml(L.bookingRequestSingular)
-  );
-  const dateTimeLabel = escapeHtml(L.emailAdminNewRequestDateTimeLabel);
-  const cta = escapeHtml(L.emailCtaOpenAdmin);
-  await r.emails.send({
-    from: from(),
-    to: adminTo,
-    subject,
-    html: `<p>${intro}</p>
-<ul>
-<li>${escapeHtml(L.clientSingular)}: ${escapeHtml(payload.guestName)} (${escapeHtml(payload.guestEmail)})</li>
-<li>${escapeHtml(L.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
-<li>${dateTimeLabel} ${escapeHtml(payload.date)} ${escapeHtml(payload.startTime)}</li>
-</ul>
-<p><a href="${escapeHtml(appUrl)}/admin/anfragen">${cta}</a></p>`,
-  });
+  const { subject, html } = adminNewRequestMail(payload);
+  await r.emails.send({ from: from(), to: adminTo, subject, html });
 }
 
 export async function sendTeacherInviteMagicLinkEmail(
@@ -126,33 +93,8 @@ export async function sendBookingConfirmed(
 ): Promise<void> {
   const r = client();
   if (!r) return;
-  const L = brand.labels;
-  const subject = L.emailBookingConfirmedSubjectTemplate
-    .replace("{serviceSingular}", L.serviceSingular)
-    .replace("{siteName}", brand.siteName);
-  const intro = L.emailBookingConfirmedIntroTemplate.replace(
-    "{bookingSingular}",
-    escapeHtml(L.bookingSingular)
-  );
-  const closing = escapeHtml(L.emailBookingConfirmedClosing);
-  await r.emails.send({
-    from: from(),
-    to,
-    subject,
-    html: `<p>Hallo ${escapeHtml(guestName)},</p>
-<p>${intro}</p>
-<ul>
-<li>${escapeHtml(details.courseName)}</li>
-<li>${escapeHtml(details.date)} um ${escapeHtml(details.startTime)}</li>
-</ul>
-<p>${closing}</p>`,
-  });
+  const { subject, html } = bookingConfirmedMail(guestName, details);
+  await r.emails.send({ from: from(), to, subject, html });
 }
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+export { escapeHtml } from "@/lib/mail/transactional-booking";

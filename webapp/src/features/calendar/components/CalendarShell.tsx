@@ -204,6 +204,7 @@ export function CalendarShell({
           <div className="fixed inset-x-0 bottom-0 z-20 max-h-[55vh] overflow-y-auto rounded-t-xl border border-sk-ink/10 bg-white p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] lg:relative lg:max-h-none lg:rounded-none lg:border-l lg:shadow-none">
             <BookingDetailPanel
               booking={selected}
+              isAdmin={isAdmin}
               onClose={() => setSelected(null)}
               onUpdated={(patch) => {
                 void mutate();

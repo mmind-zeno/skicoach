@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { brand } from "@/config/brand";
+import { featurePublicBooking } from "@/lib/features";
 
 export default function Home() {
   return (
@@ -9,12 +10,14 @@ export default function Home() {
           <h1 className="text-3xl font-semibold text-sk-brand">{brand.siteName}</h1>
           <p className="mt-3 max-w-xl text-sm text-sk-ink/70">{brand.homeLead}</p>
           <div className="mt-6 flex flex-wrap gap-3 text-sm">
-            <Link
-              href="/buchen"
-              className="rounded-lg bg-[#1B4F8A] px-4 py-2 text-white hover:bg-[#163d6e]"
-            >
-              {brand.labels.requestServiceCta}
-            </Link>
+            {featurePublicBooking() ? (
+              <Link
+                href="/buchen"
+                className="rounded-lg bg-[#1B4F8A] px-4 py-2 text-white hover:bg-[#163d6e]"
+              >
+                {brand.labels.requestServiceCta}
+              </Link>
+            ) : null}
             <Link
               href="/kalender"
               className="rounded-lg border border-sk-brand px-4 py-2 text-sk-brand hover:bg-[#E8F0FA]"

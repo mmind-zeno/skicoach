@@ -68,16 +68,42 @@ export function guestFacingDbMessage(e: unknown): string | null {
   if (/invalid input value for enum/i.test(text)) {
     return brand.labels.apiDbSchemaColumnDrift;
   }
+  const colMissing = text.match(
+    /column\s+"([^"]+)"\s+of relation\s+"([^"]+)"\s+does not exist/i
+  );
+  if (colMissing) {
+    return `${brand.labels.apiDbSchemaColumnDrift} (${colMissing[2]}.${colMissing[1]})`;
+  }
   if (/column .* does not exist/i.test(text)) {
     return brand.labels.apiDbSchemaColumnDrift;
   }
-  if (/relation .* does not exist/i.test(text)) {
-    return brand.labels.apiDbSchemaRelationDriftTemplate.replace(
+  const relMissing = text.match(
+    /relation\s+"([^"]+)"\s+does not exist/i
+  );
+  if (relMissing) {
+    const name = relMissing[1] ?? "";
+    return `${brand.labels.apiDbSchemaColumnDrift} (${name})`;
+  }
+   return null;
+}
+
+/** True wenn die Nachricht auf fehlende Tabellen/Spalten (Migration nötig) hinweist. */
+export function isDbSchemaDriftMessage(msg: string): boolean {
+  if (msg === brand.labels.apiDbSchemaColumnDrift) return true;
+  if (
+    msg.startsWith(`${brand.labels.apiDbSchemaColumnDrift} (`)
+  ) {
+    return true;
+  }
+  if (
+    msg === brand.labels.apiDbSchemaRelationDriftTemplate.replace(
       "{navAuditLog}",
       brand.labels.navAuditLog
-    );
+    )
+  ) {
+    return true;
   }
-  return null;
+  return false;
 }
 
 export function genericApiErrorMessage(e: unknown): string {

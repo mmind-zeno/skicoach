@@ -7,14 +7,41 @@ import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
-import type { BookingStatus, BookingWithDetailsDto } from "../types";
+import type {
+  BookingPaymentStatus,
+  BookingStatus,
+  BookingWithDetailsDto,
+} from "../types";
+
+const invoicesEnabled = !["false", "0", "off", "no"].includes(
+  (process.env.NEXT_PUBLIC_FEATURE_INVOICES ?? "").trim().toLowerCase()
+);
+
+const paymentsEnabled = ["true", "1", "yes", "on"].includes(
+  (process.env.NEXT_PUBLIC_FEATURE_PAYMENTS ?? "").trim().toLowerCase()
+);
+
+function paymentLabel(status: BookingPaymentStatus): string {
+  switch (status) {
+    case "deposit":
+      return brand.labels.bookingPaymentLabelDeposit;
+    case "paid":
+      return brand.labels.bookingPaymentLabelPaid;
+    case "refunded":
+      return brand.labels.bookingPaymentLabelRefunded;
+    default:
+      return brand.labels.bookingPaymentLabelNone;
+  }
+}
 
 export function BookingDetailPanel({
   booking,
+  isAdmin,
   onClose,
   onUpdated,
 }: {
   booking: BookingWithDetailsDto;
+  isAdmin: boolean;
   onClose: () => void;
   onUpdated: (patch?: BookingWithDetailsDto) => void;
 }) {
@@ -139,6 +166,65 @@ export function BookingDetailPanel({
             <dd className="whitespace-pre-wrap text-sk-ink">{booking.notes}</dd>
           </div>
         ) : null}
+        {paymentsEnabled ? (
+          <>
+            <div>
+              <dt className="text-sk-ink/50">{brand.labels.fieldPaymentStatus}</dt>
+              <dd className="text-sk-ink">
+                {isAdmin ? (
+                  <select
+                    className="mt-0.5 w-full rounded border border-sk-ink/20 bg-white px-2 py-1 text-sm"
+                    value={booking.paymentStatus}
+                    disabled={pending}
+                    onChange={(ev) => {
+                      const paymentStatus = ev.target.value as BookingPaymentStatus;
+                      setBanner(null);
+                      setPending(true);
+                      void (async () => {
+                        try {
+                          const updated = await fetchJson<BookingWithDetailsDto>(
+                            `/api/bookings/${booking.id}`,
+                            {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ paymentStatus }),
+                            }
+                          );
+                          onUpdated(updated);
+                        } catch (e) {
+                          setBanner(getUiErrorInfo(e, brand.labels.uiSaveFailed));
+                        } finally {
+                          setPending(false);
+                        }
+                      })();
+                    }}
+                  >
+                    <option value="none">{brand.labels.bookingPaymentLabelNone}</option>
+                    <option value="deposit">
+                      {brand.labels.bookingPaymentLabelDeposit}
+                    </option>
+                    <option value="paid">{brand.labels.bookingPaymentLabelPaid}</option>
+                    <option value="refunded">
+                      {brand.labels.bookingPaymentLabelRefunded}
+                    </option>
+                  </select>
+                ) : (
+                  paymentLabel(booking.paymentStatus)
+                )}
+              </dd>
+            </div>
+            {booking.paymentExternalRef ? (
+              <div>
+                <dt className="text-sk-ink/50">
+                  {brand.labels.fieldPaymentExternalRef}
+                </dt>
+                <dd className="font-mono text-xs text-sk-ink">
+                  {booking.paymentExternalRef}
+                </dd>
+              </div>
+            ) : null}
+          </>
+        ) : null}
       </dl>
 
       <div className="mt-4 flex flex-wrap gap-2 border-t border-sk-ink/10 pt-4">
@@ -174,38 +260,40 @@ export function BookingDetailPanel({
           {brand.labels.uiDelete}
         </button>
       </div>
-      <button
-        type="button"
-        disabled={pending}
-        className="mt-3 w-full rounded border border-sk-brand px-3 py-2 text-sm font-medium text-sk-brand hover:bg-[#E8F0FA] disabled:opacity-50"
-        onClick={async () => {
-          setBanner(null);
-          setPending(true);
-          try {
-            await fetchJson("/api/invoices", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ bookingId: booking.id }),
-            });
-            showToast(
-              brand.labels.invoiceCreatedAlertTemplate
-                .replace("{invoice}", brand.labels.invoiceSingular)
-                .replace("{navInvoices}", brand.labels.navInvoices),
-              "success"
-            );
-            onUpdated();
-          } catch (e) {
-            setBanner(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
-          } finally {
-            setPending(false);
-          }
-        }}
-      >
-        {brand.labels.invoiceCreateButtonTemplate.replace(
-          "{invoice}",
-          brand.labels.invoiceSingular
-        )}
-      </button>
+      {invoicesEnabled ? (
+        <button
+          type="button"
+          disabled={pending}
+          className="mt-3 w-full rounded border border-sk-brand px-3 py-2 text-sm font-medium text-sk-brand hover:bg-[#E8F0FA] disabled:opacity-50"
+          onClick={async () => {
+            setBanner(null);
+            setPending(true);
+            try {
+              await fetchJson("/api/invoices", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bookingId: booking.id }),
+              });
+              showToast(
+                brand.labels.invoiceCreatedAlertTemplate
+                  .replace("{invoice}", brand.labels.invoiceSingular)
+                  .replace("{navInvoices}", brand.labels.navInvoices),
+                "success"
+              );
+              onUpdated();
+            } catch (e) {
+              setBanner(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
+            } finally {
+              setPending(false);
+            }
+          }}
+        >
+          {brand.labels.invoiceCreateButtonTemplate.replace(
+            "{invoice}",
+            brand.labels.invoiceSingular
+          )}
+        </button>
+      ) : null}
     </aside>
   );
 }

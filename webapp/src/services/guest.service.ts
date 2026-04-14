@@ -176,6 +176,21 @@ export async function findByIdWithBookings(id: string): Promise<GuestWithBooking
     where: eq(guests.id, id),
     with: {
       bookings: {
+        /** Nur Kern-Spalten — vermeidet „column does not exist“, wenn 0008+ noch nicht migriert. */
+        columns: {
+          id: true,
+          teacherId: true,
+          guestId: true,
+          courseTypeId: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          status: true,
+          source: true,
+          notes: true,
+          priceCHF: true,
+          createdAt: true,
+        },
         with: {
           courseType: true,
           teacher: true,

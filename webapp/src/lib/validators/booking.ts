@@ -26,6 +26,10 @@ export const updateBookingBodySchema = z.object({
   priceCHF: z.string().optional(),
   status: z.enum(["geplant", "durchgefuehrt", "storniert"]).optional(),
   source: z.enum(["intern", "anfrage", "online"]).optional(),
+  paymentStatus: z
+    .enum(["none", "deposit", "paid", "refunded"])
+    .optional(),
+  paymentExternalRef: z.string().nullable().optional(),
 });
 
 export const listBookingsQuerySchema = z.object({

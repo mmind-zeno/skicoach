@@ -50,6 +50,13 @@
       "when": 1743030000000,
       "tag": "0007_audit_rate_limit_if_missing",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1743040000000,
+      "tag": "0008_platform_extensions",
+      "breakpoints": true
     }
   ]
 }

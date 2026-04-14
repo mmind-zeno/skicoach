@@ -1,6 +1,12 @@
 import type { NextAuthConfig } from "next-auth";
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
+import {
+  featureChat,
+  featureICal,
+  featureInvoices,
+  featurePublicBooking,
+} from "@/lib/features";
 
 /**
  * Edge/Middleware-tauglich: kein Drizzle/pg.
@@ -38,6 +44,54 @@ export const authConfig = {
     },
     authorized({ auth, request }) {
       const path = request.nextUrl.pathname;
+
+      if (path.startsWith("/api/calendar/ical")) {
+        if (!featureICal()) {
+          return NextResponse.json(
+            { error: brand.labels.apiNotFound, code: "NOT_FOUND" },
+            { status: 404 }
+          );
+        }
+        return true;
+      }
+
+      if (!featurePublicBooking()) {
+        if (path === "/buchen" || path.startsWith("/buchen/")) {
+          return NextResponse.redirect(new URL("/", request.url));
+        }
+        if (
+          path.startsWith("/api/public/slots") ||
+          path.startsWith("/api/public/availability") ||
+          path.startsWith("/api/public/requests") ||
+          path.startsWith("/api/public/course-types")
+        ) {
+          return NextResponse.json(
+            { error: brand.labels.apiForbidden, code: "FEATURE_DISABLED" },
+            { status: 403 }
+          );
+        }
+      }
+
+      if (auth?.user) {
+        if (!featureInvoices() && (path === "/rechnungen" || path.startsWith("/rechnungen/"))) {
+          return NextResponse.redirect(new URL("/kalender", request.url));
+        }
+        if (!featureChat() && (path === "/chat" || path.startsWith("/chat/"))) {
+          return NextResponse.redirect(new URL("/kalender", request.url));
+        }
+        if (!featureInvoices() && path.startsWith("/api/invoices")) {
+          return NextResponse.json(
+            { error: brand.labels.apiNotFound, code: "NOT_FOUND" },
+            { status: 404 }
+          );
+        }
+        if (!featureChat() && path.startsWith("/api/chat")) {
+          return NextResponse.json(
+            { error: brand.labels.apiNotFound, code: "NOT_FOUND" },
+            { status: 404 }
+          );
+        }
+      }
 
       if (
         path === "/" ||

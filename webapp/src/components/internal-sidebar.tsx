@@ -15,8 +15,12 @@ function navActive(href: string, pathname: string): boolean {
 
 export function InternalSidebar({
   isAdmin,
+  showInvoices = true,
+  showChat = true,
 }: {
   isAdmin: boolean;
+  showInvoices?: boolean;
+  showChat?: boolean;
 }) {
   const pathname = usePathname() ?? "";
   const {
@@ -69,12 +73,16 @@ export function InternalSidebar({
         <Link className={linkClass("/gaeste")} href="/gaeste">
           {brand.labels.clientPlural}
         </Link>
-        <Link className={linkClass("/rechnungen")} href="/rechnungen">
-          {brand.labels.navInvoices}
-        </Link>
-        <Link className={linkClass("/chat")} href="/chat">
-          {brand.labels.navChat}
-        </Link>
+        {showInvoices ? (
+          <Link className={linkClass("/rechnungen")} href="/rechnungen">
+            {brand.labels.navInvoices}
+          </Link>
+        ) : null}
+        {showChat ? (
+          <Link className={linkClass("/chat")} href="/chat">
+            {brand.labels.navChat}
+          </Link>
+        ) : null}
         {isAdmin ? (
           <>
             <div className="my-2 border-t border-white/10" />

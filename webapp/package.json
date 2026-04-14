@@ -1,6 +1,6 @@
 {
   "name": "webapp",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch server.ts",
@@ -15,6 +15,8 @@
     "check:api-errors": "node node_modules/tsx/dist/cli.mjs scripts/check-api-error.ts",
     "check:ui-errors": "node node_modules/tsx/dist/cli.mjs scripts/check-client-error-message.ts",
     "db:seed": "node node_modules/tsx/dist/cli.mjs scripts/seed.ts",
+    "db:baseline-legacy": "node node_modules/tsx/dist/cli.mjs scripts/drizzle-baseline-legacy.ts",
+    "smoke:critical-paths": "node node_modules/tsx/dist/cli.mjs scripts/smoke-critical-paths.ts",
     "admin:login-url": "node node_modules/tsx/dist/cli.mjs scripts/issue-admin-login.ts"
   },
   "dependencies": {

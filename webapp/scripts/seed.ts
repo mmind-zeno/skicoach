@@ -7,6 +7,7 @@ import { addDays, format } from "date-fns";
 import { eq } from "drizzle-orm";
 import { resolve } from "node:path";
 import {
+  bookableResources,
   bookingRequests,
   bookings,
   chatChannels,
@@ -56,6 +57,21 @@ async function ensureUser(opts: {
   return row;
 }
 
+async function ensureBookableResourceForUser(
+  db: ReturnType<typeof getDb>,
+  user: { id: string; name: string | null; email: string }
+) {
+  const existing = await db.query.bookableResources.findFirst({
+    where: eq(bookableResources.userId, user.id),
+  });
+  if (existing) return;
+  await db.insert(bookableResources).values({
+    name: user.name?.trim() || user.email,
+    userId: user.id,
+    isActive: true,
+  });
+}
+
 async function main() {
   const db = getDb();
 
@@ -78,6 +94,11 @@ async function main() {
     );
   }
   const t1 = teacherRows[0]!;
+
+  await ensureBookableResourceForUser(db, admin);
+  for (const t of teacherRows) {
+    await ensureBookableResourceForUser(db, t);
+  }
 
   let ct1 = await db.query.courseTypes.findFirst({
     where: eq(courseTypes.name, "Privat 1h"),
@@ -155,6 +176,12 @@ async function main() {
 
   const anyBooking = await db.query.bookings.findFirst({ columns: { id: true } });
   if (!anyBooking) {
+    const t1Res = await db.query.bookableResources.findFirst({
+      where: eq(bookableResources.userId, t1.id),
+    });
+    const t2Res = await db.query.bookableResources.findFirst({
+      where: eq(bookableResources.userId, teacherRows[1]!.id),
+    });
     const base = addDays(new Date(), 10);
     for (let i = 0; i < guestRows.length; i++) {
       const g = guestRows[i]!;
@@ -169,6 +196,7 @@ async function main() {
         status: "geplant",
         source: "intern",
         priceCHF: ct1.priceCHF,
+        resourceId: t1Res?.id ?? null,
       });
       if (i % 2 === 0) {
         await db.insert(bookings).values({
@@ -181,6 +209,7 @@ async function main() {
           status: "durchgefuehrt",
           source: "intern",
           priceCHF: ct2.priceCHF,
+          resourceId: t2Res?.id ?? null,
         });
       }
     }

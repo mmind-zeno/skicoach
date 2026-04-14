@@ -29,7 +29,9 @@ import {
 import {
   checkAvailability,
   checkAvailabilityUsingDb,
+  getActiveResourceIdForTeacher,
 } from "./booking.service";
+import { dispatchOutboundWebhooks } from "../lib/outbound-webhooks";
 import { findOrCreateByEmail } from "./guest.service";
 import { brand } from "../config/brand";
 
@@ -81,6 +83,13 @@ export async function createPublicRequest(input: {
     startTime: input.startTime,
     requestId: row.id,
   }).catch(() => {});
+  void dispatchOutboundWebhooks("booking.request.created", {
+    requestId: row.id,
+    courseTypeId: row.courseTypeId,
+    date: input.date,
+    startTime: input.startTime,
+    guestEmail: row.guestEmail,
+  });
   return row;
 }
 
@@ -245,6 +254,8 @@ export async function confirmRequest(
         );
       }
 
+      const resourceId = await getActiveResourceIdForTeacher(tx, teacherId);
+
       const [b] = await tx
         .insert(bookings)
         .values({
@@ -258,6 +269,7 @@ export async function confirmRequest(
           source: "anfrage",
           notes: req.message ?? null,
           priceCHF: price,
+          resourceId,
         })
         .returning();
 
@@ -303,6 +315,16 @@ export async function confirmRequest(
       startTime: startTimeForMail.slice(0, 5),
       courseName: courseRow.name ?? brand.labels.serviceSingular,
     }).catch(() => {});
+
+    void dispatchOutboundWebhooks("booking.confirmed", {
+      bookingId: booking.id,
+      requestId: req.id,
+      guestEmail: req.guestEmail,
+      teacherId,
+      courseTypeId: req.courseTypeId,
+      date: String(req.date).slice(0, 10),
+      startTime: startTimeForMail.slice(0, 5),
+    });
 
     return booking;
   } catch (e) {
@@ -395,7 +417,13 @@ export async function rejectRequest(requestId: string, reason?: string | null) {
       );
     }
   });
-  return findRequestById(requestId);
+  const result = await findRequestById(requestId);
+  void dispatchOutboundWebhooks("booking.request.rejected", {
+    requestId,
+    guestEmail: result.guestEmail,
+    courseTypeId: result.courseTypeId,
+  });
+  return result;
 }
 
 export async function countNewRequests(): Promise<number> {

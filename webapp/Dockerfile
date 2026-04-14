@@ -19,6 +19,8 @@ ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
 ARG NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS=""
 ENV NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS=${NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS}
+ARG NEXT_PUBLIC_APP_VERSION="0.4.4"
+ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
 RUN npm run build
 RUN npm prune --omit=dev
 
@@ -40,9 +42,11 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/tsconfig.json ./
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh && chown nextjs:nodejs /app/docker-entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "node_modules/tsx/dist/cli.mjs", "server.ts"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

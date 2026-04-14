@@ -148,6 +148,12 @@ const FORK_DEFAULTS = {
     fieldStatus: "Status",
     fieldSource: "Herkunft",
     fieldNotes: "Notizen",
+    fieldPaymentStatus: "Zahlung",
+    fieldPaymentExternalRef: "Zahlungs-Referenz",
+    bookingPaymentLabelNone: "Nicht erfasst",
+    bookingPaymentLabelDeposit: "Anzahlung",
+    bookingPaymentLabelPaid: "Bezahlt",
+    bookingPaymentLabelRefunded: "Erstattet",
     bookingActionStornieren: "Stornieren",
     /** API / Services: von Clients angezeigte Fehlermeldungen */
     apiChatChannelOrRecipientRequired:
@@ -581,6 +587,11 @@ const FORK_DEFAULTS = {
     stripeCheckout: false,
   },
   /**
+   * Optionale Begriffe pro Branche — werden mit `labels` verschmolzen (Fork: z. B. Therapeut statt Lehrkraft).
+   * Schlüssel wie in `labels` (z. B. staffSingular).
+   */
+  terminology: {} as Record<string, string>,
+  /**
    * Desktop-Login linke Spalte: Verlauf + dezente Deko (ohne ski-spezifische Motive).
    * Pro Fork hier Farben anpassen oder NEXT_PUBLIC_LOGIN_HERO_GRADIENT_* setzen.
    */
@@ -661,16 +672,21 @@ const labelsMerged =
     ? { ...labelsBase, ...BRAND_LABELS_EN }
     : { ...labelsBase };
 
-const labels = {
+const labelsCore = {
   ...labelsMerged,
+  ...FORK_DEFAULTS.terminology,
+};
+
+const labels = {
+  ...labelsCore,
   teamAreaLead:
     htmlLang === "en"
-      ? `${labelsMerged.navCalendar}, ${labelsMerged.clientPlural}, ${labelsMerged.navInvoices} and ${labelsMerged.navChat} — secure magic link sign-in.`
-      : `${labelsMerged.navCalendar}, ${labelsMerged.clientPlural}, ${labelsMerged.navInvoices} und ${labelsMerged.navChat} — sicher per Magic-Link.`,
+      ? `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} and ${labelsCore.navChat} — secure magic link sign-in.`
+      : `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} und ${labelsCore.navChat} — sicher per Magic-Link.`,
   sourceFromBookingPortal:
     htmlLang === "en"
-      ? `From ${labelsMerged.bookingRequestSingular} (portal)`
-      : `Aus ${labelsMerged.bookingRequestSingular} (Portal)`,
+      ? `From ${labelsCore.bookingRequestSingular} (portal)`
+      : `Aus ${labelsCore.bookingRequestSingular} (Portal)`,
 };
 
 const demoTeamChannelSeedMessages =
@@ -695,6 +711,8 @@ export const brand = {
   /** Zeilen für `scripts/seed.ts` (Team-Kanal), folgt `htmlLang` */
   demoTeamChannelSeedMessages,
   labels,
+  /** Roh-Overrides (bereits in `labels` gemerged); für Fork-Doku / Debugging */
+  terminology: FORK_DEFAULTS.terminology,
   features: FORK_DEFAULTS.features,
   /** Kopfzeile Rechnungs-PDF (bisher z. B. skicoach.li) */
   invoiceBrandHeader: siteDomain,

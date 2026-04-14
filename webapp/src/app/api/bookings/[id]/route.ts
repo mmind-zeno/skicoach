@@ -55,6 +55,12 @@ export async function PATCH(
     if (session.user.role !== "admin" && body.teacherId && body.teacherId !== session.user.id) {
       return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
+    if (
+      session.user.role !== "admin" &&
+      (body.paymentStatus !== undefined || body.paymentExternalRef !== undefined)
+    ) {
+      return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
+    }
     const updated = await updateBooking(id, body);
     return NextResponse.json(updated);
   } catch (e) {

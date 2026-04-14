@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { brand } from "@/config/brand";
 import { AppError } from "@/lib/errors";
-import { genericApiErrorMessage } from "@/lib/map-db-error";
+import {
+  genericApiErrorMessage,
+  isDbSchemaDriftMessage,
+} from "@/lib/map-db-error";
 
 type ApiErrorOptions = {
   badRequestMessage?: string;
@@ -79,15 +82,7 @@ export function apiErrorResponse(
   }
   console.error(`[${context}]`, e);
   const msg = options?.fallbackMessage ?? genericApiErrorMessage(e);
-  const code =
-    msg === brand.labels.apiDbSchemaColumnDrift ||
-    msg ===
-      brand.labels.apiDbSchemaRelationDriftTemplate.replace(
-        "{navAuditLog}",
-        brand.labels.navAuditLog
-      )
-      ? "DB_SCHEMA_DRIFT"
-      : "INTERNAL_ERROR";
+  const code = isDbSchemaDriftMessage(msg) ? "DB_SCHEMA_DRIFT" : "INTERNAL_ERROR";
   return NextResponse.json(
     { error: msg, code, requestId },
     { status: 500, headers: { "x-request-id": requestId } }

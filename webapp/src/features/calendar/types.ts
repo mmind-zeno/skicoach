@@ -3,6 +3,7 @@ import type { Guest } from "../guests/types";
 
 export type BookingStatus = "geplant" | "durchgefuehrt" | "storniert";
 export type BookingSource = "intern" | "anfrage" | "online";
+export type BookingPaymentStatus = "none" | "deposit" | "paid" | "refunded";
 
 export type GuestDto = Guest;
 
@@ -35,6 +36,9 @@ export interface BookingWithDetailsDto {
   source: BookingSource;
   notes: string | null;
   priceCHF: string;
+  resourceId: string | null;
+  paymentStatus: BookingPaymentStatus;
+  paymentExternalRef: string | null;
   createdAt: string;
   guest: GuestDto;
   teacher: TeacherDto;
@@ -74,6 +78,8 @@ export interface UpdateBookingInput {
   priceCHF?: string;
   status?: BookingStatus;
   source?: BookingSource;
+  paymentStatus?: BookingPaymentStatus;
+  paymentExternalRef?: string | null;
 }
 
 export type CalendarViewName = View;

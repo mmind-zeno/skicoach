@@ -182,6 +182,58 @@ export const guestContacts = pgTable(
   })
 );
 
+/** Buchbare Kapazität: meist 1:1 mit User (Lehrkraft); optional eigener Name für Forks. */
+export const bookableResources = pgTable(
+  "bookable_resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userUnique: uniqueIndex("bookable_resources_user_id_unique").on(t.userId),
+  })
+);
+
+/** Sperrzeit / Pause im Kalender einer Person (user_id). */
+export const availabilityBlocks = pgTable(
+  "availability_blocks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    blockDate: date("block_date", { mode: "date" }).notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userDateIdx: index("availability_blocks_user_date_idx").on(
+      t.userId,
+      t.blockDate
+    ),
+  })
+);
+
+/** Ausgehende Hook-URLs (n8n o. ä.), siehe webapp/src/lib/outbound-webhooks.ts */
+export const outboundWebhooks = pgTable("outbound_webhooks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  url: text("url").notNull(),
+  secret: text("secret"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+});
+
 export const courseTypes = pgTable(
   "course_types",
   {
@@ -218,6 +270,11 @@ export const bookings = pgTable(
     source: bookingSourceEnum("source").notNull().default("intern"),
     notes: text("notes"),
     priceCHF: decimal("price_chf", { precision: 10, scale: 2, mode: "string" }).notNull(),
+    resourceId: uuid("resource_id").references(() => bookableResources.id, {
+      onDelete: "set null",
+    }),
+    paymentStatus: text("payment_status").notNull().default("none"),
+    paymentExternalRef: text("payment_external_ref"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => ({
@@ -225,6 +282,7 @@ export const bookings = pgTable(
     guestIdx: index("bookings_guest_idx").on(t.guestId),
     dateIdx: index("bookings_date_idx").on(t.date),
     courseTypeIdx: index("bookings_course_type_idx").on(t.courseTypeId),
+    resourceIdx: index("bookings_resource_id_idx").on(t.resourceId),
   })
 );
 
@@ -369,13 +427,18 @@ export const chatMessages = pgTable(
 
 // ── Relations ───────────────────────────────────────────────────────────────
 
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
   authenticators: many(authenticators),
   bookingsAsTeacher: many(bookings, { relationName: "teacher" }),
   handledBookingRequests: many(bookingRequests),
   authoredGuestContacts: many(guestContacts),
+  bookableResource: one(bookableResources, {
+    fields: [users.id],
+    references: [bookableResources.userId],
+  }),
+  availabilityBlocks: many(availabilityBlocks),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -412,6 +475,27 @@ export const courseTypesRelations = relations(courseTypes, ({ many }) => ({
   bookingRequests: many(bookingRequests),
 }));
 
+export const bookableResourcesRelations = relations(
+  bookableResources,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [bookableResources.userId],
+      references: [users.id],
+    }),
+    bookings: many(bookings),
+  })
+);
+
+export const availabilityBlocksRelations = relations(
+  availabilityBlocks,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [availabilityBlocks.userId],
+      references: [users.id],
+    }),
+  })
+);
+
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   teacher: one(users, {
     fields: [bookings.teacherId],
@@ -422,6 +506,10 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   courseType: one(courseTypes, {
     fields: [bookings.courseTypeId],
     references: [courseTypes.id],
+  }),
+  resource: one(bookableResources, {
+    fields: [bookings.resourceId],
+    references: [bookableResources.id],
   }),
   invoices: many(invoices),
   fulfilledFromRequest: one(bookingRequests, {
@@ -492,6 +580,9 @@ export const dbSchema = {
   authenticators,
   guests,
   guestContacts,
+  bookableResources,
+  availabilityBlocks,
+  outboundWebhooks,
   courseTypes,
   bookings,
   bookingRequests,
@@ -506,6 +597,8 @@ export const dbSchema = {
   authenticatorsRelations,
   guestsRelations,
   guestContactsRelations,
+  bookableResourcesRelations,
+  availabilityBlocksRelations,
   courseTypesRelations,
   bookingsRelations,
   bookingRequestsRelations,

@@ -1,5 +1,7 @@
 import { and, eq, gte, lte, lt, gt, ne, sql } from "drizzle-orm";
 import {
+  availabilityBlocks,
+  bookableResources,
   bookings,
   courseTypes,
   guests,
@@ -13,7 +15,10 @@ import type {
   CreateBookingInput,
   UpdateBookingInput,
 } from "../features/calendar/types";
-import type { BookingStatus } from "../features/calendar/types";
+import type {
+  BookingPaymentStatus,
+  BookingStatus,
+} from "../features/calendar/types";
 import { brand } from "../config/brand";
 
 function toTeacherDto(u: typeof users.$inferSelect) {
@@ -74,6 +79,9 @@ function toBookingDto(
     source: b.source,
     notes: b.notes,
     priceCHF: b.priceCHF,
+    resourceId: b.resourceId ?? null,
+    paymentStatus: (b.paymentStatus ?? "none") as BookingPaymentStatus,
+    paymentExternalRef: b.paymentExternalRef ?? null,
     createdAt: b.createdAt.toISOString(),
     guest: toGuestDto(guest),
     teacher: toTeacherDto(teacher),
@@ -158,6 +166,44 @@ export type BookingServiceTx = Parameters<
   Parameters<BookingServiceDb["transaction"]>[0]
 >[0];
 
+export async function getActiveResourceIdForTeacher(
+  db: BookingServiceDb | BookingServiceTx,
+  teacherId: string
+): Promise<string | null> {
+  const [row] = await db
+    .select({ id: bookableResources.id })
+    .from(bookableResources)
+    .where(
+      and(
+        eq(bookableResources.userId, teacherId),
+        eq(bookableResources.isActive, true)
+      )
+    )
+    .limit(1);
+  return row?.id ?? null;
+}
+
+async function hasAvailabilityBlockOverlapUsingDb(
+  db: BookingServiceDb | BookingServiceTx,
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string
+): Promise<boolean> {
+  const [hit] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(availabilityBlocks)
+    .where(
+      and(
+        eq(availabilityBlocks.userId, teacherId),
+        eq(availabilityBlocks.blockDate, date),
+        lt(availabilityBlocks.startTime, endTime),
+        gt(availabilityBlocks.endTime, startTime)
+      )
+    );
+  return (hit?.c ?? 0) > 0;
+}
+
 /** Überlappung nur mit nicht stornierten Terminen (expliziter DB-/Tx-Client für Transaktionen). */
 export async function hasTimeOverlapUsingDb(
   db: BookingServiceDb | BookingServiceTx,
@@ -218,7 +264,15 @@ export async function checkAvailabilityUsingDb(
     endTime,
     excludeBookingId
   );
-  return !overlap;
+  if (overlap) return false;
+  const blocked = await hasAvailabilityBlockOverlapUsingDb(
+    db,
+    teacherId,
+    date,
+    startTime,
+    endTime
+  );
+  return !blocked;
 }
 
 export async function checkAvailability(
@@ -271,6 +325,7 @@ export async function createBooking(
   }
 
   const price = input.priceCHF ?? course.priceCHF;
+  const resourceId = await getActiveResourceIdForTeacher(db, input.teacherId);
 
   const [row] = await db
     .insert(bookings)
@@ -284,6 +339,7 @@ export async function createBooking(
       notes: input.notes ?? null,
       priceCHF: price,
       source: input.source ?? "intern",
+      resourceId,
     })
     .returning();
 
@@ -336,7 +392,13 @@ export async function updateBooking(
   }
 
   const patch: Partial<typeof bookings.$inferInsert> = {};
-  if (input.teacherId) patch.teacherId = input.teacherId;
+  if (input.teacherId) {
+    patch.teacherId = input.teacherId;
+    patch.resourceId = await getActiveResourceIdForTeacher(
+      getDb(),
+      input.teacherId
+    );
+  }
   if (input.guestId) patch.guestId = input.guestId;
   if (input.courseTypeId) patch.courseTypeId = input.courseTypeId;
   if (input.date) patch.date = parseLocalDateOnly(input.date);
@@ -346,6 +408,10 @@ export async function updateBooking(
   if (input.priceCHF) patch.priceCHF = input.priceCHF;
   if (input.status) patch.status = input.status;
   if (input.source) patch.source = input.source;
+  if (input.paymentStatus !== undefined)
+    patch.paymentStatus = input.paymentStatus;
+  if (input.paymentExternalRef !== undefined)
+    patch.paymentExternalRef = input.paymentExternalRef;
 
   if (Object.keys(patch).length === 0) {
     return findBookingById(id);
