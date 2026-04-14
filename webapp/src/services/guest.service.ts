@@ -205,19 +205,23 @@ export async function findByIdWithBookings(id: string): Promise<GuestWithBooking
 
 export async function createGuest(input: CreateGuestInput): Promise<Guest> {
   const db = getDb();
-  const [row] = await db
-    .insert(guests)
-    .values({
-      name: input.name.trim(),
-      email: input.email?.trim() || null,
-      phone: input.phone?.trim() || null,
-      niveau: input.niveau ?? "anfaenger",
-      language: input.language ?? brand.defaultGuestLanguage,
-      notes: input.notes?.trim() || null,
-      company: input.company?.trim() || null,
-      crmSource: input.crmSource?.trim() || null,
-    })
-    .returning();
+  const base = {
+    name: input.name.trim(),
+    email: input.email?.trim() || null,
+    phone: input.phone?.trim() || null,
+    niveau: input.niveau ?? "anfaenger",
+    language: input.language ?? brand.defaultGuestLanguage,
+    notes: input.notes?.trim() || null,
+  };
+  const values =
+    input.company !== undefined || input.crmSource !== undefined
+      ? {
+          ...base,
+          company: input.company?.trim() || null,
+          crmSource: input.crmSource?.trim() || null,
+        }
+      : base;
+  const [row] = await db.insert(guests).values(values).returning();
   if (!row) {
     throw new ValidationError(
       `${brand.labels.clientSingular} konnte nicht angelegt werden`

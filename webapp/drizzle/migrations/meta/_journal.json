@@ -36,6 +36,13 @@
       "when": 1743010000000,
       "tag": "0004_legacy_enum_labels",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743020000000,
+      "tag": "0005_guest_crm_columns_if_missing",
+      "breakpoints": true
     }
   ]
 }
