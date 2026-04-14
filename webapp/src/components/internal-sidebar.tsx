@@ -81,6 +81,9 @@ export function InternalSidebar({
         <Link className={linkClass("/stundenreport")} href="/stundenreport">
           {brand.labels.navMonthlyHoursReport}
         </Link>
+        <Link className={linkClass("/lohnabrechnung")} href="/lohnabrechnung">
+          {brand.labels.navPayroll}
+        </Link>
         {showChat ? (
           <Link className={linkClass("/chat")} href="/chat">
             {brand.labels.navChat}

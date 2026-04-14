@@ -1,4 +1,5 @@
 import React from "react";
+import type { PayrollMonthReportDto } from "./payroll-li.shared";
 import { findById } from "./invoice.service";
 
 function splitVatBrutto(brutto: number, vatPercent: number): {
@@ -44,6 +45,19 @@ export async function generateInvoicePdfBuffer(
     />
   );
 
+  const buf = await renderToBuffer(doc);
+  return Buffer.from(buf);
+}
+
+export async function generatePayrollPdfBuffer(
+  report: PayrollMonthReportDto
+): Promise<Buffer> {
+  const [{ renderToBuffer }, payrollPdfModule] = await Promise.all([
+    import("@react-pdf/renderer"),
+    import("../features/reports/PayrollSlipPDFDocument"),
+  ]);
+  const { PayrollSlipPDFDocument } = payrollPdfModule;
+  const doc = <PayrollSlipPDFDocument report={report} />;
   const buf = await renderToBuffer(doc);
   return Buffer.from(buf);
 }

@@ -52,6 +52,11 @@ export const invoiceStatusEnum = pgEnum("invoice_status", [
   "bezahlt",
   "storniert",
 ]);
+/** KVG Arbeitgeberanteil: Erwachsene vs. Jugendliche (16–20), vgl. Merkblatt 2026. */
+export const staffKvgAgeBandEnum = pgEnum("staff_kvg_age_band", [
+  "adult",
+  "youth_16_20",
+]);
 
 // ── NextAuth + App: users ───────────────────────────────────────────────────
 
@@ -277,6 +282,36 @@ export const staffTimeLogs = pgTable(
     userDateIdx: index("staff_time_logs_user_date_idx").on(t.userId, t.workDate),
   })
 );
+
+/** Bruttolohn pro Stunde & FL-Lohn-Hilfsfelder (AHV/KVG/Steuer — keine Rechtsberatung). */
+export const staffPayrollProfiles = pgTable("staff_payroll_profiles", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  grossHourlyRateChf: decimal("gross_hourly_rate_chf", {
+    precision: 10,
+    scale: 2,
+    mode: "string",
+  }),
+  weeklyHoursForKvg: decimal("weekly_hours_for_kvg", {
+    precision: 6,
+    scale: 2,
+    mode: "string",
+  }),
+  kvgAgeBand: staffKvgAgeBandEnum("kvg_age_band").notNull().default("adult"),
+  applyWht4pct: boolean("apply_wht_4pct").notNull().default(true),
+  merkblattSmallEmploymentAck: boolean("merkblatt_small_employment_ack")
+    .notNull()
+    .default(false),
+  ahvNumber: text("ahv_number"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+});
 
 /** Sperrzeit / Pause im Kalender einer Person (user_id). */
 export const availabilityBlocks = pgTable(
@@ -521,6 +556,10 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   staffWeeklyAvailability: many(staffWeeklyAvailability),
   staffVacationPeriods: many(staffVacationPeriods),
   staffTimeLogs: many(staffTimeLogs),
+  payrollProfile: one(staffPayrollProfiles, {
+    fields: [users.id],
+    references: [staffPayrollProfiles.userId],
+  }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -604,6 +643,16 @@ export const staffTimeLogsRelations = relations(staffTimeLogs, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const staffPayrollProfilesRelations = relations(
+  staffPayrollProfiles,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [staffPayrollProfiles.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   teacher: one(users, {
@@ -694,6 +743,7 @@ export const dbSchema = {
   staffWeeklyAvailability,
   staffVacationPeriods,
   staffTimeLogs,
+  staffPayrollProfiles,
   outboundWebhooks,
   courseTypes,
   bookings,
@@ -714,6 +764,7 @@ export const dbSchema = {
   staffWeeklyAvailabilityRelations,
   staffVacationPeriodsRelations,
   staffTimeLogsRelations,
+  staffPayrollProfilesRelations,
   courseTypesRelations,
   bookingsRelations,
   bookingRequestsRelations,

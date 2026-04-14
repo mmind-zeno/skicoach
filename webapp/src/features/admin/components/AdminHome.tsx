@@ -12,12 +12,13 @@ import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
 import { StaffWeeklyHoursAdmin } from "@/features/admin/components/StaffWeeklyHoursAdmin";
 import { MonthlyHoursReportPanel } from "@/features/reports/MonthlyHoursReportPanel";
+import { PayrollMonthPanel } from "@/features/reports/PayrollMonthPanel";
 
 function f<T>(url: string): Promise<T> {
   return fetchJson<T>(url);
 }
 
-type Tab = "dash" | "users" | "courses" | "hours" | "reports";
+type Tab = "dash" | "users" | "courses" | "hours" | "reports" | "payroll";
 
 export function AdminHome() {
   const { data: session } = useSession();
@@ -439,6 +440,15 @@ export function AdminHome() {
             {brand.labels.monthlyHoursReportTitle}
           </h2>
           <MonthlyHoursReportPanel isAdmin />
+        </div>
+      ) : null}
+
+      {tab === "payroll" ? (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-sk-ink">
+            {brand.labels.payrollPageTitle}
+          </h2>
+          <PayrollMonthPanel isAdmin />
         </div>
       ) : null}
     </div>
