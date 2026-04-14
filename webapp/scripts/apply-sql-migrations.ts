@@ -13,6 +13,9 @@ type Journal = { entries: { tag: string; when: number }[] };
 const LEGACY_BASELINE_BEFORE_TAG =
   process.env.LEGACY_AUTO_BASELINE_BEFORE_TAG ?? "0008_platform_extensions";
 
+/** Ab hier erwartet das Journal u. a. Tabelle guest_contacts (0002). */
+const FIRST_TAG_WITH_GUEST_CONTACTS = "0002_guest_crm";
+
 function splitStatements(sql: string): string[] {
   return sql
     .split(/-->\s*statement-breakpoint\s*/g)
@@ -35,13 +38,24 @@ async function maybeLegacyBaselineHashes(
   );
   if (!hasBookings.length) return;
 
-  console.log(
-    "[migrate] Leeres __drizzle_migrations, Kern-DB vorhanden: trage Hashes vor",
-    LEGACY_BASELINE_BEFORE_TAG,
-    "ein (ohne SQL)."
+  const { rows: hasGuestContacts } = await client.query(
+    `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'guest_contacts' LIMIT 1`
   );
+  /** Ohne guest_contacts keine Hashes ab 0002 — sonst wird 0002-SQL nie ausgeführt. */
+  const baselineCap =
+    hasGuestContacts.length > 0
+      ? LEGACY_BASELINE_BEFORE_TAG
+      : FIRST_TAG_WITH_GUEST_CONTACTS;
+
+  const suffix = hasGuestContacts.length
+    ? ""
+    : " guest_contacts fehlt → Hashes nur vor 0002.";
+  console.log(
+    `[migrate] Leeres __drizzle_migrations, Kern-DB vorhanden: trage Hashes vor ${baselineCap} ein (ohne SQL).${suffix}`
+  );
+
   for (const entry of journal.entries) {
-    if (entry.tag >= LEGACY_BASELINE_BEFORE_TAG) break;
+    if (entry.tag >= baselineCap) break;
     const filePath = join(migDir, `${entry.tag}.sql`);
     const sql = readFileSync(filePath, "utf8");
     const hash = createHash("sha256").update(sql).digest("hex");

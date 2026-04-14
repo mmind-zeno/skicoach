@@ -373,7 +373,7 @@ export const BRAND_LABELS_EN = {
   apiAdminUserExists:
     "User already exists. To resend a magic link, use “Resend link” in the table.",
   apiDbSchemaColumnDrift:
-    "Database schema is out of date. Run migrations on the server (npm run db:migrate in the app container).",
+    "Database schema is out of date. Run migrations on the server (npm run db:migrate:apply in the app container).",
   apiDbSchemaRelationDriftTemplate:
     "Database schema is out of date. Run migrations (e.g. 0001_rate_limit_audit for {navAuditLog}).",
   apiTechnicalErrorGeneric: "A technical error occurred.",

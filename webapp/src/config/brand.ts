@@ -233,7 +233,7 @@ const FORK_DEFAULTS = {
     apiValidationDefault: "Ungültige Eingabe",
     /** DB-/Technik-Hinweise (map-db-error, Gäste-API) */
     apiDbSchemaColumnDrift:
-      "Datenbank-Schema ist nicht aktuell. Bitte auf dem Server Migrationen ausführen (npm run db:migrate im App-Container).",
+      "Datenbank-Schema ist nicht aktuell. Bitte auf dem Server Migrationen ausführen (npm run db:migrate:apply im App-Container).",
     apiDbSchemaRelationDriftTemplate:
       "Datenbank-Schema ist nicht aktuell. Bitte Migrationen ausführen (z. B. 0001_rate_limit_audit für das {navAuditLog}).",
     apiTechnicalErrorGeneric: "Ein technischer Fehler ist aufgetreten.",

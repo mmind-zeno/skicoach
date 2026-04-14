@@ -11,6 +11,7 @@ const REQUIRED: { table: string; column: string }[] = [
   { table: "bookable_resources", column: "id" },
   { table: "availability_blocks", column: "user_id" },
   { table: "outbound_webhooks", column: "url" },
+  { table: "guest_contacts", column: "guest_id" },
 ];
 
 async function main() {
@@ -30,7 +31,7 @@ async function main() {
       );
       if (r.rowCount === 0) {
         throw new Error(
-          `Erwartete Spalte fehlt: ${table}.${column} — npm run db:migrate ausführen.`
+          `Erwartete Spalte fehlt: ${table}.${column} — npm run db:migrate:apply ausführen.`
         );
       }
     }

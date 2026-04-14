@@ -57,6 +57,13 @@
       "when": 1743040000000,
       "tag": "0008_platform_extensions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1743050000000,
+      "tag": "0009_guest_contacts_if_missing",
+      "breakpoints": true
     }
   ]
 }
