@@ -22,6 +22,13 @@
       "when": 1742490000000,
       "tag": "0002_guest_crm",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1743000000000,
+      "tag": "0003_booking_source_enum_values",
+      "breakpoints": true
     }
   ]
 }
