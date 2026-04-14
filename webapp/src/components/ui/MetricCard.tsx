@@ -27,7 +27,7 @@ export function MetricCard({
         ? "text-amber-800"
         : "text-sk-ink/60";
   return (
-    <div className="rounded-[10px] border border-black/[0.08] bg-white p-3 shadow-sm">
+    <div className="sk-surface-card p-4">
       <div className="text-xs text-sk-ink/60">{label}</div>
       <div className="mt-1 text-sk-ink">
         <MetricValue value={value} />

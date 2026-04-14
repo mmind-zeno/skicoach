@@ -101,9 +101,9 @@ export function AdminAuditLogClient() {
             : brand.labels.uiRefresh}
         </button>
       </div>
-    <div className="overflow-x-auto rounded-lg border border-sk-ink/10 bg-white shadow-sm">
+    <div className="sk-surface-card overflow-x-auto">
       <table className="w-full min-w-[640px] text-left text-xs">
-        <thead className="border-b border-sk-ink/10 bg-sk-surface text-sk-ink/70">
+        <thead className="bg-sk-container-low text-sk-ink/65">
           <tr>
             <th className="px-3 py-2 font-medium">
               {brand.labels.auditColTimeUtc}
@@ -124,8 +124,13 @@ export function AdminAuditLogClient() {
           </tr>
         </thead>
         <tbody>
-          {data.map((row) => (
-            <tr key={row.id} className="border-b border-sk-ink/5 last:border-0">
+          {data.map((row, i) => (
+            <tr
+              key={row.id}
+              className={`transition-colors hover:bg-sk-container-low/50 ${
+                i % 2 === 0 ? "bg-white" : "bg-sk-surface/80"
+              }`}
+            >
               <td className="whitespace-nowrap px-3 py-2 font-mono text-sk-ink/80">
                 {formatAuditTime(row.createdAt)}
               </td>

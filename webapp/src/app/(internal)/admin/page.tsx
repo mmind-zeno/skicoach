@@ -10,9 +10,9 @@ export default async function AdminPage() {
   if (session.user.role !== "admin") redirect("/kalender");
 
   return (
-    <div className="p-4 md:p-6">
+    <>
       <PageHeader title={brand.labels.navAdmin} />
       <AdminHome />
-    </div>
+    </>
   );
 }

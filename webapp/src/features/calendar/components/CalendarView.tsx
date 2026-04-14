@@ -6,7 +6,11 @@ import { brand } from "@/config/brand";
 import { teacherCalendarStyle } from "@/lib/colors";
 import { bookingDateTimesToRange } from "@/lib/datetime";
 import { calendarCulture, calendarLocalizer } from "@/lib/locale";
-import type { BookingWithDetailsDto, CalendarEventItem } from "../types";
+import type {
+  BookingWithDetailsDto,
+  CalendarEventItem,
+  CalendarOverlayResource,
+} from "../types";
 import "../calendar.css";
 
 const messages = {
@@ -41,42 +45,84 @@ function toEvents(rows: BookingWithDetailsDto[]): CalendarEventItem[] {
   });
 }
 
+function isOverlayResource(
+  r: BookingWithDetailsDto | CalendarOverlayResource
+): r is CalendarOverlayResource {
+  return "kind" in r && (r.kind === "vacation" || r.kind === "block");
+}
+
 const minT = new Date(1972, 0, 1, 7, 0, 0);
 const maxT = new Date(1972, 0, 1, 20, 0, 0);
 
 export function CalendarView({
   bookings,
+  overlayEvents = [],
   onSelectEvent,
   onSelectSlot,
   onRangeChange,
 }: {
   bookings: BookingWithDetailsDto[];
-  onSelectEvent: (b: BookingWithDetailsDto) => void;
+  overlayEvents?: CalendarEventItem[];
+  onSelectEvent: (b: BookingWithDetailsDto | CalendarOverlayResource) => void;
   onSelectSlot: (slot: SlotInfo) => void;
   onRangeChange: (
     range: Date[] | { start: Date; end: Date },
     view?: View
   ) => void;
 }) {
-  const events = useMemo(() => toEvents(bookings), [bookings]);
+  const events = useMemo(
+    () => [...toEvents(bookings), ...overlayEvents],
+    [bookings, overlayEvents]
+  );
 
   const eventPropGetter = useCallback((event: CalendarEventItem) => {
-    const b = event.resource;
-    const { backgroundColor, color } = teacherCalendarStyle(b.teacher.colorIndex);
-    const cancelled = b.status === "storniert";
+    const r = event.resource;
+    if (isOverlayResource(r)) {
+      if (r.kind === "vacation") {
+        return {
+          style: {
+            backgroundColor: "#fecdd3",
+            borderColor: "#fb7185",
+            color: "#881337",
+            opacity: 0.88,
+            borderRadius: "6px",
+            borderStyle: "dashed",
+            borderWidth: 2,
+            fontWeight: 600,
+            fontSize: "0.8rem",
+          },
+        };
+      }
+      const { backgroundColor } = teacherCalendarStyle(r.colorIndex);
+      return {
+        style: {
+          backgroundColor: "#e2e8f0",
+          borderColor: backgroundColor,
+          color: "#1e293b",
+          opacity: 0.82,
+          borderRadius: "6px",
+          borderStyle: "dotted",
+          borderWidth: 2,
+          fontWeight: 600,
+          fontSize: "0.8rem",
+        },
+      };
+    }
+    const { backgroundColor, color } = teacherCalendarStyle(r.teacher.colorIndex);
+    const cancelled = r.status === "storniert";
     return {
       style: {
         backgroundColor,
         borderColor: backgroundColor,
         color,
         opacity: cancelled ? 0.45 : 1,
-        borderRadius: "4px",
+        borderRadius: "8px",
       },
     };
   }, []);
 
   return (
-    <div className="h-[min(720px,calc(100vh-220px))] min-h-[480px] rounded-lg border border-sk-ink/10 bg-white p-2 shadow-sm">
+    <div className="sk-surface-card h-[min(720px,calc(100vh-220px))] min-h-[480px] p-3 md:p-4">
       <Calendar
         culture={calendarCulture}
         localizer={calendarLocalizer}

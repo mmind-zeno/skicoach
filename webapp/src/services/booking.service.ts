@@ -1,3 +1,4 @@
+import { getISODay } from "date-fns";
 import { and, eq, gte, lte, lt, gt, ne, sql } from "drizzle-orm";
 import {
   availabilityBlocks,
@@ -5,9 +6,15 @@ import {
   bookings,
   courseTypes,
   guests,
+  staffVacationPeriods,
+  staffWeeklyAvailability,
   users,
 } from "../../drizzle/schema";
-import { parseLocalDateOnly } from "../lib/datetime";
+import {
+  coerceSqlTimeForBooking,
+  ensureTimeWithSeconds,
+  parseLocalDateOnly,
+} from "../lib/datetime";
 import { getDb } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
 import type {
@@ -204,6 +211,64 @@ async function hasAvailabilityBlockOverlapUsingDb(
   return (hit?.c ?? 0) > 0;
 }
 
+/**
+ * Liegt [startTime, endTime] vollständig in mindestens einem Arbeitsfenster?
+ * Keine DB-Zeilen für diese Person = Legacy (nur Portal-Raster + Sperrzeiten/Buchungen).
+ * Keine Über-Mitternacht-Fenster in v1.
+ */
+async function isWithinStaffWeeklyWindowsUsingDb(
+  db: BookingServiceDb | BookingServiceTx,
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string
+): Promise<boolean> {
+  const dow = getISODay(date);
+  const rows = await db
+    .select({
+      startTime: staffWeeklyAvailability.startTime,
+      endTime: staffWeeklyAvailability.endTime,
+    })
+    .from(staffWeeklyAvailability)
+    .where(
+      and(
+        eq(staffWeeklyAvailability.userId, teacherId),
+        eq(staffWeeklyAvailability.dayOfWeek, dow)
+      )
+    );
+  if (rows.length === 0) return true;
+
+  const slotStart = ensureTimeWithSeconds(String(startTime));
+  const slotEnd = ensureTimeWithSeconds(String(endTime));
+  if (slotEnd <= slotStart) return false;
+
+  for (const r of rows) {
+    const wStart = coerceSqlTimeForBooking(r.startTime);
+    const wEnd = coerceSqlTimeForBooking(r.endTime);
+    if (wEnd <= wStart) continue;
+    if (wStart <= slotStart && wEnd >= slotEnd) return true;
+  }
+  return false;
+}
+
+async function isDateInStaffVacationUsingDb(
+  db: BookingServiceDb | BookingServiceTx,
+  teacherId: string,
+  date: Date
+): Promise<boolean> {
+  const [hit] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(staffVacationPeriods)
+    .where(
+      and(
+        eq(staffVacationPeriods.userId, teacherId),
+        lte(staffVacationPeriods.startDate, date),
+        gte(staffVacationPeriods.endDate, date)
+      )
+    );
+  return (hit?.c ?? 0) > 0;
+}
+
 /** Überlappung nur mit nicht stornierten Terminen (expliziter DB-/Tx-Client für Transaktionen). */
 export async function hasTimeOverlapUsingDb(
   db: BookingServiceDb | BookingServiceTx,
@@ -272,7 +337,16 @@ export async function checkAvailabilityUsingDb(
     startTime,
     endTime
   );
-  return !blocked;
+  if (blocked) return false;
+  const onVacation = await isDateInStaffVacationUsingDb(db, teacherId, date);
+  if (onVacation) return false;
+  return isWithinStaffWeeklyWindowsUsingDb(
+    db,
+    teacherId,
+    date,
+    startTime,
+    endTime
+  );
 }
 
 export async function checkAvailability(

@@ -10,9 +10,18 @@ import type { BookingWithDetailsDto } from "../types";
 import { BookingCreateModal } from "./BookingCreateModal";
 import { BookingDetailPanel } from "./BookingDetailPanel";
 import { CalendarView } from "./CalendarView";
+import { ScheduleContextLegend } from "./ScheduleContextLegend";
 import { TeacherLegend, type TeacherLegendItem } from "./TeacherLegend";
+import type { CalendarEventItem, CalendarOverlayResource } from "../types";
 import { brand } from "@/config/brand";
 import { FetchJsonError, fetchJson } from "@/lib/client-fetch";
+
+function toYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 async function teachersFetcher(url: string): Promise<TeacherLegendItem[]> {
   try {
@@ -98,6 +107,63 @@ export function CalendarShell({
     teacherId: effectiveTeacherId,
   });
 
+  const teacherIdsForOverlay = useMemo(() => {
+    if (!isAdmin) return userId ? [userId] : [];
+    if (showAll) return teachers.map((t) => t.id);
+    if (filterTeacherId) return [filterTeacherId];
+    return [];
+  }, [isAdmin, showAll, userId, teachers, filterTeacherId]);
+
+  const overlayUrl = useMemo(() => {
+    if (teacherIdsForOverlay.length === 0) return null;
+    const from = toYmd(range.start);
+    const to = toYmd(range.end);
+    const q = teacherIdsForOverlay.map(encodeURIComponent).join(",");
+    return `/api/calendar/overlays?from=${from}&to=${to}&teacherIds=${q}`;
+  }, [range.start, range.end, teacherIdsForOverlay]);
+
+  const { data: overlayPack, mutate: mutOverlays } = useSWR(
+    overlayUrl,
+    async (url) =>
+      fetchJson<{
+        overlays: {
+          id: string;
+          kind: "vacation" | "block";
+          teacherId: string;
+          teacherName: string;
+          colorIndex: number;
+          title: string;
+          note: string | null;
+          start: string;
+          end: string;
+        }[];
+        weeklySummaries: {
+          teacherId: string;
+          teacherName: string;
+          colorIndex: number;
+          lines: string[];
+        }[];
+      }>(url),
+    { keepPreviousData: true }
+  );
+
+  const overlayEvents: CalendarEventItem[] = useMemo(() => {
+    if (!overlayPack?.overlays?.length) return [];
+    return overlayPack.overlays.map((o) => ({
+      id: o.id,
+      title: o.title,
+      start: new Date(o.start),
+      end: new Date(o.end),
+      resource: {
+        kind: o.kind,
+        teacherId: o.teacherId,
+        teacherName: o.teacherName,
+        colorIndex: o.colorIndex,
+        note: o.note,
+      } satisfies CalendarOverlayResource,
+    }));
+  }, [overlayPack]);
+
   const handleRangeChange = useCallback(
     (r: Date[] | { start: Date; end: Date }) => {
       setRange(normalizeRange(r));
@@ -109,9 +175,14 @@ export function CalendarShell({
     (isAdmin && filterTeacherId) || userId || teachers[0]?.id || userId;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <TeacherLegend teachers={teachers} />
+        <div className="sk-surface-card p-4">
+          <TeacherLegend teachers={teachers} />
+          {overlayPack?.weeklySummaries?.length ? (
+            <ScheduleContextLegend weeklySummaries={overlayPack.weeklySummaries} />
+          ) : null}
+        </div>
         <div className="flex flex-col gap-2 text-sm text-sk-ink">
           {teachersLoading ? (
             <p className="text-sk-ink/60">
@@ -159,7 +230,7 @@ export function CalendarShell({
                 )}
               </span>
               <select
-                className="max-w-xs rounded border border-sk-ink/20 px-2 py-2"
+                className="sk-field max-w-xs"
                 value={filterTeacherId ?? ""}
                 onChange={(e) => setFilterTeacherId(e.target.value || null)}
               >
@@ -188,9 +259,11 @@ export function CalendarShell({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
         <CalendarView
           bookings={bookings}
+          overlayEvents={overlayEvents}
           onRangeChange={handleRangeChange}
-          onSelectEvent={(b) => {
-            setSelected(b);
+          onSelectEvent={(res) => {
+            if ("kind" in res) return;
+            setSelected(res);
             setModalOpen(false);
             setSlot(null);
           }}
@@ -201,13 +274,14 @@ export function CalendarShell({
           }}
         />
         {selected ? (
-          <div className="fixed inset-x-0 bottom-0 z-20 max-h-[55vh] overflow-y-auto rounded-t-xl border border-sk-ink/10 bg-white p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] lg:relative lg:max-h-none lg:rounded-none lg:border-l lg:shadow-none">
+          <div className="fixed inset-x-0 bottom-0 z-20 max-h-[55vh] overflow-y-auto rounded-t-3xl border border-sk-outline/20 bg-white/95 p-4 shadow-[0_-12px_40px_rgba(24,28,32,0.14)] backdrop-blur-xl backdrop-saturate-150 lg:relative lg:max-h-none lg:rounded-2xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
             <BookingDetailPanel
               booking={selected}
               isAdmin={isAdmin}
               onClose={() => setSelected(null)}
               onUpdated={(patch) => {
                 void mutate();
+                void mutOverlays();
                 if (patch) setSelected(patch);
               }}
             />
@@ -234,7 +308,10 @@ export function CalendarShell({
           setModalOpen(false);
           setSlot(null);
         }}
-        onCreated={() => void mutate()}
+        onCreated={() => {
+          void mutate();
+          void mutOverlays();
+        }}
       />
     </div>
   );

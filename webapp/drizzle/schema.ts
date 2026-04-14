@@ -39,6 +39,14 @@ export const bookingRequestStatusEnum = pgEnum("booking_request_status", [
   "bestaetigt",
   "abgelehnt",
 ]);
+/** Manuelle Stunden: Büro, Vorbereitung, etc. (vgl. ERP „internal / non-billable“). */
+export const staffTimeLogCategoryEnum = pgEnum("staff_time_log_category", [
+  "buero_verwaltung",
+  "vorbereitung",
+  "meeting",
+  "fortbildung",
+  "sonstiges",
+]);
 export const invoiceStatusEnum = pgEnum("invoice_status", [
   "offen",
   "bezahlt",
@@ -196,6 +204,77 @@ export const bookableResources = pgTable(
   },
   (t) => ({
     userUnique: uniqueIndex("bookable_resources_user_id_unique").on(t.userId),
+  })
+);
+
+/**
+ * Wiederkehrende Arbeitsfenster pro Wochentag (1 = Mo … 7 = So, ISO).
+ * Keine Zeilen = Legacy: nur Raster07:00–20:00 + Sperrzeiten/Buchungen.
+ */
+export const staffWeeklyAvailability = pgTable(
+  "staff_weekly_availability",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dayOfWeek: integer("day_of_week").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userDayIdx: index("staff_weekly_availability_user_day_idx").on(
+      t.userId,
+      t.dayOfWeek
+    ),
+  })
+);
+
+/** Ferien / Abwesenheit: ganze Kalendertage (inkl. start/end) für eine Person. */
+export const staffVacationPeriods = pgTable(
+  "staff_vacation_periods",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    startDate: date("start_date", { mode: "date" }).notNull(),
+    endDate: date("end_date", { mode: "date" }).notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userRangeIdx: index("staff_vacation_periods_user_range_idx").on(
+      t.userId,
+      t.startDate,
+      t.endDate
+    ),
+  })
+);
+
+/** Manuelle Arbeitsstunden pro Tag (nicht aus Buchungen ableitbar). */
+export const staffTimeLogs = pgTable(
+  "staff_time_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    workDate: date("work_date", { mode: "date" }).notNull(),
+    hours: decimal("hours", { precision: 6, scale: 2, mode: "string" }).notNull(),
+    category: staffTimeLogCategoryEnum("category").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    userDateIdx: index("staff_time_logs_user_date_idx").on(t.userId, t.workDate),
   })
 );
 
@@ -439,6 +518,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     references: [bookableResources.userId],
   }),
   availabilityBlocks: many(availabilityBlocks),
+  staffWeeklyAvailability: many(staffWeeklyAvailability),
+  staffVacationPeriods: many(staffVacationPeriods),
+  staffTimeLogs: many(staffTimeLogs),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -495,6 +577,33 @@ export const availabilityBlocksRelations = relations(
     }),
   })
 );
+
+export const staffWeeklyAvailabilityRelations = relations(
+  staffWeeklyAvailability,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [staffWeeklyAvailability.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const staffVacationPeriodsRelations = relations(
+  staffVacationPeriods,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [staffVacationPeriods.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const staffTimeLogsRelations = relations(staffTimeLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [staffTimeLogs.userId],
+    references: [users.id],
+  }),
+}));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   teacher: one(users, {
@@ -582,6 +691,9 @@ export const dbSchema = {
   guestContacts,
   bookableResources,
   availabilityBlocks,
+  staffWeeklyAvailability,
+  staffVacationPeriods,
+  staffTimeLogs,
   outboundWebhooks,
   courseTypes,
   bookings,
@@ -599,6 +711,9 @@ export const dbSchema = {
   guestContactsRelations,
   bookableResourcesRelations,
   availabilityBlocksRelations,
+  staffWeeklyAvailabilityRelations,
+  staffVacationPeriodsRelations,
+  staffTimeLogsRelations,
   courseTypesRelations,
   bookingsRelations,
   bookingRequestsRelations,

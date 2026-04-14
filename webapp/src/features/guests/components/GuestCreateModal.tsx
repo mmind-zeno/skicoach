@@ -169,7 +169,7 @@ export function GuestCreateModal({
           <button
             type="button"
             disabled={loading}
-            className="rounded bg-sk-brand px-3 py-2 text-white hover:bg-sk-hover disabled:opacity-50"
+            className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
             onClick={() => void submit()}
           >
             {brand.labels.uiSave}

@@ -109,6 +109,7 @@ export const authConfig = {
         "/kalender",
         "/gaeste",
         "/rechnungen",
+        "/stundenreport",
         "/chat",
         "/admin",
       ];

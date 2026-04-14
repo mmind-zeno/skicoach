@@ -10,13 +10,13 @@ export default async function AdminAuditPage() {
   if (session.user.role !== "admin") redirect("/kalender");
 
   return (
-    <div className="p-4 md:p-6">
+    <>
       <PageHeader title={brand.labels.navAuditLog} />
-      <p className="mb-4 text-sm text-sk-ink/70">
+      <p className="mb-6 text-sm text-sk-ink/70">
         Letzte sicherheitsrelevante Admin-Aktionen (Einladungen, Nutzer,{" "}
         {brand.labels.serviceTypePlural}, {brand.labels.bookingRequestPlural}).
       </p>
       <AdminAuditLogClient />
-    </div>
+    </>
   );
 }

@@ -31,7 +31,7 @@ const COL = {
   partial: "#FEF3C7",
   full: "#FEE2E2",
   past: "#E5E7EB",
-  selected: "#1B4F8A",
+  selected: "#ab3500",
 };
 
 export function BookingWizard() {
@@ -199,21 +199,21 @@ export function BookingWizard() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-10">
       <div className="mb-8 flex justify-center gap-2 text-sm">
         {[1, 2, 3, 4].map((s) => (
           <div
             key={s}
             className={`h-2 w-16 rounded-full ${
-              s <= step ? "bg-sk-brand" : "bg-sk-ink/15"
+              s <= step ? "bg-sk-cta" : "bg-sk-ink/15"
             }`}
           />
         ))}
       </div>
 
       {step === 1 ? (
-        <section>
-          <h2 className="text-lg font-semibold text-sk-ink">
+        <section className="sk-surface-card p-5 md:p-8">
+          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
             {brand.labels.publicWizardPickServiceTypeTemplate.replace(
               "{serviceType}",
               brand.labels.serviceTypeSingular
@@ -239,11 +239,11 @@ export function BookingWizard() {
                 }}
                 className={`rounded-xl border-2 p-4 text-left transition ${
                   courseId === c.id
-                    ? "border-sk-brand bg-[#E8F0FA]"
+                    ? "border-sk-cta bg-sk-highlight"
                     : "border-transparent bg-white shadow hover:border-sk-brand/40"
                 }`}
               >
-                <div className="font-medium text-sk-brand">{c.name}</div>
+                <div className="font-medium text-sk-cta">{c.name}</div>
                 <div className="mt-1 text-sm text-sk-ink/70">
                   {brand.labels.publicBookingCourseMetaTemplate
                     .replace("{durationMin}", String(c.durationMin))
@@ -255,7 +255,7 @@ export function BookingWizard() {
           </div>
           <button
             type="button"
-            className="mt-6 rounded-lg bg-sk-brand px-4 py-2 text-white hover:bg-sk-hover disabled:opacity-50"
+            className="mt-6 rounded-lg bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
             disabled={!courseId}
             onClick={() => {
               setLoadErr(null);
@@ -269,8 +269,8 @@ export function BookingWizard() {
       ) : null}
 
       {step === 2 ? (
-        <section>
-          <h2 className="text-lg font-semibold text-sk-ink">
+        <section className="sk-surface-card p-5 md:p-8">
+          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
             {brand.labels.publicWizardPickDate}
           </h2>
           {loadErr ? (
@@ -336,7 +336,7 @@ export function BookingWizard() {
                   style={{
                     backgroundColor:
                       day === key ? COL.selected : a === "past" ? COL.past : COL[a],
-                    color: day === key ? "#fff" : "#1A1A2E",
+                    color: day === key ? "#fff" : "#181c20",
                   }}
                 >
                   {format(d, "d")}
@@ -364,7 +364,7 @@ export function BookingWizard() {
           <div className="mt-6 flex gap-2">
             <button
               type="button"
-              className="rounded border px-4 py-2"
+              className="rounded-lg border border-sk-outline/35 bg-white px-4 py-2 text-sm font-medium text-sk-brand shadow-sm transition hover:bg-sk-highlight"
               onClick={() => {
                 setLoadErr(null);
                 setStep(1);
@@ -374,7 +374,7 @@ export function BookingWizard() {
             </button>
             <button
               type="button"
-              className="rounded bg-sk-brand px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
               disabled={!day}
               onClick={() => {
                 setLoadErr(null);
@@ -389,8 +389,8 @@ export function BookingWizard() {
       ) : null}
 
       {step === 3 ? (
-        <section>
-          <h2 className="text-lg font-semibold text-sk-ink">
+        <section className="sk-surface-card p-5 md:p-8">
+          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
             {brand.labels.publicWizardTimeAndContact}
           </h2>
           {loadErr ? (
@@ -419,7 +419,7 @@ export function BookingWizard() {
                       !s.available
                         ? "bg-sk-ink/10 text-sk-ink/40 line-through"
                         : slotTime === s.time
-                          ? "bg-sk-brand text-white"
+                          ? "bg-sk-cta text-white"
                           : "bg-[#EAF3DE] text-sk-ink"
                     }`}
                   >
@@ -485,7 +485,7 @@ export function BookingWizard() {
                     onClick={() => setNiveau(k)}
                     className={`rounded-full px-3 py-1 ${
                       niveau === k
-                        ? "bg-sk-brand text-white"
+                        ? "bg-sk-cta text-white"
                         : "bg-sk-surface text-sk-ink"
                     }`}
                   >
@@ -545,7 +545,7 @@ export function BookingWizard() {
           <div className="mt-6 flex gap-2">
             <button
               type="button"
-              className="rounded border px-4 py-2"
+              className="rounded-lg border border-sk-outline/35 bg-white px-4 py-2 text-sm font-medium text-sk-brand shadow-sm transition hover:bg-sk-highlight"
               onClick={() => {
                 setLoadErr(null);
                 setErr(null);
@@ -557,7 +557,7 @@ export function BookingWizard() {
             <button
               type="button"
               disabled={loading}
-              className="rounded bg-sk-brand px-4 py-2 text-white disabled:opacity-50"
+              className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
               onClick={() => void submit()}
             >
               {brand.labels.publicWizardSubmitRequestCtaTemplate.replace(
@@ -570,7 +570,7 @@ export function BookingWizard() {
       ) : null}
 
       {step === 4 ? (
-        <section className="relative overflow-hidden rounded-2xl border border-emerald-200/90 bg-gradient-to-b from-emerald-50 to-white p-8 text-center shadow-lg shadow-emerald-900/5">
+        <section className="sk-surface-card relative overflow-hidden p-8 text-center md:p-10">
           <div
             className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-200/40 blur-2xl"
             aria-hidden
@@ -601,7 +601,7 @@ export function BookingWizard() {
           ) : null}
           <button
             type="button"
-            className="mt-8 rounded-xl border-2 border-sk-brand/30 bg-white px-5 py-2.5 text-sm font-medium text-sk-brand shadow-sm transition hover:border-sk-brand hover:bg-sk-surface"
+            className="mt-8 rounded-xl border-2 border-sk-cta/35 bg-white px-5 py-2.5 text-sm font-medium text-sk-cta shadow-sm transition hover:border-sk-cta hover:bg-sk-highlight/40"
             onClick={reset}
           >
             {brand.labels.publicWizardNewRequestAgainTemplate.replace(

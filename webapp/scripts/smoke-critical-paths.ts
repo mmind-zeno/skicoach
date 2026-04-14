@@ -10,6 +10,9 @@ const REQUIRED: { table: string; column: string }[] = [
   { table: "bookings", column: "resource_id" },
   { table: "bookable_resources", column: "id" },
   { table: "availability_blocks", column: "user_id" },
+  { table: "staff_weekly_availability", column: "user_id" },
+  { table: "staff_vacation_periods", column: "user_id" },
+  { table: "staff_time_logs", column: "user_id" },
   { table: "outbound_webhooks", column: "url" },
   { table: "guest_contacts", column: "guest_id" },
 ];

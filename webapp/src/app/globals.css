@@ -3,12 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --sk-ink: #1a1a2e;
-  --sk-brand: #1b4f8a;
-  --sk-brand-hover: #163d6b;
-  --sk-surface: #f7f9fc;
+  /* Stitch „Alpenglow Management“ (project 5397023336978297379), light */
+  --background: #f7f9fe;
+  --foreground: #181c20;
+  --sk-ink: #181c20;
+  --sk-brand: #305f9b;
+  --sk-brand-hover: #264d85;
+  --sk-cta: #ab3500;
+  --sk-cta-hover: #8c2e00;
+  --sk-cta-mid: #ff6b35;
+  --sk-surface: #f7f9fe;
+  --sk-highlight: #d4e3ff;
+  --font-inter: "Inter", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,7 +27,23 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+@layer components {
+  /**
+   * Stitch „Alpine Precision“: eingelassene Felder, Ghost-Border, Fokus Alpenglow
+   */
+  .sk-field {
+    @apply rounded-lg border-0 bg-sk-container-highest px-3 py-2.5 text-sk-ink shadow-[inset_0_0_0_1px_rgba(225,191,181,0.22)] transition;
+  }
+  .sk-field:focus {
+    @apply bg-white outline-none ring-2 ring-sk-cta/35 ring-offset-0;
+  }
+  /** Fläche + Schatten wie Stitch-Screens (kein 1px-Rahmen) */
+  .sk-surface-card {
+    @apply rounded-2xl bg-white shadow-sk-ambient;
+  }
 }
 
 @layer utilities {

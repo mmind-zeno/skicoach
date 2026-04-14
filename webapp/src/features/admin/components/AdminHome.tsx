@@ -10,12 +10,14 @@ import useSWR from "swr";
 import { brand } from "@/config/brand";
 import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
+import { StaffWeeklyHoursAdmin } from "@/features/admin/components/StaffWeeklyHoursAdmin";
+import { MonthlyHoursReportPanel } from "@/features/reports/MonthlyHoursReportPanel";
 
 function f<T>(url: string): Promise<T> {
   return fetchJson<T>(url);
 }
 
-type Tab = "dash" | "users" | "courses";
+type Tab = "dash" | "users" | "courses" | "hours" | "reports";
 
 export function AdminHome() {
   const { data: session } = useSession();
@@ -68,7 +70,7 @@ export function AdminHome() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2 border-b border-sk-ink/10 pb-2 text-sm">
+      <div className="flex flex-wrap gap-2 pb-1 text-sm">
         {(
           [
             ["dash", brand.labels.navDashboard],
@@ -80,6 +82,8 @@ export function AdminHome() {
               ),
             ],
             ["courses", brand.labels.serviceTypePlural],
+            ["hours", brand.labels.adminTabWeeklyHours],
+            ["reports", brand.labels.adminTabMonthlyReport],
           ] as const
         ).map(([k, lab]) => (
           <button
@@ -103,7 +107,7 @@ export function AdminHome() {
         </Link>
         <Link
           href="/admin/audit"
-          className="rounded border border-sk-ink/15 bg-sk-surface px-3 py-1.5 text-sk-ink hover:border-sk-brand/40"
+          className="rounded-lg bg-sk-container-high/60 px-3 py-1.5 text-sk-ink shadow-[inset_0_0_0_1px_rgba(225,191,181,0.2)] transition hover:bg-sk-highlight/50"
         >
           {brand.labels.navAuditLog} →
         </Link>
@@ -160,7 +164,7 @@ export function AdminHome() {
                     className="group flex min-w-0 flex-1 flex-col items-center"
                   >
                     <div
-                      className="w-full max-w-[28px] rounded-t-md bg-gradient-to-t from-[#1B4F8A] to-sky-400/90 shadow-sm ring-1 ring-sk-brand/10 transition group-hover:to-sky-300"
+                      className="w-full max-w-[28px] rounded-t-md bg-gradient-to-t from-sk-cta to-sk-cta-mid shadow-sm ring-1 ring-sk-cta/15 transition group-hover:brightness-110"
                       style={{
                         height: `${(m.count / maxC) * 100}%`,
                         minHeight: m.count ? 8 : 0,
@@ -261,7 +265,7 @@ export function AdminHome() {
             />
             <button
               type="button"
-              className="rounded bg-sk-brand px-3 py-2 text-sm text-white"
+              className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-sm text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid"
               onClick={async () => {
                 setUserActionError(null);
                 try {
@@ -426,6 +430,17 @@ export function AdminHome() {
           onChange={() => void muCourses()}
         />
       ) : null}
+
+      {tab === "hours" ? <StaffWeeklyHoursAdmin /> : null}
+
+      {tab === "reports" ? (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-sk-ink">
+            {brand.labels.monthlyHoursReportTitle}
+          </h2>
+          <MonthlyHoursReportPanel isAdmin />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -504,7 +519,7 @@ function CourseTypeAdmin({
         </label>
         <button
           type="button"
-          className="rounded bg-sk-brand px-3 py-2 text-white"
+          className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid"
           onClick={async () => {
             setCourseErr(null);
             try {

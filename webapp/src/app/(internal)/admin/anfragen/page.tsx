@@ -1,4 +1,5 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ProductHeroBanner } from "@/components/ui/ProductHeroBanner";
+import { ProductPreviewAdminRequests } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
 import { BookingRequestsAdmin } from "@/features/admin/components/BookingRequestsAdmin";
 import { auth } from "@/lib/auth";
@@ -10,9 +11,13 @@ export default async function AdminAnfragenPage() {
   if (session.user.role !== "admin") redirect("/kalender");
 
   return (
-    <div className="p-4 md:p-6">
-      <PageHeader title={brand.labels.bookingRequestPlural} />
+    <>
+      <ProductHeroBanner
+        title={brand.labels.bookingRequestPlural}
+        description={brand.marketingTagline}
+        preview={<ProductPreviewAdminRequests />}
+      />
       <BookingRequestsAdmin />
-    </div>
+    </>
   );
 }

@@ -64,6 +64,27 @@
       "when": 1743050000000,
       "tag": "0009_guest_contacts_if_missing",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1743060000000,
+      "tag": "0010_staff_weekly_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1743070000000,
+      "tag": "0011_staff_vacation_periods",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1743080000000,
+      "tag": "0012_staff_time_logs",
+      "breakpoints": true
     }
   ]
 }

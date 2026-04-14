@@ -66,34 +66,39 @@ export function BookingRequestsAdmin() {
 
   return (
     <div className="space-y-4">
-      <div className="overflow-x-auto rounded-lg border border-sk-ink/10 bg-white">
+      <div className="sk-surface-card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-sk-surface text-xs text-sk-ink/60">
+          <thead className="bg-sk-container-low text-[11px] font-semibold uppercase tracking-wider text-sk-ink/55">
             <tr>
-              <th className="px-3 py-2">{brand.labels.fieldStatus}</th>
-              <th className="px-3 py-2">{brand.labels.clientSingular}</th>
-              <th className="px-3 py-2">{brand.labels.serviceSingular}</th>
-              <th className="px-3 py-2">{brand.labels.invoiceTableDate}</th>
-              <th className="px-3 py-2">{brand.labels.tableColAction}</th>
+              <th className="px-4 py-3">{brand.labels.fieldStatus}</th>
+              <th className="px-4 py-3">{brand.labels.clientSingular}</th>
+              <th className="px-4 py-3">{brand.labels.serviceSingular}</th>
+              <th className="px-4 py-3">{brand.labels.invoiceTableDate}</th>
+              <th className="px-4 py-3">{brand.labels.tableColAction}</th>
             </tr>
           </thead>
           <tbody>
-            {data?.map((r) => (
-              <tr key={r.id} className="border-t border-sk-ink/5">
-                <td className="px-3 py-2">
+            {data?.map((r, i) => (
+              <tr
+                key={r.id}
+                className={`transition-colors hover:bg-sk-container-low/60 ${
+                  i % 2 === 0 ? "bg-white" : "bg-sk-surface/80"
+                }`}
+              >
+                <td className="px-4 py-2.5">
                   <StatusBadge variant={requestStatusVariant(r.status)} />
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-2.5">
                   {r.guestName}
                   <div className="text-xs text-sk-ink/50">{r.guestEmail}</div>
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-2.5">
                   {r.courseType?.name ?? brand.labels.uiEmDash}
                 </td>
-                <td className="px-3 py-2 text-xs">
+                <td className="px-4 py-2.5 text-xs">
                   {String(r.date).slice(0, 10)} {r.startTime.slice(0, 5)}
                 </td>
-                <td className="px-3 py-2 space-x-2">
+                <td className="space-x-2 px-4 py-2.5">
                   {r.status === "neu" ? (
                     <>
                       <button
@@ -124,8 +129,8 @@ export function BookingRequestsAdmin() {
       </div>
 
       {pick ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-sk-ink/25 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sk-ambient ring-1 ring-sk-outline/20">
             <h3 className="font-semibold text-sk-ink">
               {brand.labels.adminBookingRequestAssignStaffTitleTemplate.replace(
                 "{staffCollectivePlural}",
@@ -215,7 +220,7 @@ export function BookingRequestsAdmin() {
                   !teachers?.length ||
                   Boolean(teachersError)
                 }
-                className="rounded bg-sk-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+                className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-sm text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
                 onClick={async () => {
                   if (!teacherId) return;
                   setConfirmErr(null);
@@ -256,8 +261,8 @@ export function BookingRequestsAdmin() {
       ) : null}
 
       {rejectId ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-sk-ink/25 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sk-ambient ring-1 ring-sk-outline/20">
             <h3 className="font-semibold text-sk-ink">
               {brand.labels.adminBookingRequestRejectTitleTemplate.replace(
                 "{bookingRequestSingular}",
@@ -265,7 +270,7 @@ export function BookingRequestsAdmin() {
               )}
             </h3>
             <textarea
-              className="mt-3 w-full rounded border px-2 py-2 text-sm"
+              className="sk-field mt-3 w-full text-sm"
               placeholder={brand.labels.placeholderRejectReasonOptional}
               rows={3}
               value={rejectReason}

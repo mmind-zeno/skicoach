@@ -8,32 +8,35 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen bg-sk-surface text-sk-ink">
-      <header className="border-b border-black/[0.08] bg-white">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3">
-          <Link href="/" className="font-medium text-sk-brand">
+      <header className="sticky top-0 z-40 border-b border-sk-outline/15 bg-white/75 shadow-[0_8px_30px_-12px_rgba(24,28,32,0.12)] backdrop-blur-xl backdrop-saturate-150">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3.5 md:px-6">
+          <Link
+            href="/"
+            className="text-sm font-semibold tracking-tight text-sk-brand md:text-base"
+          >
             {brand.siteName}
           </Link>
-          <nav className="flex flex-wrap items-center gap-4 text-sm text-sk-brand/90">
-            <Link href="/buchen" className="hover:text-sk-brand">
+          <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sk-brand/90">
+            <Link href="/buchen" className="transition hover:text-sk-cta">
               {brand.labels.requestServiceCta}
             </Link>
-            <Link href="/login" className="hover:text-sk-brand">
+            <Link href="/login" className="transition hover:text-sk-cta">
               {brand.labels.teamLoginNav}
             </Link>
-            <Link href="/" className="hover:text-sk-brand">
+            <Link href="/" className="transition hover:text-sk-cta">
               {brand.labels.navHome}
             </Link>
-            <Link href="/datenschutz" className="hover:text-sk-brand">
+            <Link href="/datenschutz" className="transition hover:text-sk-cta">
               {brand.labels.navPrivacy}
             </Link>
-            <Link href="/impressum" className="hover:text-sk-brand">
+            <Link href="/impressum" className="transition hover:text-sk-cta">
               {brand.labels.navImpressum}
             </Link>
           </nav>
         </div>
       </header>
       {children}
-      <footer className="mt-12 border-t border-sk-ink/10 py-6 text-center text-xs text-sk-ink/50">
+      <footer className="mt-16 border-t border-sk-outline/20 py-8 text-center text-xs text-sk-ink/50">
         <a href={`mailto:${brand.supportEmail}`} className="underline hover:text-sk-brand">
           {brand.labels.navContact}
         </a>

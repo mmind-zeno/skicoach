@@ -47,12 +47,21 @@ export interface BookingWithDetailsDto {
 
 export type CalendarEventResource = BookingWithDetailsDto;
 
+/** Kalender-Overlays (Ferien, Sperrzeiten) — nicht buchbar, nur Anzeige. */
+export interface CalendarOverlayResource {
+  kind: "vacation" | "block";
+  teacherId: string;
+  teacherName: string;
+  colorIndex: number;
+  note?: string | null;
+}
+
 export interface CalendarEventItem {
   id: string;
   title: string;
   start: Date;
   end: Date;
-  resource: CalendarEventResource;
+  resource: BookingWithDetailsDto | CalendarOverlayResource;
 }
 
 export interface CreateBookingInput {

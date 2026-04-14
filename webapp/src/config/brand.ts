@@ -12,14 +12,14 @@ import {
 
 const FORK_DEFAULTS = {
   siteName: "skicoach",
-  siteDomain: "skicoach.li",
-  supportEmail: "info@skicoach.li",
+  siteDomain: "skicoach.mmind.space",
+  supportEmail: "info@mmind.ai",
   /** Kurzbeschreibung für <meta name="description"> und Startseite */
   marketingTagline:
-    "Skischule — interne Verwaltung & Buchungsportal",
+    "Testprojekt mmind.ai — Buchungsportal & Team-Verwaltung (Demo)",
   /** Fließtext unter der Überschrift auf der Startseite */
   homeLead:
-    "Buchungsportal und Team-Workspace der Skischule. Kursanfragen laufen ueber das oeffentliche Portal, interne Planung ueber Kalender und Admin-Bereich.",
+    "Demonstrations-Workspace (Testprojekt mmind.ai): oeffentliches Buchungsportal, Kalender, Gaeste-CRM und Admin — nicht fuer produktiven Schulbetrieb bestimmt.",
   htmlLang: "de" as const,
   /** Rechnungs-PDF / Impressum-Zeile */
   issuerLocation: "Liechtenstein",
@@ -28,11 +28,11 @@ const FORK_DEFAULTS = {
    * Optional: NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS (eine Zeile; Zeilenumbrüche als \n).
    */
   legalPostalAddress:
-    "[Postalische Anschrift: Strasse, PLZ Ort, Land — in FORK_DEFAULTS.legalPostalAddress eintragen]",
+    "MMIND GmbH\nDuxgass 55\nFL-9494 Schaan\nFuerstentum Liechtenstein\nTelefon: +4176 458 32 96\nE-Mail: info@mmind.ai\nWeb: https://mmind.ai",
   /** Monitoring: JSON-Feld `service` im Health-Endpoint */
   serviceSlug: "skicoach-webapp",
   /** Fallback Absender, wenn RESEND_FROM_EMAIL nicht gesetzt (sollte zur Domain passen) */
-  defaultResendFrom: "noreply@skicoach.li",
+  defaultResendFrom: "noreply@mmind.ai",
   /** NextAuth Resend-Provider: lokaler Fallback ohne verifizierte Domain */
   authResendFallback: "skicoach@localhost",
   labels: {
@@ -71,6 +71,7 @@ const FORK_DEFAULTS = {
     /** Interne App: Sidebar & Seitentitel */
     navCalendar: "Kalender",
     navInvoices: "Rechnungen",
+    navMonthlyHoursReport: "Stundenreport",
     navChat: "Chat",
     navAdmin: "Admin",
     navAudit: "Audit",
@@ -270,6 +271,69 @@ const FORK_DEFAULTS = {
     /** Admin: Nutzerliste & Einladungen */
     adminDashboardLoading: "Dashboard wird geladen…",
     adminTabStaffUsersTemplate: "{staffCollectivePlural} & Nutzer",
+    adminTabWeeklyHours: "Verfügbarkeit",
+    adminWeeklyHoursHelp:
+      "Ohne Einträge gilt das Standard-Zeitraster des Buchungsportals (07:00–20:00). Sobald Zeilen existieren, sind nur noch Termine innerhalb dieser wöchentlichen Fenster möglich (zusätzlich zu Sperrzeiten und bestehenden Buchungen). Über Mitternacht gehende Fenster werden nicht unterstützt.",
+    adminWeeklyHoursStaffLabel: "Person:",
+    adminWeeklyHoursAddRow: "Zeile hinzufügen",
+    adminWeeklyHoursRemoveRow: "Entfernen",
+    adminWeeklyHoursSave: "Speichern",
+    adminWeeklyHoursSavedToast: "Arbeitszeiten gespeichert.",
+    adminWeeklyHoursSaveFailed: "Arbeitszeiten konnten nicht gespeichert werden.",
+    adminWeeklyHoursEmptyHint:
+      "Keine wöchentlichen Fenster — es gilt das Standard-Portalraster. Zeile hinzufügen, um feste Arbeitszeiten zu setzen.",
+    adminWeeklyHoursInvalidWindow: "Endzeit muss nach der Startzeit liegen.",
+    adminVacationSectionTitle: "Ferien / Abwesenheit",
+    adminVacationHelp:
+      "Ganze Tage ohne Verfügbarkeit (z. B. Ferien). In diesem Zeitraum sind keine Buchungen für diese Person möglich. Im Team-Kalender erscheinen die Tage zusätzlich als markierter Block.",
+    adminVacationEmptyHint:
+      "Keine Ferien erfasst. Zeile hinzufügen, um Abwesenheiten zu planen.",
+    adminVacationAddRow: "Zeitraum hinzufügen",
+    adminVacationRemoveRow: "Entfernen",
+    adminVacationNotePlaceholder: "Notiz (optional)",
+    adminVacationSave: "Ferien speichern",
+    adminVacationSavedToast: "Ferien / Abwesenheit gespeichert.",
+    adminVacationSaveFailed: "Ferien konnten nicht gespeichert werden.",
+    adminVacationInvalidRange: "Enddatum muss am oder nach dem Startdatum liegen.",
+    adminVacationSpanTooLong: "Ein Zeitraum darf höchstens 370 Tage umfassen.",
+    calendarScheduleLegendTitle: "Arbeitszeiten & Kalender-Legende",
+    calendarScheduleWeeklyHoursLabel: "Regelmässige Fenster:",
+    calendarLegendAppointments:
+      "Termine: farbige Blöcke (Farbe wie in der Lehrkräfte-Legende).",
+    calendarLegendVacation: "Ferien / frei",
+    calendarLegendBlocked: "Gesperrt (Teil des Tages)",
+    adminTabMonthlyReport: "Monatsreport",
+    monthlyHoursReportTitle: "Monatsstunden",
+    monthlyHoursReportIntro:
+      "Produktive Stunden ergeben sich aus Terminen (nicht storniert). Zusätzliche Zeit (Büro, Vorbereitung, Meetings, …) erfassen Sie wie in vielen ERP-Systemen als manuelle Stundenbuchung mit Kategorie.",
+    monthlyHoursProductive: "Produktiv (Unterricht)",
+    monthlyHoursInternalTotal: "Intern / allgemein",
+    monthlyHoursTotalWorked: "Total gearbeitet",
+    monthlyHoursBookingsDetail: "Termine im Monat",
+    monthlyHoursManualEntries: "Manuelle Stundenbuchungen",
+    monthlyHoursAddEntry: "Eintrag speichern",
+    monthlyHoursExportCsv: "CSV herunterladen",
+    monthlyHoursMonthLabel: "Monat",
+    monthlyHoursSelectStaff: "Person",
+    monthlyHoursCancelledBookings: "Stornierte Termine (ohne Stunden)",
+    monthlyHoursHoursAbbr: "Std.",
+    monthlyHoursDate: "Datum",
+    monthlyHoursTime: "Zeit",
+    monthlyHoursCourse: "Angebot",
+    monthlyHoursGuest: "Gast",
+    monthlyHoursDuration: "Dauer",
+    monthlyHoursCategory: "Kategorie",
+    monthlyHoursNote: "Notiz",
+    monthlyHoursActions: "Aktion",
+    monthlyHoursDelete: "Löschen",
+    monthlyHoursSavedToast: "Stundenbuchung gespeichert.",
+    monthlyHoursDeletedToast: "Eintrag gelöscht.",
+    monthlyHoursLoadError: "Report konnte nicht geladen werden.",
+    timeLogCategoryBueroVerwaltung: "Büro & Verwaltung",
+    timeLogCategoryVorbereitung: "Vorbereitung",
+    timeLogCategoryMeeting: "Meetings",
+    timeLogCategoryFortbildung: "Fortbildung",
+    timeLogCategorySonstiges: "Sonstiges",
     adminMetricBookingsMonthLabelTemplate: "{bookingPlural} (Monat)",
     adminMetricBookingsMonthSub: "Im laufenden Kalendermonat",
     adminMetricRevenueLabel: "Umsatz",
@@ -530,56 +594,39 @@ const FORK_DEFAULTS = {
     emailMagicLinkDisclaimer:
       "Wenn du diese E-Mail nicht angefordert hast, kannst du sie ignorieren.",
     emailMagicLinkTextIntroTemplate: "Anmeldung bei {host}",
-    /** Öffentliche Datenschutz-Seite — Muster (keine Rechtsberatung; Fork prüfen lassen) */
+    /** Öffentliche Datenschutz-Seite — Verweis auf mmind.ai (keine vollständige Erklärung hier) */
+    legalTestProjectNotice:
+      "Hinweis: Diese Anwendung ({siteDomain}) ist ein Test- und Demonstrationsprojekt von MMIND (mmind.ai). Es gibt keinen Anspruch auf Vollständigkeit, Verfügbarkeit oder produktiven Betrieb; Demo-Daten können jederzeit gelöscht werden.",
     privacyMusterDisclaimer:
-      "Muster-Datenschutzerklärung zur Orientierung — keine Rechtsberatung. Passen Sie Text und Angaben an Ihre Organisation an und lassen Sie den Inhalt bei Bedarf rechtlich prüfen.",
-    privacySection1Title: "1. Verantwortliche Stelle",
+      "Auf dieser Seite finden Sie keine vollständige Datenschutzerklärung. Massgeblich sind die Angaben von MMIND unter https://mmind.ai/datenschutz — dort sind auch Verantwortliche, Rechtsgrundlagen und Ihre Rechte beschrieben.",
+    privacySection1Title: "1. Verweise statt vollständiger Erklärung",
     privacySection1BodyTemplate:
-      "Verantwortlich für die Datenbearbeitung im Zusammenhang mit dieser Website:\n\n{siteName}\n{postalAddress}\n{siteDomain}\nE-Mail: {supportEmail}\n\nMarkierung / Bezugsort: {issuerLocation}",
-    privacySection2Title: "2. Zwecke der Bearbeitung",
+      "Diese Instanz ({siteName}, {siteDomain}) dient ausschliesslich Demonstrationszwecken im Kontext von mmind.ai.\n\nVerantwortliche Stelle und vollständige Datenschutzerklärung:\nMMIND GmbH — https://mmind.ai/datenschutz\n\nKontakt Datenschutz: info@mmind.ai (Betreff „Datenschutz“).\n\nAnschrift MMIND (Auszug):\n{postalAddress}",
+    privacySection2Title: "2. Welche Daten können in dieser Demo anfallen?",
     privacySection2BodyTemplate:
-      "Wir bearbeiten personenbezogene Daten zur Bearbeitung von {bookingRequestPlural} und {bookingPlural}, zur internen Planung ({appointmentPlural}, {clientPlural}), für den geschützten Team-Bereich (Anmeldung per E-Mail-Link), für {invoicePlural} sowie zur Erfüllung gesetzlicher Pflichten.",
-    privacySection3Title: "3. Rechtsgrundlagen",
-    privacySection3BodyTemplate:
-      "Vertrag bzw. vorvertragliche Massnahmen (Art. 6 Abs. 1 lit. b DSGVO), soweit Sie Anfragen stellen oder wir Leistungen erbringen. Berechtigtes Interesse an einem sicheren Betrieb der Website und des Team-Bereichs (Art. 6 Abs. 1 lit. f DSGVO). Rechtliche Verpflichtungen, z. B. Aufbewahrung (Art. 6 Abs. 1 lit. c DSGVO). Soweit erforderlich Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).",
-    privacySection4Title: "4. Kategorien betroffener Daten",
-    privacySection4BodyTemplate:
-      "Kontakt- und Stammdaten (z. B. Name, E-Mail, Telefon), Buchungs- und Termindaten, ggf. Notizen im {clientPlural}-Bereich, Inhalte im Team-Chat, technische Daten (z. B. IP-Adresse, Zeitstempel in Server- und Audit-Logs).",
-    privacySection5Title: "5. Speicherdauer",
-    privacySection5BodyTemplate:
-      "Soweit möglich löschen wir Daten, sobald der Zweck entfällt. Gesetzliche Aufbewahrungsfristen (z. B. handels- oder steuerrechtlich) können längere Speicherung erfordern.",
-    privacySection6Title: "6. Empfänger und Auftragsverarbeiter",
-    privacySection6BodyTemplate:
-      "Hosting der Anwendung und Datenbank beim von Ihnen gewählten Anbieter. Versand von Transaktions-E-Mails (z. B. Magic-Link, Benachrichtigungen) über einen E-Mail-Dienst (z. B. Resend). Optional: Bot-Schutz (z. B. Cloudflare Turnstile) im öffentlichen Buchungsformular. Mit Auftragsverarbeitern sind Verträge gem. Art. 28 DSGVO abzuschliessen, soweit erforderlich.",
-    privacySection7Title: "7. Ihre Rechte",
-    privacySection7BodyTemplate:
-      "Sie haben je nach Voraussetzung Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Bearbeitung, Datenübertragbarkeit sowie Widerspruch. Sie können sich bei einer Datenschutz-Aufsichtsbehörde beschweren. Kontakt: {supportEmail}.",
-    privacyContactPromptTemplate: "Rückfragen zum Datenschutz:",
-    privacyHostingNoteBeforeLink:
-      "Hinweis: Hosting und/oder Support kann ueber ",
+      "Im Buchungs- und Team-Demo können z. B. Kontaktdaten, {bookingRequestPlural}, {bookingPlural}, {appointmentPlural}, {clientPlural}-Notizen, Chat-Inhalte sowie technische Protokolle (z. B. IP, Zeitstempel) vorkommen — jeweils nur im Umfang der Demo. Details und Aufbewahrung: siehe https://mmind.ai/datenschutz",
+    privacyContactPromptTemplate: "Rückfragen zum Datenschutz (MMIND):",
+    privacyHostingNoteBeforeLink: "Organisation und Hosting-Hinweise: ",
     privacyHostingNoteLinkText: "mmind.ai",
     privacyHostingNoteLinkUrl: "https://mmind.ai",
-    privacyHostingNoteAfterLink: " erfolgen.",
-    /** Öffentliches Impressum — Muster */
+    privacyHostingNoteAfterLink:
+      " — vollständige Informationen nur auf der Website von MMIND; diese Subdomain ist ein Testprojekt.",
+    /** Öffentliches Impressum — Verweis auf mmind.ai */
     imprintMusterDisclaimer:
-      "Muster-Impressum — keine Rechtsberatung. Tragen Sie alle Pflichtangaben für Ihre Rechtsform und Ihr Land vollständig ein.",
-    imprintSection1Title: "Anbieterkennzeichnung",
+      "Kein vollständiges Impressum dieser Subdomain: rechtliche Angaben und Haftungshinweise der MMIND GmbH finden Sie unter https://mmind.ai/impressum . Diese Anwendung ist ein nicht-produktives Testprojekt.",
+    imprintSection1Title: "1. Verantwortlich / vollständiges Impressum",
     imprintSection1BodyTemplate:
-      "Anbieter dieser Website:\n\n{siteName}\n{postalAddress}\n{siteDomain}\nE-Mail: {supportEmail}",
-    imprintSection2Title: "Vertretung / Register",
+      "Diese Website ({siteDomain}, Projektname „{siteName}“) ist ein Testprojekt von MMIND.\n\nVollständiges Impressum, Anbieterkennzeichnung und Kontakt:\nhttps://mmind.ai/impressum\n\nMMIND GmbH (Auszug aus dem Impressum von mmind.ai):\n{postalAddress}\n\nAllgemeiner Kontakt: info@mmind.ai",
+    imprintSection2Title: "2. Haftung und Disclaimer",
     imprintSection2BodyTemplate:
-      "Bitte im Fork ergänzen (rechtlich prüfen):\n\n• Namen der vertretungsberechtigten Personen (z. B. Geschäftsführung, Vorstand)\n• Rechtsform und Sitz\n• Registerart und -nummer, falls zutreffend (z. B. Handelsregister, Vereinsregister)\n• Registergericht\n\nNicht zutreffende Punkte entfernen.",
-    imprintSection3Title: "Umsatzsteuer",
-    imprintSection3BodyTemplate:
-      "Umsatzsteuer-Identifikationsnummer gem. § 27a UStG (falls vorhanden): _______________________________\n\nWenn keine UID ausgewiesen wird oder keine Umsatzsteuerpflicht besteht: Absatz anpassen oder entfernen (rechtlich prüfen).",
-    imprintSection4Title: "Inhaltliche Verantwortung",
-    imprintSection4BodyTemplate:
-      "Angaben je nach Medium und Staat unterschiedlich. Üblich: Name und ladungsfähige Anschrift der für den redaktionellen Inhalt verantwortlichen Person.\n\nIm Fork ergänzen, z. B.: [Vor- und Nachname], [Strasse Nr., PLZ Ort, Land].",
-    imprintSection5Title: "Online-Streitbeilegung",
-    imprintSection5BodyTemplate:
-      "Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung bereit: https://ec.europa.eu/consumers/odr. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen — anpassen, falls bei Ihnen zutreffend.",
+      "Für Haftungsausschlüsse, Urheberrecht und weitergehende rechtliche Hinweise gilt die Fassung auf https://mmind.ai/impressum .\n\nDiese Demo-Anwendung stellt keine geschäftliche Dienstleistung dar; Inhalte und Funktionen können fehlerhaft oder unvollständig sein.",
     /** Fußzeile öffentlicher Bereich vor dem Hosting-Hinweis */
     publicFooterLegalPrefix: "Hinweis:",
+    publicFooterTestProjectLine:
+      "Testprojekt mmind.ai — https://mmind.ai · Kein produktiver Betrieb.",
+    /** Login: kurzer Hinweis neben Dev-Notice */
+    loginTestProjectBrief:
+      "Testprojekt mmind.ai (https://mmind.ai) — keine produktive Skischule.",
   },
   features: {
     publicBooking: true,
@@ -596,9 +643,9 @@ const FORK_DEFAULTS = {
    * Pro Fork hier Farben anpassen oder NEXT_PUBLIC_LOGIN_HERO_GRADIENT_* setzen.
    */
   loginHero: {
-    gradientFrom: "#0c1f3a",
-    gradientVia: "#1B4F8A",
-    gradientTo: "#4a90c4",
+    gradientFrom: "#ab3500",
+    gradientVia: "#ff6b35",
+    gradientTo: "#305f9b",
   },
   /** Demo-Team-Chat für `npm run db:seed` — Fork anpassbar */
   demoTeamChannelSeedMessages: [
@@ -643,10 +690,12 @@ const legalPostalAddress = (() => {
  * Client bricht öffentliche Seiten (z. B. /buchen) mit „Application error“ ab,
  * obwohl der Server korrekt rendert.
  */
+const legalAddressLooksIncomplete =
+  /\[Postalische|eintraegen|FORK_DEFAULTS/i.test(legalPostalAddress);
 if (
   process.env.NODE_ENV === "production" &&
   typeof window === "undefined" &&
-  legalPostalAddress === FORK_DEFAULTS.legalPostalAddress
+  legalAddressLooksIncomplete
 ) {
   throw new Error(
     "Brand config incomplete: set NEXT_PUBLIC_LEGAL_POSTAL_ADDRESS or FORK_DEFAULTS.legalPostalAddress before production deploy."

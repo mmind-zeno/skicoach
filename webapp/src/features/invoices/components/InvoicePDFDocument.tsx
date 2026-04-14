@@ -11,7 +11,7 @@ import { appDateOnlyLocale } from "@/lib/locale-shared";
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
   header: { marginBottom: 24 },
-  brand: { fontSize: 18, color: "#1B4F8A", marginBottom: 4 },
+  brand: { fontSize: 18, color: "#305f9b", marginBottom: 4 },
   h1: { fontSize: 14, marginBottom: 12 },
   row: { flexDirection: "row", marginBottom: 4 },
   label: { width: 100, color: "#666" },

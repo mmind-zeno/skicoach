@@ -4,9 +4,9 @@ import { ChatLayout } from "@/features/chat/components/ChatLayout";
 
 export default function ChatPage() {
   return (
-    <div className="p-4 md:p-6">
+    <>
       <PageHeader title={brand.labels.navChat} />
-      <p className="mb-4 text-sm text-sk-ink/70">
+      <p className="mb-6 text-sm text-sk-ink/70">
         {brand.labels.chatPageIntroSegment1Template.replace(
           "{navTeam}",
           brand.labels.navTeam
@@ -18,6 +18,6 @@ export default function ChatPage() {
         {brand.labels.chatConnectionPolling}.
       </p>
       <ChatLayout />
-    </div>
+    </>
   );
 }

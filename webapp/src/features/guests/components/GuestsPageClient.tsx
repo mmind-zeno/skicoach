@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ProductPreviewGuestDetail } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
 import { GuestCreateModal } from "./GuestCreateModal";
 import { GuestDetailPanel } from "./GuestDetailPanel";
@@ -39,20 +40,20 @@ export function GuestsPageClient() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-3">
-        <label className="text-sm text-sk-ink">
+        <label className="text-sm font-medium text-sk-ink">
           {brand.labels.labelSearch}
           <input
             type="search"
-            className="mt-1 block w-56 rounded border border-sk-ink/20 px-2 py-2"
+            className="sk-field mt-1.5 block w-56 min-w-0"
             placeholder={brand.labels.placeholderClientSearch}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </label>
-        <label className="text-sm text-sk-ink">
+        <label className="text-sm font-medium text-sk-ink">
           {brand.labels.clientSkillFilterLabel}
           <select
-            className="mt-1 block rounded border border-sk-ink/20 px-2 py-2"
+            className="sk-field mt-1.5 block min-w-[10rem]"
             value={niveau}
             onChange={(e) => setNiveau(e.target.value)}
           >
@@ -112,11 +113,16 @@ export function GuestsPageClient() {
             />
           </div>
         ) : (
-          <div className="hidden rounded-lg border border-dashed border-sk-ink/20 p-8 text-center text-sm text-sk-ink/50 lg:block">
-            {brand.labels.guestPageSelectClientHintTemplate.replace(
-              "{client}",
-              brand.labels.clientSingular
-            )}
+          <div className="hidden flex-col gap-4 rounded-2xl border border-sk-outline/20 bg-gradient-to-br from-sk-highlight/40 to-sk-container-high/50 p-6 shadow-[inset_0_0_0_1px_rgba(225,191,181,0.18)] lg:flex">
+            <div className="mx-auto max-w-sm">
+              <ProductPreviewGuestDetail />
+            </div>
+            <p className="text-center text-sm text-sk-ink/60">
+              {brand.labels.guestPageSelectClientHintTemplate.replace(
+                "{client}",
+                brand.labels.clientSingular
+              )}
+            </p>
           </div>
         )}
       </div>

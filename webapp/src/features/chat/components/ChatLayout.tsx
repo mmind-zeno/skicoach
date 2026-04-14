@@ -180,8 +180,8 @@ export function ChatLayout() {
   }, [text, channelId, dmUserId, session?.user?.id, mutate, sendHttp]);
 
   return (
-    <div className="flex h-[min(680px,calc(100vh-10rem))] min-h-[420px] flex-col rounded-lg border border-sk-ink/10 bg-white shadow-sm">
-      <div className="flex items-center justify-end border-b border-sk-ink/10 px-3 py-1.5 text-[11px] text-sk-ink/60">
+    <div className="sk-surface-card flex h-[min(680px,calc(100vh-10rem))] min-h-[420px] flex-col overflow-hidden">
+      <div className="flex items-center justify-end bg-sk-container-low/90 px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-sk-ink/55">
         <span
           className={
             sockLive
@@ -195,7 +195,7 @@ export function ChatLayout() {
         </span>
       </div>
       <div className="flex min-h-0 flex-1">
-        <aside className="w-52 shrink-0 border-r border-sk-ink/10 p-2 text-sm">
+        <aside className="w-52 shrink-0 bg-sk-container-low/50 p-2 text-sm shadow-[inset_-1px_0_0_rgba(225,191,181,0.15)]">
           <div className="font-medium text-sk-ink/70">
             {brand.labels.chatChannelsHeading}
           </div>
@@ -204,10 +204,10 @@ export function ChatLayout() {
               <li key={c.id}>
                 <button
                   type="button"
-                  className={`w-full rounded px-2 py-1.5 text-left ${
+                  className={`w-full rounded-lg px-2 py-1.5 text-left transition ${
                     channelId === c.id && !dmUserId
-                      ? "bg-sk-brand text-white"
-                      : "hover:bg-sk-surface"
+                      ? "bg-sk-brand text-white shadow-sm"
+                      : "hover:bg-white/80"
                   }`}
                   onClick={() => {
                     setChannelId(c.id);
@@ -227,10 +227,10 @@ export function ChatLayout() {
               <li key={u.id}>
                 <button
                   type="button"
-                  className={`w-full rounded px-2 py-1.5 text-left text-xs ${
+                  className={`w-full rounded-lg px-2 py-1.5 text-left text-xs transition ${
                     dmUserId === u.id
-                      ? "bg-sk-brand text-white"
-                      : "hover:bg-sk-surface"
+                      ? "bg-sk-brand text-white shadow-sm"
+                      : "hover:bg-white/80"
                   }`}
                   onClick={() => {
                     setDmUserId(u.id);
@@ -258,10 +258,10 @@ export function ChatLayout() {
                   className={`flex ${mine ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
                       mine
-                        ? "bg-sk-brand text-white"
-                        : "bg-sk-surface text-sk-ink"
+                        ? "bg-gradient-to-br from-sk-cta to-sk-cta-mid text-white"
+                        : "bg-sk-container-high/90 text-sk-ink"
                     }`}
                   >
                     {!mine ? (
@@ -279,7 +279,7 @@ export function ChatLayout() {
             })}
             <div ref={bottomRef} />
           </div>
-          <div className="border-t border-sk-ink/10 p-2">
+          <div className="bg-sk-container-low/70 p-3 shadow-[inset_0_1px_0_rgba(225,191,181,0.12)]">
             {sendErr ? (
               <p className="mb-2 text-xs text-red-600" role="alert">
                 {sendErr}
@@ -287,7 +287,7 @@ export function ChatLayout() {
             ) : null}
             <div className="flex gap-2">
               <textarea
-                className="min-h-[40px] flex-1 resize-none rounded border border-sk-ink/20 px-2 py-2 text-sm"
+                className="sk-field min-h-[44px] flex-1 resize-none text-sm"
                 placeholder={brand.labels.chatComposerPlaceholder}
                 value={text}
                 rows={2}
@@ -304,7 +304,7 @@ export function ChatLayout() {
               />
               <button
                 type="button"
-                className="self-end rounded bg-sk-brand px-3 py-2 text-sm text-white hover:bg-sk-hover"
+                className="self-end rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-sm text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid"
                 onClick={() => void send()}
               >
                 {brand.labels.chatSendButton}

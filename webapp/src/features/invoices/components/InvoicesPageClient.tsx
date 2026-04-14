@@ -121,10 +121,10 @@ export function InvoicesPageClient() {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm text-sk-ink">
+        <label className="text-sm font-medium text-sk-ink">
           {brand.labels.fieldStatus}
           <select
-            className="ml-2 rounded border border-sk-ink/20 px-2 py-1"
+            className="sk-field ml-2 inline-block min-w-[8rem]"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
@@ -157,33 +157,38 @@ export function InvoicesPageClient() {
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-lg border border-sk-ink/10 bg-white shadow-sm">
+      <div className="sk-surface-card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-sk-surface text-xs text-sk-ink/60">
+          <thead className="bg-sk-container-low text-[11px] font-semibold uppercase tracking-wider text-sk-ink/55">
             <tr>
-              <th className="px-3 py-2">
+              <th className="px-4 py-3">
                 {brand.labels.invoiceTableNumberAbbrev}
               </th>
-              <th className="px-3 py-2">{brand.labels.clientSingular}</th>
-              <th className="px-3 py-2">{brand.labels.invoiceTableDate}</th>
-              <th className="px-3 py-2">{brand.labels.invoiceTableCurrency}</th>
-              <th className="px-3 py-2">{brand.labels.fieldStatus}</th>
-              <th className="px-3 py-2">{brand.labels.invoiceTableActions}</th>
+              <th className="px-4 py-3">{brand.labels.clientSingular}</th>
+              <th className="px-4 py-3">{brand.labels.invoiceTableDate}</th>
+              <th className="px-4 py-3">{brand.labels.invoiceTableCurrency}</th>
+              <th className="px-4 py-3">{brand.labels.fieldStatus}</th>
+              <th className="px-4 py-3">{brand.labels.invoiceTableActions}</th>
             </tr>
           </thead>
           <tbody>
-            {invoices?.map((inv) => (
-              <tr key={inv.id} className="border-t border-sk-ink/5">
-                <td className="px-3 py-2 font-mono text-xs">{inv.invoiceNumber}</td>
-                <td className="px-3 py-2">{inv.guestName}</td>
-                <td className="px-3 py-2 text-xs">{inv.bookingDate}</td>
-                <td className="px-3 py-2">
+            {invoices?.map((inv, i) => (
+              <tr
+                key={inv.id}
+                className={`transition-colors hover:bg-sk-container-low/60 ${
+                  i % 2 === 0 ? "bg-white" : "bg-sk-surface/80"
+                }`}
+              >
+                <td className="px-4 py-2.5 font-mono text-xs">{inv.invoiceNumber}</td>
+                <td className="px-4 py-2.5">{inv.guestName}</td>
+                <td className="px-4 py-2.5 text-xs">{inv.bookingDate}</td>
+                <td className="px-4 py-2.5">
                   <CHFAmount amount={inv.amountCHF} size="sm" />
                 </td>
-                <td className="px-3 py-2">
+                <td className="px-4 py-2.5">
                   <StatusBadge variant={invoiceStatusVariant(inv.status)} />
                 </td>
-                <td className="space-x-2 px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                <td className="space-x-2 px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
                     className="text-sk-brand underline"
@@ -247,7 +252,7 @@ export function InvoicesPageClient() {
             />
             <div className="flex flex-wrap gap-2 border-t border-sk-ink/10 px-4 py-3">
               <a
-                className="rounded bg-sk-brand px-3 py-2 text-sm text-white"
+                className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-sm text-white shadow-sm hover:from-sk-cta-hover hover:to-sk-cta-mid"
                 href={`/api/invoices/${detail.id}/pdf`}
                 target="_blank"
                 rel="noreferrer"

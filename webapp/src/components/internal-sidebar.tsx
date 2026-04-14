@@ -49,7 +49,7 @@ export function InternalSidebar({
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-10 flex h-full w-[220px] flex-col bg-sk-brand text-white shadow-[4px_0_24px_rgba(0,0,0,0.08)]">
+    <aside className="fixed left-0 top-0 z-10 flex h-full w-[220px] flex-col rounded-r-3xl bg-sk-brand text-white shadow-sk-nav">
       <div className="border-b border-white/10 px-4 py-4">
         <div className="text-sm font-semibold tracking-tight">{brand.siteName}</div>
         <div className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-white/50">
@@ -78,6 +78,9 @@ export function InternalSidebar({
             {brand.labels.navInvoices}
           </Link>
         ) : null}
+        <Link className={linkClass("/stundenreport")} href="/stundenreport">
+          {brand.labels.navMonthlyHoursReport}
+        </Link>
         {showChat ? (
           <Link className={linkClass("/chat")} href="/chat">
             {brand.labels.navChat}

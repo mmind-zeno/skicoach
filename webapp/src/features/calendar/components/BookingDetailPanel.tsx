@@ -93,9 +93,9 @@ export function BookingDetailPanel({
   }
 
   return (
-    <aside className="flex flex-col border-sk-ink/10 bg-white lg:border-l lg:pl-4">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <h2 className="text-base font-semibold text-sk-ink">
+    <aside className="flex flex-col bg-transparent lg:rounded-2xl lg:bg-white lg:p-5 lg:shadow-sk-ambient">
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <h2 className="text-lg font-semibold tracking-tight text-sk-ink">
           {brand.labels.appointmentSingular}
         </h2>
         <button
@@ -264,7 +264,7 @@ export function BookingDetailPanel({
         <button
           type="button"
           disabled={pending}
-          className="mt-3 w-full rounded border border-sk-brand px-3 py-2 text-sm font-medium text-sk-brand hover:bg-[#E8F0FA] disabled:opacity-50"
+          className="mt-3 w-full rounded border border-sk-brand/50 px-3 py-2 text-sm font-medium text-sk-brand hover:bg-sk-highlight disabled:opacity-50"
           onClick={async () => {
             setBanner(null);
             setPending(true);

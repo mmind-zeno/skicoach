@@ -3,10 +3,9 @@
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { ProductPreviewCalendar } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
-import { stitchImages } from "@/config/stitch-images";
 
 /** Branchenneutrale Deko: weiche Flächen + wellenförmiger Abschluss (kein Ski/Motiv). */
 function LoginHeroBackdrop() {
@@ -64,20 +63,12 @@ function LoginForm() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,440px)]">
-      <div className="relative hidden overflow-hidden lg:block">
-        <Image
-          src={stitchImages.kalender}
-          alt=""
-          fill
-          sizes="55vw"
-          priority
-          className="object-cover object-[center_15%]"
-        />
+      <div className="relative hidden min-h-screen overflow-hidden lg:block">
         <div
           className="absolute inset-0"
           style={{
             background: `linear-gradient(135deg, ${brand.loginHero.gradientFrom} 0%, ${brand.loginHero.gradientVia} 48%, ${brand.loginHero.gradientTo} 100%)`,
-            opacity: 0.62,
+            opacity: 0.92,
           }}
         />
         <div
@@ -89,16 +80,23 @@ function LoginForm() {
           }}
         />
         <LoginHeroBackdrop />
-        <div className="relative z-[1] flex h-full flex-col justify-center px-12 text-white">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
-            {brand.siteName}
-          </p>
-          <h2 className="mt-3 max-w-md text-3xl font-semibold leading-tight">
-            {brand.labels.teamAreaTitle}
-          </h2>
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/85">
-            {brand.labels.teamAreaLead}
-          </p>
+        <div className="relative z-[1] grid h-full min-h-screen grid-cols-[minmax(0,1fr)_auto] items-center gap-10 px-10 xl:px-16">
+          <div className="text-white">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
+              {brand.siteName}
+            </p>
+            <h2 className="mt-3 max-w-md text-3xl font-semibold leading-tight">
+              {brand.labels.teamAreaTitle}
+            </h2>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/85">
+              {brand.labels.teamAreaLead}
+            </p>
+          </div>
+          <div className="hidden max-w-[min(100%,17rem)] shrink-0 lg:block">
+            <div className="rounded-2xl border border-white/35 bg-white/95 p-1.5 shadow-2xl shadow-black/20">
+              <ProductPreviewCalendar />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -109,20 +107,20 @@ function LoginForm() {
               {brand.siteName}
             </div>
           </div>
-          <div className="relative mb-6 aspect-[16/10] w-full overflow-hidden rounded-xl border border-sk-outline/20 shadow-sm lg:hidden">
-            <Image
-              src={stitchImages.kalender}
-              alt=""
-              fill
-              sizes="100vw"
-              className="object-cover object-top"
-            />
+          <div className="mb-6 flex justify-center lg:hidden">
+            <div className="w-full max-w-xs">
+              <ProductPreviewCalendar />
+            </div>
           </div>
           <h1 className="text-2xl font-semibold text-sk-ink">
             {brand.labels.loginTitle}
           </h1>
           <p className="mt-2 text-sm text-sk-ink/70">
             {brand.labels.loginLeadMagicLink}
+          </p>
+
+          <p className="mt-3 rounded-lg border border-sk-brand/20 bg-sk-highlight/60 px-3 py-2 text-xs text-sk-ink/80">
+            {brand.labels.loginTestProjectBrief}
           </p>
 
           <div className="mt-4 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950/90">

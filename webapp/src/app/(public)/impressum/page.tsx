@@ -19,14 +19,14 @@ export default function ImpressumPage() {
   const sections: { title: string; body: string }[] = [
     { title: L.imprintSection1Title, body: expandImprintBody(L.imprintSection1BodyTemplate) },
     { title: L.imprintSection2Title, body: expandImprintBody(L.imprintSection2BodyTemplate) },
-    { title: L.imprintSection3Title, body: expandImprintBody(L.imprintSection3BodyTemplate) },
-    { title: L.imprintSection4Title, body: expandImprintBody(L.imprintSection4BodyTemplate) },
-    { title: L.imprintSection5Title, body: expandImprintBody(L.imprintSection5BodyTemplate) },
   ];
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-xl font-semibold text-sk-ink">{L.navImpressum}</h1>
+      <p className="mt-4 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-3 text-sm leading-relaxed text-amber-950/90">
+        {L.legalTestProjectNotice}
+      </p>
       <p className="mt-4 text-sm leading-relaxed text-sk-ink/70">
         {L.imprintMusterDisclaimer}
       </p>

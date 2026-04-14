@@ -4,9 +4,9 @@ import { InvoicesPageClient } from "@/features/invoices/components/InvoicesPageC
 
 export default function RechnungenPage() {
   return (
-    <div className="p-4 md:p-6">
+    <>
       <PageHeader title={brand.labels.navInvoices} />
       <InvoicesPageClient />
-    </div>
+    </>
   );
 }

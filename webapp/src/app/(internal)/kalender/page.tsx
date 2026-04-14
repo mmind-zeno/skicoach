@@ -1,4 +1,5 @@
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ProductHeroBanner } from "@/components/ui/ProductHeroBanner";
+import { ProductPreviewCalendar } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
 import { CalendarShell } from "@/features/calendar/components/CalendarShell";
 import { auth } from "@/lib/auth";
@@ -12,8 +13,12 @@ export default async function KalenderPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      <PageHeader title={brand.labels.navCalendar} />
+    <>
+      <ProductHeroBanner
+        title={brand.labels.navCalendar}
+        description={brand.marketingTagline}
+        preview={<ProductPreviewCalendar />}
+      />
       <Suspense
         fallback={
           <p className="text-sm text-sk-ink/60">
@@ -29,6 +34,6 @@ export default async function KalenderPage() {
           isAdmin={session.user.role === "admin"}
         />
       </Suspense>
-    </div>
+    </>
   );
 }

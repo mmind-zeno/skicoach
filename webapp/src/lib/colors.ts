@@ -1,34 +1,54 @@
 /**
- * Markenfarben — gleiche Werte in `tailwind.config.ts` (theme.extend.colors.sk).
- * Für PDFs, E-Mails, Charts: hier importieren statt Hex zu duplizieren.
+ * Design tokens from Google Stitch project `5397023336978297379` („Skicoach Management Portal“ /
+ * „Alpenglow Management“): navy secondary + Alpenglow orange primary.
+ * Gleiche Werte in `tailwind.config.ts` (theme.extend.colors.sk).
  */
 export const sk = {
-  ink: "#1A1A2E",
-  brand: "#1B4F8A",
-  brandHover: "#163d6b",
-  surface: "#F7F9FC",
+  /** on_surface */
+  ink: "#181c20",
+  /** Glacial navy — sidebar, text links, outline buttons */
+  brand: "#305f9b",
+  brandHover: "#264d85",
+  /** Alpenglow — primary CTAs, booking critical path */
+  cta: "#ab3500",
+  ctaHover: "#8c2e00",
+  ctaMid: "#ff6b35",
+  /** surface */
+  surface: "#f7f9fe",
+  /** M3 surface_container* — geschichtete Flächen (ohne harte Linien) */
+  container: "#ebeef3",
+  containerLow: "#f1f4f9",
+  containerHigh: "#e5e8ed",
+  containerHighest: "#dfe3e8",
+  /** secondary_fixed / on_secondary_fixed — „Professional Badges“ */
+  badgeBg: "#d4e3ff",
+  badgeFg: "#001c3a",
+  /** secondary_fixed — selected cards / list rows */
+  highlight: "#d4e3ff",
+  /** outline_variant — dezente Grenzen (Ghost-Border) */
+  outlineMuted: "#e1bfb5",
 } as const;
 
 export type SkColorKey = keyof typeof sk;
 
-/** Kalender-Legende / Punkte: kompakter Akzent (CLAUDE.md) */
+/** Kalender-Legende / Punkte (unabhängig vom Stitch-M3-Set) */
 export const TEACHER_COLORS = [
-  "#3b82f6",
-  "#22c55e",
-  "#8b5cf6",
-  "#f59e0b",
-  "#f43f5e",
-  "#14b8a6",
+  "#305f9b",
+  "#ab3500",
+  "#0d9488",
+  "#7c3aed",
+  "#ca8a04",
+  "#db2777",
 ] as const;
 
-/** Event-Hintergrund + Text für react-big-calendar (CLAUDE.md Lehrer-Farben) */
+/** Event-Hintergrund + Text für react-big-calendar */
 export const TEACHER_CALENDAR_EVENT = [
-  { bg: "#DBEAFE", fg: "#1e40af" },
-  { bg: "#DCF5E7", fg: "#166534" },
-  { bg: "#EDE9FE", fg: "#5b21b6" },
-  { bg: "#FEF3C7", fg: "#92400e" },
-  { bg: "#FFE4E6", fg: "#9f1239" },
-  { bg: "#CCFBF1", fg: "#115e59" },
+  { bg: "#d4e3ff", fg: "#0e4782" },
+  { bg: "#ffdbd0", fg: "#5f1900" },
+  { bg: "#ccfbf1", fg: "#115e59" },
+  { bg: "#ede9fe", fg: "#5b21b6" },
+  { bg: "#fef3c7", fg: "#92400e" },
+  { bg: "#ffe4e6", fg: "#9f1239" },
 ] as const;
 
 export type StatusBadgeVariant =
@@ -42,12 +62,12 @@ export type StatusBadgeVariant =
   | "anfrage_bestaetigt"
   | "anfrage_abgelehnt";
 
-/** Hintergrund + Text für StatusBadge (CLAUDE.md) */
+/** Hintergrund + Text für StatusBadge */
 export const STATUS_BADGE_STYLE: Record<
   StatusBadgeVariant,
   { backgroundColor: string; color: string }
 > = {
-  geplant: { backgroundColor: "#DBEAFE", color: "#1e40af" },
+  geplant: { backgroundColor: "#d4e3ff", color: "#0e4782" },
   durchgefuehrt: { backgroundColor: "#DCFCE7", color: "#166534" },
   storniert: { backgroundColor: "#F1F5F9", color: "#64748b" },
   offen: { backgroundColor: "#FEF3C7", color: "#92400e" },
