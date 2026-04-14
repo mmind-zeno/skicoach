@@ -1,6 +1,4 @@
-import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
-import { InvoicePDFDocument } from "../features/invoices/components/InvoicePDFDocument";
 import { findById } from "./invoice.service";
 
 function splitVatBrutto(brutto: number, vatPercent: number): {
@@ -16,6 +14,12 @@ function splitVatBrutto(brutto: number, vatPercent: number): {
 export async function generateInvoicePdfBuffer(
   invoiceId: string
 ): Promise<Buffer> {
+  const [{ renderToBuffer }, invoicePdfModule] = await Promise.all([
+    import("@react-pdf/renderer"),
+    import("../features/invoices/components/InvoicePDFDocument"),
+  ]);
+  const { InvoicePDFDocument } = invoicePdfModule;
+
   const inv = await findById(invoiceId);
   const brutto = Number(inv.amountCHF);
   const vatP = Number(inv.vatPercent);

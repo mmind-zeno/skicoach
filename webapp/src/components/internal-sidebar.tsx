@@ -33,6 +33,7 @@ export function InternalSidebar({
     { refreshInterval: 30_000, keepPreviousData: true }
   );
   const badge = data?.count ?? 0;
+  const appVersion = (process.env.NEXT_PUBLIC_APP_VERSION ?? "dev").trim();
 
   function linkClass(href: string, extra = ""): string {
     const on = navActive(href, pathname);
@@ -125,8 +126,8 @@ export function InternalSidebar({
             ? brand.labels.toastInfoOn
             : brand.labels.toastInfoOff}
         </button>
-        <div className="px-1 text-[10px] text-white/50">
-          v{process.env.NEXT_PUBLIC_APP_VERSION ?? "dev"}
+        <div className="px-1 font-mono text-[11px] text-white/55">
+          v {appVersion}
         </div>
       </div>
       <UserAvatar />

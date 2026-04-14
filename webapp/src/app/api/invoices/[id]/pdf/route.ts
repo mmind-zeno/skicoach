@@ -5,6 +5,8 @@ import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { canAccessInvoice } from "@/services/invoice.service";
 import { generateInvoicePdfBuffer } from "@/services/pdf.service";
 
+export const runtime = "nodejs";
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

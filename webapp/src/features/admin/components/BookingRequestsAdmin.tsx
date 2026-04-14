@@ -41,6 +41,7 @@ export function BookingRequestsAdmin() {
     data: teachers,
     error: teachersError,
     isLoading: teachersLoading,
+    mutate: mutateTeachers,
   } = useSWR<{ id: string; name: string | null; email: string }[]>(
     "/api/teachers",
     f,
@@ -140,11 +141,20 @@ export function BookingRequestsAdmin() {
               </p>
             ) : null}
             {teachersError ? (
-              <p className="mt-3 text-sm text-red-600" role="alert">
-                {teachersError instanceof Error
-                  ? teachersError.message
-                  : brand.labels.uiErrorGeneric}
-              </p>
+              <div className="mt-3 space-y-2 text-sm text-red-600" role="alert">
+                <p>
+                  {teachersError instanceof Error
+                    ? teachersError.message
+                    : brand.labels.uiErrorGeneric}
+                </p>
+                <button
+                  type="button"
+                  className="rounded border border-red-300 bg-white px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                  onClick={() => void mutateTeachers()}
+                >
+                  {brand.labels.uiRefresh}
+                </button>
+              </div>
             ) : null}
             {!teachersLoading &&
             !teachersError &&
