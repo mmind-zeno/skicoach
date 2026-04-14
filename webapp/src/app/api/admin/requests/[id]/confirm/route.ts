@@ -3,6 +3,7 @@ import { brand } from "@/config/brand";
 import { writeAuditLog } from "@/lib/audit-log";
 import { requireAdminSession } from "@/lib/auth-helpers";
 import { apiClientError, apiErrorResponse } from "@/lib/api-error";
+import { isUuid } from "@/lib/validators/uuid";
 import { confirmRequest } from "@/services/booking-request.service";
 
 export async function POST(
@@ -11,6 +12,16 @@ export async function POST(
 ) {
   const session = await requireAdminSession();
   try {
+    const requestId = params.id?.trim() ?? "";
+    if (!isUuid(requestId)) {
+      return apiClientError(
+        brand.labels.apiInvalidData,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
+      );
+    }
     const json = (await request.json().catch(() => null)) as unknown;
     const body =
       json && typeof json === "object" && json !== null
@@ -27,15 +38,24 @@ export async function POST(
         request
       );
     }
+    if (!isUuid(teacherId)) {
+      return apiClientError(
+        brand.labels.apiInvalidData,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
+      );
+    }
     const booking = await confirmRequest(
-      params.id,
+      requestId,
       teacherId,
       session.user.id
     );
     await writeAuditLog({
       actorUserId: session.user.id,
       action: "admin.booking_request.confirm",
-      resource: params.id,
+      resource: requestId,
       metadata: { bookingId: booking.id, teacherId },
       request,
     });

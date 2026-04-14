@@ -26,7 +26,10 @@ import {
   sendBookingConfirmed,
   sendBookingRequestConfirmation,
 } from "../lib/mail";
-import { checkAvailability } from "./booking.service";
+import {
+  checkAvailability,
+  checkAvailabilityUsingDb,
+} from "./booking.service";
 import { findOrCreateByEmail } from "./guest.service";
 import { brand } from "../config/brand";
 
@@ -167,9 +170,13 @@ export async function confirmRequest(
     );
   }
 
+  const durationMin = courseRow.durationMin;
+  if (!Number.isFinite(durationMin) || durationMin < 1) {
+    throw new ValidationError(brand.labels.msgCourseDurationInvalid);
+  }
+
   const date = calendarDateFromStored(req.date);
   const startT = coerceSqlTimeForBooking(req.startTime);
-  const durationMin = courseRow.durationMin;
   const endT = endTimeFromStart(startT, durationMin);
   const ok = await checkAvailability(teacherId, date, startT, endT);
   if (!ok) {
@@ -196,6 +203,48 @@ export async function confirmRequest(
 
   try {
     const booking = await db.transaction(async (tx) => {
+      const [locked] = await tx
+        .select({
+          id: bookingRequests.id,
+          status: bookingRequests.status,
+        })
+        .from(bookingRequests)
+        .where(eq(bookingRequests.id, requestId))
+        .for("update");
+
+      if (!locked) {
+        throw new NotFoundError(
+          brand.labels.msgEntityNotFound.replace(
+            "{entity}",
+            brand.labels.bookingRequestSingular
+          )
+        );
+      }
+      if (locked.status !== "neu") {
+        throw new ValidationError(
+          brand.labels.msgBookingRequestNoLongerOpen.replace(
+            "{bookingRequest}",
+            brand.labels.bookingRequestSingular
+          )
+        );
+      }
+
+      const stillFree = await checkAvailabilityUsingDb(
+        tx,
+        teacherId,
+        date,
+        startT,
+        endT
+      );
+      if (!stillFree) {
+        throw new ValidationError(
+          brand.labels.msgStaffUnavailableAtSlot.replace(
+            "{staffPlural}",
+            brand.labels.staffPlural
+          )
+        );
+      }
+
       const [b] = await tx
         .insert(bookings)
         .values({
@@ -296,22 +345,56 @@ function endTimeFromStart(startTime: string, durationMin: number): string {
 
 export async function rejectRequest(requestId: string, reason?: string | null) {
   const db = getDb();
-  const req = await findRequestById(requestId);
-  if (req.status !== "neu") {
-    throw new ValidationError(
-      brand.labels.msgBookingRequestNoLongerOpen.replace(
-        "{bookingRequest}",
-        brand.labels.bookingRequestSingular
+  await db.transaction(async (tx) => {
+    const [locked] = await tx
+      .select({
+        id: bookingRequests.id,
+        status: bookingRequests.status,
+      })
+      .from(bookingRequests)
+      .where(eq(bookingRequests.id, requestId))
+      .for("update");
+
+    if (!locked) {
+      throw new NotFoundError(
+        brand.labels.msgEntityNotFound.replace(
+          "{entity}",
+          brand.labels.bookingRequestSingular
+        )
+      );
+    }
+    if (locked.status !== "neu") {
+      throw new ValidationError(
+        brand.labels.msgBookingRequestNoLongerOpen.replace(
+          "{bookingRequest}",
+          brand.labels.bookingRequestSingular
+        )
+      );
+    }
+
+    const [upd] = await tx
+      .update(bookingRequests)
+      .set({
+        status: "abgelehnt",
+        rejectReason: reason?.trim() || null,
+      })
+      .where(
+        and(
+          eq(bookingRequests.id, requestId),
+          eq(bookingRequests.status, "neu")
+        )
       )
-    );
-  }
-  await db
-    .update(bookingRequests)
-    .set({
-      status: "abgelehnt",
-      rejectReason: reason?.trim() || null,
-    })
-    .where(eq(bookingRequests.id, requestId));
+      .returning({ id: bookingRequests.id });
+
+    if (!upd) {
+      throw new ValidationError(
+        brand.labels.msgBookingRequestNoLongerOpen.replace(
+          "{bookingRequest}",
+          brand.labels.bookingRequestSingular
+        )
+      );
+    }
+  });
   return findRequestById(requestId);
 }
 

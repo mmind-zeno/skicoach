@@ -236,6 +236,8 @@ const FORK_DEFAULTS = {
     msgTimeSlotUnavailableForStaff:
       "Zeitslot für diesen {staffPlural} nicht verfügbar",
     msgInvalidServiceType: "Ungültiger {serviceTypeSingular}",
+    msgCourseDurationInvalid:
+      "Ungültige Kursdauer — bitte Leistung in den Admin-Einstellungen prüfen.",
     msgStaffUnavailableAtSlot:
       "{staffPlural} zu diesem Zeitpunkt nicht verfügbar",
     msgBookingRequestNoLongerOpen: "{bookingRequest} ist nicht mehr offen",

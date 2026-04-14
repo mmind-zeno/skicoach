@@ -153,15 +153,20 @@ export async function findAllInRange(
     );
 }
 
-/** Überlappung nur mit nicht stornierten Terminen */
-export async function hasTimeOverlap(
+export type BookingServiceDb = ReturnType<typeof getDb>;
+export type BookingServiceTx = Parameters<
+  Parameters<BookingServiceDb["transaction"]>[0]
+>[0];
+
+/** Überlappung nur mit nicht stornierten Terminen (expliziter DB-/Tx-Client für Transaktionen). */
+export async function hasTimeOverlapUsingDb(
+  db: BookingServiceDb | BookingServiceTx,
   teacherId: string,
   date: Date,
   startTime: string,
   endTime: string,
   excludeBookingId?: string
 ): Promise<boolean> {
-  const db = getDb();
   const conditions = [
     eq(bookings.teacherId, teacherId),
     eq(bookings.date, date),
@@ -179,14 +184,34 @@ export async function hasTimeOverlap(
   return (hit?.c ?? 0) > 0;
 }
 
-export async function checkAvailability(
+/** Überlappung nur mit nicht stornierten Terminen */
+export async function hasTimeOverlap(
   teacherId: string,
   date: Date,
   startTime: string,
   endTime: string,
   excludeBookingId?: string
 ): Promise<boolean> {
-  const overlap = await hasTimeOverlap(
+  return hasTimeOverlapUsingDb(
+    getDb(),
+    teacherId,
+    date,
+    startTime,
+    endTime,
+    excludeBookingId
+  );
+}
+
+export async function checkAvailabilityUsingDb(
+  db: BookingServiceDb | BookingServiceTx,
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string
+): Promise<boolean> {
+  const overlap = await hasTimeOverlapUsingDb(
+    db,
     teacherId,
     date,
     startTime,
@@ -194,6 +219,23 @@ export async function checkAvailability(
     excludeBookingId
   );
   return !overlap;
+}
+
+export async function checkAvailability(
+  teacherId: string,
+  date: Date,
+  startTime: string,
+  endTime: string,
+  excludeBookingId?: string
+): Promise<boolean> {
+  return checkAvailabilityUsingDb(
+    getDb(),
+    teacherId,
+    date,
+    startTime,
+    endTime,
+    excludeBookingId
+  );
 }
 
 export async function createBooking(

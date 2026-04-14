@@ -375,6 +375,8 @@ export const BRAND_LABELS_EN = {
   msgTimeSlotUnavailableForStaff:
     "Time slot not available for this {staffPlural}",
   msgInvalidServiceType: "Invalid {serviceTypeSingular}",
+  msgCourseDurationInvalid:
+    "Invalid course duration — check the service type in admin settings.",
   msgStaffUnavailableAtSlot: "{staffPlural} not available at this time",
   msgBookingRequestNoLongerOpen: "{bookingRequest} is no longer open",
   msgBookingInsertFailed: "{booking} failed",
