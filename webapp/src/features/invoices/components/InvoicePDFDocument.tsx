@@ -6,7 +6,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import { brand } from "@/config/brand";
-import { appDateOnlyLocale } from "@/lib/locale";
+import { appDateOnlyLocale } from "@/lib/locale-shared";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },

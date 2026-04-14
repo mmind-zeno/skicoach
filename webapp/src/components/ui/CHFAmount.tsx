@@ -1,4 +1,4 @@
-import { currencyFormatLocale } from "@/lib/locale";
+import { currencyFormatLocale } from "@/lib/locale-shared";
 
 const fmt = new Intl.NumberFormat(currencyFormatLocale, {
   style: "currency",

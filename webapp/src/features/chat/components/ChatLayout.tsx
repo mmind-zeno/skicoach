@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { brand } from "@/config/brand";
-import { appDateTimeLocale } from "@/lib/locale";
+import { appDateTimeLocale } from "@/lib/locale-shared";
 import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorMessage } from "@/lib/client-error-message";
 import { disconnectChatSocket, getChatSocket } from "@/lib/socket";

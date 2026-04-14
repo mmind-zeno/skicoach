@@ -12,7 +12,7 @@ import { PublicTurnstile } from "./PublicTurnstile";
 import { brand } from "@/config/brand";
 import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
-import { appDateFnsLocale } from "@/lib/locale";
+import { appDateFnsLocale } from "@/lib/locale-shared";
 
 const TURNSTILE_SITE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 

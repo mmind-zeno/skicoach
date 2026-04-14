@@ -9,7 +9,7 @@ import { useGuestMutations } from "../hooks/useGuests";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { brand } from "@/config/brand";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
-import { appDateTimeLocale } from "@/lib/locale";
+import { appDateTimeLocale } from "@/lib/locale-shared";
 
 function niveauDisplayLabel(n: GuestNiveau): string {
   switch (n) {
