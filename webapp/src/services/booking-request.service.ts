@@ -8,14 +8,18 @@ import {
 } from "../../drizzle/schema";
 import {
   calendarDateFromStored,
-  ensureTimeWithSeconds,
+  coerceSqlTimeForBooking,
   parseLocalDateOnly,
 } from "../lib/datetime";
 import { getDb } from "../lib/db";
-import { NotFoundError, ValidationError } from "../lib/errors";
 import {
-  getPostgresErrorCode,
+  NotFoundError,
+  unwrapValidationError,
+  ValidationError,
+} from "../lib/errors";
+import {
   isPostgresFkViolation,
+  isPostgresUniqueViolation,
 } from "../lib/map-db-error";
 import {
   sendAdminNewRequest,
@@ -83,8 +87,9 @@ function normalizeTime(t: string): string {
 }
 
 /** Dezimal für `price_chf` — vermeidet ungültige Strings aus der DB. */
-function normalizePriceChfString(raw: string): string {
-  const s = raw.trim().replace(",", ".");
+function normalizePriceChfString(raw: unknown): string {
+  if (raw == null) return "0.00";
+  const s = String(raw).trim().replace(",", ".");
   const n = Number(s);
   if (!Number.isFinite(n) || n < 0) return "0.00";
   return n.toFixed(2);
@@ -163,11 +168,7 @@ export async function confirmRequest(
   }
 
   const date = calendarDateFromStored(req.date);
-  const startT = ensureTimeWithSeconds(
-    typeof req.startTime === "string"
-      ? req.startTime
-      : String(req.startTime)
-  );
+  const startT = coerceSqlTimeForBooking(req.startTime);
   const durationMin = courseRow.durationMin;
   const endT = endTimeFromStart(startT, durationMin);
   const ok = await checkAvailability(teacherId, date, startT, endT);
@@ -191,10 +192,7 @@ export async function confirmRequest(
   const price = normalizePriceChfString(courseRow.priceCHF);
   const endTime = endT;
 
-  const startTimeForMail =
-    typeof req.startTime === "string"
-      ? req.startTime
-      : String(req.startTime);
+  const startTimeForMail = startT;
 
   try {
     const booking = await db.transaction(async (tx) => {
@@ -209,7 +207,7 @@ export async function confirmRequest(
           endTime,
           status: "geplant",
           source: "anfrage",
-          notes: req.message,
+          notes: req.message ?? null,
           priceCHF: price,
         })
         .returning();
@@ -259,11 +257,13 @@ export async function confirmRequest(
 
     return booking;
   } catch (e) {
+    const unwrapped = unwrapValidationError(e);
+    if (unwrapped) throw unwrapped;
     if (e instanceof ValidationError) throw e;
     if (isPostgresFkViolation(e)) {
       throw new ValidationError(brand.labels.apiConfirmBookingFkViolation);
     }
-    if (getPostgresErrorCode(e) === "23505") {
+    if (isPostgresUniqueViolation(e)) {
       throw new ValidationError(
         brand.labels.msgBookingRequestNoLongerOpen.replace(
           "{bookingRequest}",
@@ -277,7 +277,16 @@ export async function confirmRequest(
 
 function endTimeFromStart(startTime: string, durationMin: number): string {
   const [h, m, s] = startTime.split(":").map(Number);
+  if (
+    ![h, m, s || 0].every((n) => Number.isFinite(n)) ||
+    !Number.isFinite(durationMin)
+  ) {
+    throw new ValidationError(brand.labels.bookingModalInvalidSlot);
+  }
   const start = new Date(2000, 0, 1, h, m, s || 0);
+  if (Number.isNaN(start.getTime())) {
+    throw new ValidationError(brand.labels.bookingModalInvalidSlot);
+  }
   start.setMinutes(start.getMinutes() + durationMin);
   const hh = String(start.getHours()).padStart(2, "0");
   const mm = String(start.getMinutes()).padStart(2, "0");

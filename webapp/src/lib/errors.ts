@@ -38,3 +38,14 @@ export class ValidationError extends AppError {
     this.name = "ValidationError";
   }
 }
+
+/** Drizzle o. ä. kann ValidationError in `cause` verpacken. */
+export function unwrapValidationError(e: unknown): ValidationError | undefined {
+  let cur: unknown = e;
+  for (let i = 0; i < 12 && cur != null; i++) {
+    if (cur instanceof ValidationError) return cur;
+    if (cur instanceof Error && cur.cause !== undefined) cur = cur.cause;
+    else break;
+  }
+  return undefined;
+}
