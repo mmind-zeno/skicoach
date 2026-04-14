@@ -44,10 +44,10 @@ if (Test-Path $dotEnvExample) {
 Remove-Item -Recurse -Force $Staging
 
 if ($RemoteUp) {
-  Write-Host "Remote: build, up, drizzle-kit migrate ..."
+  Write-Host "Remote: build, up, db:migrate:apply (Journal-SQL) ..."
   $remoteOneLiner =
     "cd $RemotePath && docker compose build app && docker compose up -d && " +
-    "docker compose exec -T app sh -lc 'cd /app && npm run db:migrate'"
+    "docker compose exec -T app sh -lc 'cd /app && npm run db:migrate:apply'"
   ssh @sshBase $RemoteHost $remoteOneLiner
 }
 
