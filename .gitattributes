@@ -1,0 +1,2 @@
+# Shell-Skripte im Linux-Container (CRLF bricht shebang)
+*.sh text eol=lf
