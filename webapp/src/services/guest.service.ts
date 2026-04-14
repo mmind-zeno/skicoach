@@ -14,6 +14,35 @@ import type {
 } from "../features/guests/types";
 import { brand } from "../config/brand";
 
+/** Ohne CRM-Spalten: SELECT/RETURNING referenziert company/crm_source nicht (Legacy-DBs vor 0002/0005). */
+const guestDbCoreReturning = {
+  id: guests.id,
+  name: guests.name,
+  email: guests.email,
+  phone: guests.phone,
+  niveau: guests.niveau,
+  language: guests.language,
+  notes: guests.notes,
+  createdAt: guests.createdAt,
+} as const;
+
+const guestDbFullReturning = {
+  ...guestDbCoreReturning,
+  company: guests.company,
+  crmSource: guests.crmSource,
+} as const;
+
+const guestQueryColumnsMinimal = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  niveau: true,
+  language: true,
+  notes: true,
+  createdAt: true,
+} as const;
+
 function rowCreatedAtToIso(value: unknown): string {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString();
@@ -213,21 +242,29 @@ export async function createGuest(input: CreateGuestInput): Promise<Guest> {
     language: input.language ?? brand.defaultGuestLanguage,
     notes: input.notes?.trim() || null,
   };
-  const values =
-    input.company !== undefined || input.crmSource !== undefined
-      ? {
-          ...base,
-          company: input.company?.trim() || null,
-          crmSource: input.crmSource?.trim() || null,
-        }
-      : base;
-  const [row] = await db.insert(guests).values(values).returning();
+  const withCrm =
+    input.company !== undefined || input.crmSource !== undefined;
+  const values = withCrm
+    ? {
+        ...base,
+        company: input.company?.trim() || null,
+        crmSource: input.crmSource?.trim() || null,
+      }
+    : base;
+  const [row] = await db
+    .insert(guests)
+    .values(values)
+    .returning(withCrm ? guestDbFullReturning : guestDbCoreReturning);
   if (!row) {
     throw new ValidationError(
       `${brand.labels.clientSingular} konnte nicht angelegt werden`
     );
   }
-  return toGuest(row);
+  return toGuest(
+    (withCrm
+      ? row
+      : { ...row, company: null, crmSource: null }) as typeof guests.$inferSelect
+  );
 }
 
 export async function createGuestQuick(input: {
@@ -315,8 +352,15 @@ export async function findOrCreateByEmail(
   const normalized = email.trim().toLowerCase();
   const existing = await getDb().query.guests.findFirst({
     where: eq(guests.email, normalized),
+    columns: guestQueryColumnsMinimal,
   });
-  if (existing) return toGuest(existing);
+  if (existing) {
+    return toGuest({
+      ...existing,
+      company: null,
+      crmSource: null,
+    } as typeof guests.$inferSelect);
+  }
   return createGuest({
     name: name.trim(),
     email: normalized,
