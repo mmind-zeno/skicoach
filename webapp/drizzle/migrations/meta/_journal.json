@@ -43,6 +43,13 @@
       "when": 1743020000000,
       "tag": "0005_guest_crm_columns_if_missing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743030000000,
+      "tag": "0007_audit_rate_limit_if_missing",
+      "breakpoints": true
     }
   ]
 }

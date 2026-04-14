@@ -17,7 +17,8 @@ export async function writeAuditLog(input: {
       metadata: input.metadata ?? null,
       clientIp: input.request ? clientIp(input.request) : null,
     });
-  } catch {
-    // Audit darf Hauptfluss nicht brechen
+  } catch (e) {
+    // Audit darf Hauptfluss nicht brechen — aber loggen (fehlende Tabelle / Schema).
+    console.warn("[audit-log] insert skipped:", e);
   }
 }

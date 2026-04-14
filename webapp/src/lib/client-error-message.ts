@@ -24,9 +24,9 @@ export type UiErrorInfo = {
 export function getUiErrorInfo(e: unknown, fallback: string): UiErrorInfo {
   const code = getApiErrorCode(e);
   const fromBody = getErrorMessage(e, fallback);
-  /** Server kann bei500 trotzdem eine konkrete `error`-Message liefern (z. B. FK-Hinweis). */
+  /** Server kann bei 500 trotzdem eine konkrete `error`-Message liefern (z. B. FK-Hinweis). */
   const message =
-    code === "INTERNAL_ERROR"
+    code === "INTERNAL_ERROR" || code === "DB_SCHEMA_DRIFT"
       ? fromBody
       : (code && CODE_TO_MESSAGE[code]) || fromBody;
   const requestId = getApiErrorRequestId(e);
