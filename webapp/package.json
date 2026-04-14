@@ -17,6 +17,7 @@
     "check:ui-errors": "node node_modules/tsx/dist/cli.mjs scripts/check-client-error-message.ts",
     "check:migration-journal": "node node_modules/tsx/dist/cli.mjs scripts/check-migration-journal.ts",
     "db:seed": "node node_modules/tsx/dist/cli.mjs scripts/seed.ts",
+    "db:seed:demo-crm": "node node_modules/tsx/dist/cli.mjs scripts/seed-demo-crm-guests.ts",
     "db:baseline-legacy": "node node_modules/tsx/dist/cli.mjs scripts/drizzle-baseline-legacy.ts",
     "smoke:critical-paths": "node node_modules/tsx/dist/cli.mjs scripts/smoke-critical-paths.ts",
     "admin:login-url": "node node_modules/tsx/dist/cli.mjs scripts/issue-admin-login.ts"
