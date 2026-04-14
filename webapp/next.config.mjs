@@ -17,6 +17,7 @@ const nextConfig = {
       {
         source: "/:path*",
         headers: [
+          { key: "Cache-Control", value: "no-store" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           {
