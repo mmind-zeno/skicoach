@@ -1,6 +1,6 @@
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { bookings, guestContacts, guests, users } from "../../drizzle/schema";
-import { getDb } from "../lib/db";
+import { getDb, getPool } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
 import type {
   CreateGuestInput,
@@ -244,27 +244,62 @@ export async function createGuest(input: CreateGuestInput): Promise<Guest> {
   };
   const withCrm =
     input.company !== undefined || input.crmSource !== undefined;
-  const values = withCrm
-    ? {
-        ...base,
-        company: input.company?.trim() || null,
-        crmSource: input.crmSource?.trim() || null,
-      }
-    : base;
+
+  if (!withCrm) {
+    /** Drizzle insert listet alle Tabellenspalten inkl. company/crm_source (DEFAULT) — schlägt fehl, wenn Spalten fehlen. */
+    const { rows } = await getPool().query<
+      Pick<
+        typeof guests.$inferSelect,
+        | "id"
+        | "name"
+        | "email"
+        | "phone"
+        | "niveau"
+        | "language"
+        | "notes"
+        | "createdAt"
+      >
+    >(
+      `INSERT INTO guests (name, email, phone, niveau, language, notes)
+       VALUES ($1, $2, $3, $4::guest_niveau, $5, $6)
+       RETURNING id, name, email, phone, niveau, language, notes, created_at AS "createdAt"`,
+      [
+        base.name,
+        base.email,
+        base.phone,
+        base.niveau,
+        base.language,
+        base.notes,
+      ]
+    );
+    const row = rows[0];
+    if (!row) {
+      throw new ValidationError(
+        `${brand.labels.clientSingular} konnte nicht angelegt werden`
+      );
+    }
+    return toGuest({
+      ...row,
+      company: null,
+      crmSource: null,
+    } as typeof guests.$inferSelect);
+  }
+
+  const values = {
+    ...base,
+    company: input.company?.trim() || null,
+    crmSource: input.crmSource?.trim() || null,
+  };
   const [row] = await db
     .insert(guests)
     .values(values)
-    .returning(withCrm ? guestDbFullReturning : guestDbCoreReturning);
+    .returning(guestDbFullReturning);
   if (!row) {
     throw new ValidationError(
       `${brand.labels.clientSingular} konnte nicht angelegt werden`
     );
   }
-  return toGuest(
-    (withCrm
-      ? row
-      : { ...row, company: null, crmSource: null }) as typeof guests.$inferSelect
-  );
+  return toGuest(row);
 }
 
 export async function createGuestQuick(input: {
