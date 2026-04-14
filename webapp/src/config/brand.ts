@@ -617,8 +617,16 @@ const legalPostalAddress = (() => {
   if (raw) return raw.replace(/\\n/g, "\n");
   return FORK_DEFAULTS.legalPostalAddress;
 })();
+/**
+ * Nur in Node (Build / SSR) erzwingen — nicht im Browser.
+ * `NEXT_PUBLIC_*` wird beim Client-Bundle zum Build-Zeitpunkt eingesetzt; auf dem
+ * Server können Laufzeit-ENV und Build-ARG auseinanderlaufen. Ein Throw im
+ * Client bricht öffentliche Seiten (z. B. /buchen) mit „Application error“ ab,
+ * obwohl der Server korrekt rendert.
+ */
 if (
   process.env.NODE_ENV === "production" &&
+  typeof window === "undefined" &&
   legalPostalAddress === FORK_DEFAULTS.legalPostalAddress
 ) {
   throw new Error(
