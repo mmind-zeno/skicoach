@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { brand } from "@/config/brand";
 import { AppError } from "@/lib/errors";
 import {
   genericApiErrorMessage,
