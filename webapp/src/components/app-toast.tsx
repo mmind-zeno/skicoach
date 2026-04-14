@@ -203,8 +203,18 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
 
 export function useAppToast(): AppToastContextValue {
   const ctx = useContext(AppToastContext);
-  if (!ctx) {
-    throw new Error("useAppToast must be used within AppToastProvider");
-  }
-  return ctx;
+  if (ctx) return ctx;
+  // Defensive fallback: prevents hard client crash if a consumer
+  // is rendered outside provider due layout/cache mismatch.
+  return {
+    showToast: () => {},
+    successToastsEnabled: true,
+    infoToastsEnabled: true,
+    sessionQuietModeEnabled: false,
+    setSuccessToastsEnabled: () => {},
+    setInfoToastsEnabled: () => {},
+    toggleSuccessToasts: () => {},
+    toggleInfoToasts: () => {},
+    toggleSessionQuietMode: () => {},
+  };
 }
