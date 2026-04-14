@@ -453,7 +453,7 @@ export const BRAND_LABELS_EN = {
     "Simplified monthly calculation based on the Principality of Liechtenstein government leaflet (part-time / low wages, 2026). Not legal or tax advice — statute and authorities prevail.",
   payrollMerkblattLinkLabel: "Payroll leaflet (PDF, government LI)",
   payrollLegalBullets:
-    "AHV-IV-FAK: register as employer; contributions (EE 5.4 % / ER 7.885 % on insured earnings). Health care: employer reimburses employee share (adult CHF 180.50 / youth CHF 90.25 per month at 42 h/wk in the leaflet example). Withholding: 4 % if annual gross up to CHF 40,000 (leaflet §7). Accident insurance, wage declaration, employment reporting at bm.llv.li, eLohn statements — see leaflet.",
+    "AHV-IV-FAK: register as employer; contributions (EE 5.4 % / ER 7.885 % on insured earnings). Health care: employer reimburses employee share (adult CHF 180.50 / youth CHF 90.25 per month at 42 h/wk in the leaflet example). Withholding: 4 % if annual gross up to CHF 40,000 (leaflet section 7). Accident insurance, wage declaration, employment reporting at bm.llv.li, eLohn statements — see leaflet.",
   payrollProfileHeading: "Payroll master data (admin)",
   payrollHourlyGrossLabel: "Gross hourly wage (CHF)",
   payrollWeeklyHoursKvgLabel: "Weekly hours for KVG example (empty = 42)",
