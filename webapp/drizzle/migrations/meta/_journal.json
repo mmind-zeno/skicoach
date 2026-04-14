@@ -29,6 +29,13 @@
       "when": 1743000000000,
       "tag": "0003_booking_source_enum_values",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1743010000000,
+      "tag": "0004_legacy_enum_labels",
+      "breakpoints": true
     }
   ]
 }
