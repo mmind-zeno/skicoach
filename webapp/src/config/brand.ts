@@ -154,6 +154,12 @@ const FORK_DEFAULTS = {
       "channelId oder recipientId erforderlich",
     apiChatEmptyMessage: "Leere Nachricht",
     apiAdminTeacherIdMissing: "teacherId fehlt",
+    /** Admin: Anfrage bestätigen — FK / gelöschte Referenz */
+    apiConfirmBookingFkViolation:
+      "Die Buchung konnte nicht angelegt werden (Daten passen nicht mehr zusammen). Bitte Seite neu laden, Lehrkraft erneut wählen und nochmal versuchen.",
+    /** Admin: gewählte Lehrkraft nicht (mehr) zuweisbar */
+    apiConfirmTeacherNotAssignable:
+      "Die gewählte Lehrkraft ist nicht aktiv oder nicht zugelassen. Bitte „Aktualisieren“ in der Lehrerliste und erneut wählen.",
     apiAdminCourseTypeDeleteBlockedTemplate:
       "{serviceTypeSingular} ist noch mit {bookingPlural} oder {bookingRequestPlural} verknüpft und kann nicht gelöscht werden.",
     /** Admin: neuer Kurstyp */

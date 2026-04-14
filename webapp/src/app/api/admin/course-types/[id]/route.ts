@@ -6,21 +6,9 @@ import { requireAdminSession } from "@/lib/auth-helpers";
 import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { brand } from "@/config/brand";
 import { getDb } from "@/lib/db";
+import { isPostgresFkViolation } from "@/lib/map-db-error";
 
 export const dynamic = "force-dynamic";
-
-function isPostgresFkViolation(e: unknown): boolean {
-  const code = (x: unknown) =>
-    typeof x === "object" &&
-    x !== null &&
-    "code" in x &&
-    (x as { code?: string }).code === "23503";
-  if (code(e)) return true;
-  if (typeof e === "object" && e !== null && "cause" in e) {
-    return code((e as { cause?: unknown }).cause);
-  }
-  return false;
-}
 
 export async function PATCH(
   request: Request,

@@ -23,8 +23,12 @@ export type UiErrorInfo = {
 
 export function getUiErrorInfo(e: unknown, fallback: string): UiErrorInfo {
   const code = getApiErrorCode(e);
+  const fromBody = getErrorMessage(e, fallback);
+  /** Server kann bei500 trotzdem eine konkrete `error`-Message liefern (z. B. FK-Hinweis). */
   const message =
-    (code && CODE_TO_MESSAGE[code]) || getErrorMessage(e, fallback);
+    code === "INTERNAL_ERROR"
+      ? fromBody
+      : (code && CODE_TO_MESSAGE[code]) || fromBody;
   const requestId = getApiErrorRequestId(e);
   return { message, requestId };
 }

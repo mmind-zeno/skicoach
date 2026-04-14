@@ -1,9 +1,10 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 import {
   bookingRequests,
   bookings,
   courseTypes,
   guests,
+  users,
 } from "../../drizzle/schema";
 import {
   calendarDateFromStored,
@@ -12,6 +13,10 @@ import {
 } from "../lib/datetime";
 import { getDb } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
+import {
+  getPostgresErrorCode,
+  isPostgresFkViolation,
+} from "../lib/map-db-error";
 import {
   sendAdminNewRequest,
   sendBookingConfirmed,
@@ -77,6 +82,14 @@ function normalizeTime(t: string): string {
   return t;
 }
 
+/** Dezimal für `price_chf` — vermeidet ungültige Strings aus der DB. */
+function normalizePriceChfString(raw: string): string {
+  const s = raw.trim().replace(",", ".");
+  const n = Number(s);
+  if (!Number.isFinite(n) || n < 0) return "0.00";
+  return n.toFixed(2);
+}
+
 export async function findAllRequests(status?: string) {
   const db = getDb();
   return db.query.bookingRequests.findMany({
@@ -124,9 +137,39 @@ export async function confirmRequest(
       )
     );
   }
+
+  const assignable = await db.query.users.findFirst({
+    where: and(
+      eq(users.id, teacherId),
+      eq(users.isActive, true),
+      or(eq(users.role, "teacher"), eq(users.role, "admin"))
+    ),
+    columns: { id: true },
+  });
+  if (!assignable) {
+    throw new ValidationError(brand.labels.apiConfirmTeacherNotAssignable);
+  }
+
+  const courseRow = await db.query.courseTypes.findFirst({
+    where: eq(courseTypes.id, req.courseTypeId),
+  });
+  if (!courseRow || !courseRow.isActive) {
+    throw new ValidationError(
+      brand.labels.msgInvalidServiceType.replace(
+        "{serviceTypeSingular}",
+        brand.labels.serviceTypeSingular
+      )
+    );
+  }
+
   const date = calendarDateFromStored(req.date);
-  const startT = ensureTimeWithSeconds(req.startTime);
-  const endT = endTimeFromStart(startT, req.courseType?.durationMin ?? 60);
+  const startT = ensureTimeWithSeconds(
+    typeof req.startTime === "string"
+      ? req.startTime
+      : String(req.startTime)
+  );
+  const durationMin = courseRow.durationMin;
+  const endT = endTimeFromStart(startT, durationMin);
   const ok = await checkAvailability(teacherId, date, startT, endT);
   if (!ok) {
     throw new ValidationError(
@@ -145,51 +188,91 @@ export async function confirmRequest(
       .where(eq(guests.id, guest.id));
   }
 
-  const price = req.courseType?.priceCHF ?? "0";
-  const endTime = endTimeFromStart(startT, req.courseType?.durationMin ?? 60);
+  const price = normalizePriceChfString(courseRow.priceCHF);
+  const endTime = endT;
 
-  const [booking] = await db
-    .insert(bookings)
-    .values({
-      teacherId,
-      guestId: guest.id,
-      courseTypeId: req.courseTypeId,
-      date,
-      startTime: startT,
-      endTime,
-      status: "geplant",
-      source: "anfrage",
-      notes: req.message,
-      priceCHF: price,
-    })
-    .returning();
+  const startTimeForMail =
+    typeof req.startTime === "string"
+      ? req.startTime
+      : String(req.startTime);
 
-  if (!booking) {
-    throw new Error(
-      brand.labels.msgBookingInsertFailed.replace(
-        "{booking}",
-        brand.labels.bookingSingular
-      )
-    );
+  try {
+    const booking = await db.transaction(async (tx) => {
+      const [b] = await tx
+        .insert(bookings)
+        .values({
+          teacherId,
+          guestId: guest.id,
+          courseTypeId: req.courseTypeId,
+          date,
+          startTime: startT,
+          endTime,
+          status: "geplant",
+          source: "anfrage",
+          notes: req.message,
+          priceCHF: price,
+        })
+        .returning();
+
+      if (!b) {
+        throw new Error(
+          brand.labels.msgBookingInsertFailed.replace(
+            "{booking}",
+            brand.labels.bookingSingular
+          )
+        );
+      }
+
+      const [upd] = await tx
+        .update(bookingRequests)
+        .set({
+          status: "bestaetigt",
+          bookingId: b.id,
+          handledBy: handledByUserId ?? null,
+          handledAt: new Date(),
+        })
+        .where(
+          and(
+            eq(bookingRequests.id, requestId),
+            eq(bookingRequests.status, "neu")
+          )
+        )
+        .returning({ id: bookingRequests.id });
+
+      if (!upd) {
+        throw new ValidationError(
+          brand.labels.msgBookingRequestNoLongerOpen.replace(
+            "{bookingRequest}",
+            brand.labels.bookingRequestSingular
+          )
+        );
+      }
+
+      return b;
+    });
+
+    void sendBookingConfirmed(req.guestEmail, req.guestName, {
+      date: String(req.date).slice(0, 10),
+      startTime: startTimeForMail.slice(0, 5),
+      courseName: courseRow.name ?? brand.labels.serviceSingular,
+    }).catch(() => {});
+
+    return booking;
+  } catch (e) {
+    if (e instanceof ValidationError) throw e;
+    if (isPostgresFkViolation(e)) {
+      throw new ValidationError(brand.labels.apiConfirmBookingFkViolation);
+    }
+    if (getPostgresErrorCode(e) === "23505") {
+      throw new ValidationError(
+        brand.labels.msgBookingRequestNoLongerOpen.replace(
+          "{bookingRequest}",
+          brand.labels.bookingRequestSingular
+        )
+      );
+    }
+    throw e;
   }
-
-  await db
-    .update(bookingRequests)
-    .set({
-      status: "bestaetigt",
-      bookingId: booking.id,
-      handledBy: handledByUserId ?? null,
-      handledAt: new Date(),
-    })
-    .where(eq(bookingRequests.id, requestId));
-
-  void sendBookingConfirmed(req.guestEmail, req.guestName, {
-    date: String(req.date).slice(0, 10),
-    startTime: req.startTime.slice(0, 5),
-    courseName: req.courseType?.name ?? brand.labels.serviceSingular,
-  }).catch(() => {});
-
-  return booking;
 }
 
 function endTimeFromStart(startTime: string, durationMin: number): string {

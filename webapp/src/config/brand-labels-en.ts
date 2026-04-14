@@ -333,6 +333,10 @@ export const BRAND_LABELS_EN = {
   apiChatChannelOrRecipientRequired: "channelId or recipientId is required",
   apiChatEmptyMessage: "Empty message",
   apiAdminTeacherIdMissing: "teacherId is missing",
+  apiConfirmBookingFkViolation:
+    "The booking could not be created (data no longer matches). Please reload, pick the instructor again, and retry.",
+  apiConfirmTeacherNotAssignable:
+    "The selected instructor is not active or not allowed. Refresh the teacher list and choose again.",
   apiAdminCourseTypeDeleteBlockedTemplate:
     "{serviceTypeSingular} is still linked to {bookingPlural} or {bookingRequestPlural} and cannot be deleted.",
   adminCoursePlaceholderName: "Name",

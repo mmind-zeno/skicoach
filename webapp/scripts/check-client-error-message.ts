@@ -25,6 +25,16 @@ function run() {
     "Server exploded (Ref: req_test_500)"
   );
 
+  const internalSpecific = new FetchJsonError(
+    "Konkreter Hinweis vom API-Body",
+    500,
+    { code: "INTERNAL_ERROR", requestId: "req_int" }
+  );
+  assert.equal(
+    getUiErrorInfo(internalSpecific, "fallback").message,
+    "Konkreter Hinweis vom API-Body"
+  );
+
   const plainError = new Error("Local validation failed");
   assert.equal(
     getUiErrorMessage(plainError, "fallback"),
