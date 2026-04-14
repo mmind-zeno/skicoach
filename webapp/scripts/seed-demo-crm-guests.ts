@@ -126,7 +126,7 @@ async function main() {
         language: "de",
         company: spec.company,
         crmSource: DEMO_CRM_SOURCE,
-        notes: "Automatisch angelegt (Demo CRM, März 2026).",
+        notes: "Automatisch angelegt (Demo CRM: Anfragen Feb 2026, Kontakte März 2026).",
       })
       .returning({ id: guests.id });
 
