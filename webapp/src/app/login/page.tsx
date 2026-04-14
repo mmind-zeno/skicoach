@@ -3,8 +3,10 @@
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { brand } from "@/config/brand";
+import { stitchImages } from "@/config/stitch-images";
 
 /** Branchenneutrale Deko: weiche Flächen + wellenförmiger Abschluss (kein Ski/Motiv). */
 function LoginHeroBackdrop() {
@@ -62,12 +64,22 @@ function LoginForm() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,440px)]">
-      <div
-        className="relative hidden overflow-hidden lg:block"
-        style={{
-          background: `linear-gradient(135deg, ${brand.loginHero.gradientFrom} 0%, ${brand.loginHero.gradientVia} 48%, ${brand.loginHero.gradientTo} 100%)`,
-        }}
-      >
+      <div className="relative hidden overflow-hidden lg:block">
+        <Image
+          src={stitchImages.kalender}
+          alt=""
+          fill
+          sizes="55vw"
+          priority
+          className="object-cover object-[center_15%]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, ${brand.loginHero.gradientFrom} 0%, ${brand.loginHero.gradientVia} 48%, ${brand.loginHero.gradientTo} 100%)`,
+            opacity: 0.62,
+          }}
+        />
         <div
           className="absolute inset-0 opacity-40"
           style={{
@@ -91,11 +103,20 @@ function LoginForm() {
       </div>
 
       <div className="flex flex-col justify-center bg-sk-surface px-5 py-10 sm:px-8 lg:bg-white lg:py-12">
-        <div className="mx-auto w-full max-w-md rounded-2xl border border-sk-ink/10 bg-white p-8 shadow-lg lg:shadow-xl lg:ring-1 lg:ring-sk-ink/5">
+        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-8 shadow-sk-ambient ring-1 ring-sk-outline/25 lg:p-10">
           <div className="mb-6 flex justify-center lg:hidden">
-            <div className="rounded-full bg-sk-brand/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-sk-brand">
+            <div className="rounded-full bg-sk-cta/12 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-sk-cta">
               {brand.siteName}
             </div>
+          </div>
+          <div className="relative mb-6 aspect-[16/10] w-full overflow-hidden rounded-xl border border-sk-outline/20 shadow-sm lg:hidden">
+            <Image
+              src={stitchImages.kalender}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover object-top"
+            />
           </div>
           <h1 className="text-2xl font-semibold text-sk-ink">
             {brand.labels.loginTitle}
@@ -141,14 +162,14 @@ function LoginForm() {
                 autoComplete="email"
                 value={email}
                 onChange={(ev) => setEmail(ev.target.value)}
-                className="mt-1.5 w-full rounded-lg border border-sk-ink/15 px-3 py-2.5 text-sk-ink outline-none transition ring-sk-brand focus:border-sk-brand focus:ring-2"
+                className="sk-field mt-1.5 w-full"
                 placeholder={brand.labels.loginEmailPlaceholder}
               />
             </label>
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-sk-brand px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-sk-hover disabled:opacity-60"
+              className="w-full rounded-lg bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-60"
             >
               {loading
                 ? brand.labels.loginButtonSending
