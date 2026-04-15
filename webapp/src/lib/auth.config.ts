@@ -56,7 +56,13 @@ export const authConfig = {
       }
 
       if (!featurePublicBooking()) {
-        if (path === "/buchen" || path.startsWith("/buchen/")) {
+        const guestPortalBuchen =
+          path === "/buchen/meine-termine" ||
+          path.startsWith("/buchen/meine-termine/");
+        if (
+          (path === "/buchen" || path.startsWith("/buchen/")) &&
+          !guestPortalBuchen
+        ) {
           return NextResponse.redirect(new URL("/", request.url));
         }
         if (

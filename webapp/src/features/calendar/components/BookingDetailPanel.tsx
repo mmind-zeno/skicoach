@@ -2,6 +2,7 @@
 
 import { useAppToast } from "@/components/app-toast";
 import { useState } from "react";
+import useSWR from "swr";
 import { CHFAmount } from "@/components/ui/CHFAmount";
 import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -34,6 +35,8 @@ function paymentLabel(status: BookingPaymentStatus): string {
   }
 }
 
+type TeacherOption = { id: string; name: string | null; email: string };
+
 export function BookingDetailPanel({
   booking,
   isAdmin,
@@ -48,6 +51,11 @@ export function BookingDetailPanel({
   const { showToast } = useAppToast();
   const [banner, setBanner] = useState<UiErrorInfo | null>(null);
   const [pending, setPending] = useState(false);
+  const { data: teacherOptions } = useSWR(
+    isAdmin ? "/api/teachers" : null,
+    (url) => fetchJson<TeacherOption[]>(url),
+    { keepPreviousData: true }
+  );
 
   async function patchStatus(status: BookingStatus) {
     setBanner(null);
@@ -126,8 +134,49 @@ export function BookingDetailPanel({
         <div>
           <dt className="text-sk-ink/50">{brand.labels.staffSingular}</dt>
           <dd className="text-sk-ink">
-            {booking.teacher.name ?? booking.teacher.email}
+            {isAdmin && teacherOptions?.length ? (
+              <select
+                className="mt-0.5 w-full rounded border border-sk-ink/20 bg-white px-2 py-1 text-sm"
+                value={booking.teacherId}
+                disabled={pending}
+                onChange={(ev) => {
+                  const teacherId = ev.target.value;
+                  setBanner(null);
+                  setPending(true);
+                  void (async () => {
+                    try {
+                      const updated = await fetchJson<BookingWithDetailsDto>(
+                        `/api/bookings/${booking.id}`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ teacherId }),
+                        }
+                      );
+                      onUpdated(updated);
+                    } catch (e) {
+                      setBanner(getUiErrorInfo(e, brand.labels.uiSaveFailed));
+                    } finally {
+                      setPending(false);
+                    }
+                  })();
+                }}
+              >
+                {teacherOptions.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name ?? t.email}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span>{booking.teacher.name ?? booking.teacher.email}</span>
+            )}
           </dd>
+          {isAdmin ? (
+            <p className="mt-1 text-[10px] text-sk-ink/50">
+              {brand.labels.bookingAssignTeacherLabel}
+            </p>
+          ) : null}
         </div>
         <div>
           <dt className="text-sk-ink/50">{brand.labels.serviceSingular}</dt>

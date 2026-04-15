@@ -522,6 +522,26 @@ export const invoices = pgTable(
   })
 );
 
+export const bookingReminderLog = pgTable(
+  "booking_reminder_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => bookings.id, { onDelete: "cascade" }),
+    channel: text("channel").notNull().default("email"),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    bookingChannelUnique: uniqueIndex(
+      "booking_reminder_log_booking_channel_unique"
+    ).on(t.bookingId, t.channel),
+    bookingIdx: index("booking_reminder_log_booking_id_idx").on(t.bookingId),
+  })
+);
+
 export const chatChannels = pgTable("chat_channels", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -753,7 +773,18 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     fields: [bookings.id],
     references: [bookingRequests.bookingId],
   }),
+  reminderLogs: many(bookingReminderLog),
 }));
+
+export const bookingReminderLogRelations = relations(
+  bookingReminderLog,
+  ({ one }) => ({
+    booking: one(bookings, {
+      fields: [bookingReminderLog.bookingId],
+      references: [bookings.id],
+    }),
+  })
+);
 
 export const bookingRequestsRelations = relations(bookingRequests, ({ one }) => ({
   courseType: one(courseTypes, {
@@ -829,6 +860,7 @@ export const dbSchema = {
   bookings,
   bookingRequests,
   invoices,
+  bookingReminderLog,
   chatChannels,
   chatMessages,
   rateLimitBuckets,
@@ -848,6 +880,7 @@ export const dbSchema = {
   payrollMonthSnapshotsRelations,
   courseTypesRelations,
   bookingsRelations,
+  bookingReminderLogRelations,
   bookingRequestsRelations,
   invoicesRelations,
   chatChannelsRelations,

@@ -99,6 +99,13 @@
       "when": 1743100000000,
       "tag": "0014_payroll_v2_snapshots_rates",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1743110000000,
+      "tag": "0015_booking_reminders_accounting",
+      "breakpoints": true
     }
   ]
 }

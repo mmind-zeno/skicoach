@@ -78,3 +78,84 @@ export function bookingConfirmedMail(
 <p>${closing}</p>`;
   return { subject, html };
 }
+
+export function guestPortalMagicLinkMail(guestName: string, portalUrl: string) {
+  const L = brand.labels;
+  const subject = L.emailGuestPortalMagicSubject.replace(
+    "{siteName}",
+    brand.siteName
+  );
+  const greet = L.emailGuestPortalMagicGreeting.replace(
+    "{name}",
+    escapeHtml(guestName)
+  );
+  const html = `<p>${greet}</p>
+<p>${escapeHtml(L.emailGuestPortalMagicIntro)}</p>
+<p><a href="${escapeHtml(portalUrl)}">${escapeHtml(L.emailGuestPortalMagicCta)}</a></p>
+<p>${escapeHtml(L.emailGuestPortalMagicFooter)}</p>`;
+  return { subject, html };
+}
+
+export function bookingReminderMail(payload: {
+  guestName: string;
+  courseName: string;
+  date: string;
+  startTime: string;
+  teacherName: string;
+}) {
+  const L = brand.labels;
+  const subject = L.emailBookingReminderSubject.replace(
+    "{siteName}",
+    brand.siteName
+  );
+  const greet = L.emailBookingReminderGreeting.replace(
+    "{name}",
+    escapeHtml(payload.guestName)
+  );
+  const html = `<p>${greet}</p>
+<p>${escapeHtml(L.emailBookingReminderIntro)}</p>
+<ul>
+<li>${escapeHtml(L.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
+<li>${escapeHtml(L.calDate)}: ${escapeHtml(payload.date)} · ${escapeHtml(payload.startTime)}</li>
+<li>${escapeHtml(L.staffSingular)}: ${escapeHtml(payload.teacherName || "—")}</li>
+</ul>
+<p>${escapeHtml(L.emailBookingReminderClosing)}</p>`;
+  return { subject, html };
+}
+
+export function teacherSubstitutionMail(payload: {
+  recipientLabel: "old" | "new" | "guest";
+  guestName: string;
+  courseName: string;
+  date: string;
+  startTime: string;
+  oldTeacher: string;
+  newTeacher: string;
+}) {
+  const L = brand.labels;
+  const subject = L.emailTeacherSubstitutionSubject.replace(
+    "{siteName}",
+    brand.siteName
+  );
+  const line =
+    payload.recipientLabel === "guest"
+      ? L.emailTeacherSubstitutionBodyGuest
+      : payload.recipientLabel === "old"
+        ? L.emailTeacherSubstitutionBodyOld
+        : L.emailTeacherSubstitutionBodyNew;
+  const signoff = L.emailSignoffWithSiteTemplate.replace(
+    "{siteName}",
+    escapeHtml(brand.siteName)
+  );
+  const html = `<p>${escapeHtml(L.emailTeacherSubstitutionIntro)}</p>
+<p>${escapeHtml(line)}</p>
+<ul>
+<li>${escapeHtml(L.clientSingular)}: ${escapeHtml(payload.guestName)}</li>
+<li>${escapeHtml(L.serviceSingular)}: ${escapeHtml(payload.courseName)}</li>
+<li>${escapeHtml(L.calDate)}: ${escapeHtml(payload.date)} · ${escapeHtml(payload.startTime)}</li>
+<li>${escapeHtml(L.emailTeacherSubstitutionWas)} ${escapeHtml(payload.oldTeacher)}</li>
+<li>${escapeHtml(L.emailTeacherSubstitutionNow)} ${escapeHtml(payload.newTeacher)}</li>
+</ul>
+<p>${signoff}</p>`;
+  return { subject, html };
+}

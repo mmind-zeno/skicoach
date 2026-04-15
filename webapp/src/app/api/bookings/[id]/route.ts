@@ -5,6 +5,10 @@ import { auth } from "@/lib/auth";
 import { ForbiddenError, UnauthorizedError } from "@/lib/errors";
 import { apiClientError, apiErrorResponse } from "@/lib/api-error";
 import { updateBookingBodySchema } from "@/lib/validators/booking";
+import { eq } from "drizzle-orm";
+import { users } from "../../../../../drizzle/schema";
+import { getDb } from "@/lib/db";
+import { sendTeacherSubstitutionNotifications } from "@/lib/mail";
 import {
   deleteBooking,
   findBookingById,
@@ -61,7 +65,36 @@ export async function PATCH(
     ) {
       return apiClientError(brand.labels.apiForbidden, 403, undefined, undefined, request);
     }
+    const oldTeacherId = existing.teacherId;
     const updated = await updateBooking(id, body);
+    if (
+      session.user.role === "admin" &&
+      body.teacherId &&
+      body.teacherId !== oldTeacherId
+    ) {
+      const db = getDb();
+      const [oldT, newT] = await Promise.all([
+        db.query.users.findFirst({
+          where: eq(users.id, oldTeacherId),
+          columns: { email: true, name: true },
+        }),
+        db.query.users.findFirst({
+          where: eq(users.id, body.teacherId),
+          columns: { email: true, name: true },
+        }),
+      ]);
+      void sendTeacherSubstitutionNotifications({
+        guestEmail: updated.guest.email,
+        guestName: updated.guest.name,
+        oldTeacherEmail: oldT?.email ?? null,
+        oldTeacherName: oldT?.name?.trim() || oldT?.email || "—",
+        newTeacherEmail: newT?.email ?? null,
+        newTeacherName: newT?.name?.trim() || newT?.email || "—",
+        courseName: updated.courseType.name,
+        date: updated.date,
+        startTime: updated.startTime.slice(0, 5),
+      });
+    }
     return NextResponse.json(updated);
   } catch (e) {
     return apiErrorResponse(e, "PATCH /api/bookings/[id]", {

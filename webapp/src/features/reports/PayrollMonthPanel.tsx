@@ -43,6 +43,9 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
   const [ahv, setAhv] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [accountingYear, setAccountingYear] = useState(() =>
+    String(new Date().getFullYear())
+  );
 
   const { data: users } = useSWR(
     isAdmin ? "/api/admin/users" : null,
@@ -157,6 +160,41 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
         <p className="text-red-600" role="alert">
           {err}
         </p>
+      ) : null}
+
+      {isAdmin ? (
+        <div className="rounded-xl border border-sk-brand/20 bg-white/80 p-4 shadow-sm">
+          <h3 className="text-sm font-semibold text-sk-ink">
+            {brand.labels.accountingExportCsv}
+          </h3>
+          <p className="mt-1 text-xs text-sk-ink/70">
+            {brand.labels.accountingExportHint}
+          </p>
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-sk-ink/60">
+                {brand.labels.accountingExportYearLabel}
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="\d{4}"
+                maxLength={4}
+                className="w-28 rounded border border-sk-ink/15 px-2 py-1.5"
+                value={accountingYear}
+                onChange={(e) => setAccountingYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              />
+            </label>
+            {/^\d{4}$/.test(accountingYear) ? (
+              <a
+                href={`/api/admin/accounting-export?year=${encodeURIComponent(accountingYear)}`}
+                className="rounded border border-sk-ink/20 bg-white px-3 py-1.5 text-xs font-medium text-sk-ink"
+              >
+                {brand.labels.accountingExportCsv}
+              </a>
+            ) : null}
+          </div>
+        </div>
       ) : null}
 
       <div className="flex flex-wrap items-end gap-3">

@@ -39,3 +39,21 @@ export async function rateLimitPublicBookingPost(ip: string): Promise<boolean> {
     return rateLimitPublic(ip);
   }
 }
+
+const GUEST_PORTAL_WINDOW_MS = 3_600_000;
+const GUEST_PORTAL_MAX = 12;
+
+/** Link-Anfragen Gäste-Portal (E-Mail-Adresse). */
+export async function rateLimitGuestPortalLinkRequest(
+  ip: string
+): Promise<boolean> {
+  try {
+    return await consumeRateLimitBucket(
+      `public:guest_portal_link:${ip}`,
+      GUEST_PORTAL_MAX,
+      GUEST_PORTAL_WINDOW_MS
+    );
+  } catch {
+    return rateLimitPublic(ip);
+  }
+}

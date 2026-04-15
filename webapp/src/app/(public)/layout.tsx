@@ -16,9 +16,15 @@ export default function PublicLayout({
           >
             {brand.siteName}
           </Link>
-          <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-sk-brand/90">
+          <nav className="flex max-w-[min(100%,22rem)] flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm text-sk-brand/90 sm:max-w-none md:justify-start">
             <Link href="/buchen" className="transition hover:text-sk-cta">
               {brand.labels.requestServiceCta}
+            </Link>
+            <Link
+              href="/buchen/meine-termine"
+              className="transition hover:text-sk-cta"
+            >
+              {brand.labels.navGuestAppointments}
             </Link>
             <Link href="/login" className="transition hover:text-sk-cta">
               {brand.labels.teamLoginNav}

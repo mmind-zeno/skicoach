@@ -3,8 +3,11 @@ import { brand, getResendFromEmail } from "@/config/brand";
 import {
   adminNewRequestMail,
   bookingConfirmedMail,
+  bookingReminderMail,
   bookingRequestConfirmationMail,
   escapeHtml,
+  guestPortalMagicLinkMail,
+  teacherSubstitutionMail,
 } from "@/lib/mail/transactional-booking";
 
 function client() {
@@ -95,6 +98,110 @@ export async function sendBookingConfirmed(
   if (!r) return;
   const { subject, html } = bookingConfirmedMail(guestName, details);
   await r.emails.send({ from: from(), to, subject, html });
+}
+
+function appOrigin(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    process.env.AUTH_URL?.replace(/\/$/, "") ||
+    process.env.NEXTAUTH_URL?.replace(/\/$/, "") ||
+    ""
+  );
+}
+
+export async function sendGuestPortalMagicLink(
+  to: string,
+  guestName: string,
+  token: string
+): Promise<void> {
+  const r = client();
+  if (!r) return;
+  const base = appOrigin();
+  if (!base) return;
+  const portalUrl = `${base}/buchen/meine-termine?token=${encodeURIComponent(token)}`;
+  const { subject, html } = guestPortalMagicLinkMail(guestName, portalUrl);
+  await r.emails.send({ from: from(), to, subject, html });
+}
+
+async function postReminderSmsWebhook(to: string, text: string): Promise<void> {
+  const url = process.env.REMINDER_SMS_WEBHOOK_URL?.trim();
+  if (!url || !to) return;
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ to, text }),
+  });
+}
+
+export async function sendBookingReminderNotification(payload: {
+  to: string;
+  guestName: string;
+  courseName: string;
+  date: string;
+  startTime: string;
+  teacherName: string;
+  guestPhone: string | null;
+}): Promise<void> {
+  const r = client();
+  if (r) {
+    const { subject, html } = bookingReminderMail({
+      guestName: payload.guestName,
+      courseName: payload.courseName,
+      date: payload.date,
+      startTime: payload.startTime,
+      teacherName: payload.teacherName,
+    });
+    await r.emails.send({ from: from(), to: payload.to, subject, html });
+  }
+  const smsLine = `${payload.courseName} ${payload.date} ${payload.startTime}`.trim();
+  if (payload.guestPhone) {
+    await postReminderSmsWebhook(
+      payload.guestPhone,
+      `${brand.labels.emailBookingReminderSubject.replace("{siteName}", brand.siteName)}: ${smsLine}`
+    );
+  }
+}
+
+export async function sendTeacherSubstitutionNotifications(payload: {
+  guestEmail: string | null;
+  guestName: string;
+  oldTeacherEmail: string | null;
+  oldTeacherName: string;
+  newTeacherEmail: string | null;
+  newTeacherName: string;
+  courseName: string;
+  date: string;
+  startTime: string;
+}): Promise<void> {
+  const r = client();
+  if (!r) return;
+  const send = async (
+    to: string,
+    label: "old" | "new" | "guest"
+  ): Promise<void> => {
+    const { subject, html } = teacherSubstitutionMail({
+      recipientLabel: label,
+      guestName: payload.guestName,
+      courseName: payload.courseName,
+      date: payload.date,
+      startTime: payload.startTime,
+      oldTeacher: payload.oldTeacherName,
+      newTeacher: payload.newTeacherName,
+    });
+    await r.emails.send({ from: from(), to, subject, html });
+  };
+  if (payload.guestEmail?.trim()) {
+    await send(payload.guestEmail.trim(), "guest");
+  }
+  if (
+    payload.oldTeacherEmail?.trim() &&
+    payload.oldTeacherEmail !== payload.newTeacherEmail
+  ) {
+    await send(payload.oldTeacherEmail.trim(), "old");
+  }
+  if (payload.newTeacherEmail?.trim()) {
+    await send(payload.newTeacherEmail.trim(), "new");
+  }
 }
 
 export { escapeHtml } from "@/lib/mail/transactional-booking";

@@ -17,10 +17,14 @@ export function InternalSidebar({
   isAdmin,
   showInvoices = true,
   showChat = true,
+  mobileOpen = false,
+  onNavigate,
 }: {
   isAdmin: boolean;
   showInvoices?: boolean;
   showChat?: boolean;
+  mobileOpen?: boolean;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname() ?? "";
   const {
@@ -49,7 +53,12 @@ export function InternalSidebar({
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-10 flex h-full w-[220px] flex-col rounded-r-3xl bg-sk-brand text-white shadow-sk-nav">
+    <aside
+      className={[
+        "fixed left-0 top-0 z-40 flex h-full w-[min(88vw,220px)] flex-col rounded-r-3xl bg-sk-brand text-white shadow-sk-nav transition-transform duration-200 ease-out md:z-10 md:w-[220px] md:translate-x-0",
+        mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      ].join(" ")}
+    >
       <div className="border-b border-white/10 px-4 py-4">
         <div className="text-sm font-semibold tracking-tight">{brand.siteName}</div>
         <div className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-white/50">
@@ -67,37 +76,58 @@ export function InternalSidebar({
         ) : null}
       </div>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-3 text-sm">
-        <Link className={linkClass("/kalender")} href="/kalender">
+        <Link
+          className={linkClass("/kalender")}
+          href="/kalender"
+          onClick={onNavigate}
+        >
           {brand.labels.navCalendar}
         </Link>
-        <Link className={linkClass("/gaeste")} href="/gaeste">
+        <Link
+          className={linkClass("/gaeste")}
+          href="/gaeste"
+          onClick={onNavigate}
+        >
           {brand.labels.clientPlural}
         </Link>
         {showInvoices ? (
-          <Link className={linkClass("/rechnungen")} href="/rechnungen">
+          <Link
+            className={linkClass("/rechnungen")}
+            href="/rechnungen"
+            onClick={onNavigate}
+          >
             {brand.labels.navInvoices}
           </Link>
         ) : null}
-        <Link className={linkClass("/stundenreport")} href="/stundenreport">
+        <Link
+          className={linkClass("/stundenreport")}
+          href="/stundenreport"
+          onClick={onNavigate}
+        >
           {brand.labels.navMonthlyHoursReport}
         </Link>
-        <Link className={linkClass("/lohnabrechnung")} href="/lohnabrechnung">
+        <Link
+          className={linkClass("/lohnabrechnung")}
+          href="/lohnabrechnung"
+          onClick={onNavigate}
+        >
           {brand.labels.navPayroll}
         </Link>
         {showChat ? (
-          <Link className={linkClass("/chat")} href="/chat">
+          <Link className={linkClass("/chat")} href="/chat" onClick={onNavigate}>
             {brand.labels.navChat}
           </Link>
         ) : null}
         {isAdmin ? (
           <>
             <div className="my-2 border-t border-white/10" />
-            <Link className={linkClass("/admin")} href="/admin">
+            <Link className={linkClass("/admin")} href="/admin" onClick={onNavigate}>
               {brand.labels.navAdmin}
             </Link>
             <Link
               className={linkClass("/admin/anfragen", "flex items-center justify-between gap-2")}
               href="/admin/anfragen"
+              onClick={onNavigate}
             >
               <span>{brand.labels.requestPlural}</span>
               {badge > 0 ? (
@@ -106,7 +136,11 @@ export function InternalSidebar({
                 </span>
               ) : null}
             </Link>
-            <Link className={linkClass("/admin/audit")} href="/admin/audit">
+            <Link
+              className={linkClass("/admin/audit")}
+              href="/admin/audit"
+              onClick={onNavigate}
+            >
               {brand.labels.navAudit}
             </Link>
           </>

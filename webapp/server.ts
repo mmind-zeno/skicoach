@@ -173,4 +173,27 @@ app.prepare().then(() => {
     // eslint-disable-next-line no-console
     console.log(`> Ready on http://${hostname}:${port} (Next + Socket.io)`);
   });
+
+  const reminderMs = Number(process.env.REMINDER_POLL_INTERVAL_MS) || 900_000;
+  if (
+    process.env.REMINDER_EMAIL_ENABLED !== "false" &&
+    process.env.REMINDER_EMAIL_ENABLED !== "0"
+  ) {
+    const tick = () => {
+      void import("./src/services/booking-reminder.service")
+        .then((m) => m.runDueBookingReminders())
+        .then(({ scanned, sent }) => {
+          if (sent > 0) {
+            // eslint-disable-next-line no-console
+            console.log(`[reminders] scanned=${scanned} sent=${sent}`);
+          }
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error("[reminders]", err);
+        });
+    };
+    tick();
+    setInterval(tick, reminderMs);
+  }
 });
