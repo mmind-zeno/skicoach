@@ -33,7 +33,9 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
   const [userId, setUserId] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
-  const [hourly, setHourly] = useState("");
+  const [hourlyProd, setHourlyProd] = useState("");
+  const [hourlyInt, setHourlyInt] = useState("");
+  const [estAnnual, setEstAnnual] = useState("");
   const [weeklyH, setWeeklyH] = useState("");
   const [kvgBand, setKvgBand] = useState<StaffKvgAgeBand>("adult");
   const [wht, setWht] = useState(true);
@@ -94,7 +96,11 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
   useEffect(() => {
     const p = profilePack?.profile;
     if (!p || !isAdmin) return;
-    setHourly(p.grossHourlyRateChf ?? "");
+    setHourlyProd(
+      p.grossHourlyRateProductiveChf ?? p.grossHourlyRateChf ?? ""
+    );
+    setHourlyInt(p.grossHourlyRateInternalChf ?? "");
+    setEstAnnual(p.estimatedAnnualGrossChf ?? "");
     setWeeklyH(p.weeklyHoursForKvg ?? "");
     setKvgBand(p.kvgAgeBand);
     setWht(p.applyWht4pct);
@@ -115,6 +121,18 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
     userId && month
       ? `/api/payroll-monthly/pdf?month=${encodeURIComponent(month)}&userId=${encodeURIComponent(userId)}`
       : null;
+
+  const exportYear = month.slice(0, 4);
+  const csvHref =
+    isAdmin && userId
+      ? `/api/admin/payroll-export?year=${encodeURIComponent(exportYear)}&userId=${encodeURIComponent(userId)}`
+      : null;
+
+  function whtMethodLab(m: string): string {
+    if (m === "manual") return brand.labels.payrollWhtMethodManual;
+    if (m === "ytd_plus_current") return brand.labels.payrollWhtMethodYtd;
+    return brand.labels.payrollWhtMethodTimes12;
+  }
 
   return (
     <div className="space-y-6 text-sm text-sk-ink">
@@ -186,9 +204,33 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
               <input
                 className="rounded border px-2 py-1.5"
                 inputMode="decimal"
-                value={hourly}
-                onChange={(e) => setHourly(e.target.value)}
+                value={hourlyProd}
+                onChange={(e) => setHourlyProd(e.target.value)}
                 placeholder="0.00"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-sk-ink/60">
+                {brand.labels.payrollHourlyInternalLabel}
+              </span>
+              <input
+                className="rounded border px-2 py-1.5"
+                inputMode="decimal"
+                value={hourlyInt}
+                onChange={(e) => setHourlyInt(e.target.value)}
+                placeholder="—"
+              />
+            </label>
+            <label className="flex flex-col gap-1 sm:col-span-2">
+              <span className="text-xs text-sk-ink/60">
+                {brand.labels.payrollEstimatedAnnualGrossLabel}
+              </span>
+              <input
+                className="rounded border px-2 py-1.5"
+                inputMode="decimal"
+                value={estAnnual}
+                onChange={(e) => setEstAnnual(e.target.value)}
+                placeholder="—"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -266,7 +308,9 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     userId,
-                    grossHourlyRateChf: hourly.trim() || null,
+                    grossHourlyRateProductiveChf: hourlyProd.trim() || null,
+                    grossHourlyRateInternalChf: hourlyInt.trim() || null,
+                    estimatedAnnualGrossChf: estAnnual.trim() || null,
                     weeklyHoursForKvg: weeklyH.trim() || null,
                     kvgAgeBand: kvgBand,
                     applyWht4pct: wht,
@@ -306,19 +350,88 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
         </div>
       ) : null}
 
+      {report?.snapshot ? (
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-xs text-emerald-950">
+          {brand.labels.payrollSnapshotBadge}:{" "}
+          {brand.labels.payrollSnapshotFinalized
+            .replace("{date}", report.snapshot.finalizedAt.slice(0, 10))
+            .replace("{by}", report.snapshot.finalizedByName ?? "—")}
+        </p>
+      ) : null}
+
       {report?.computation ? (
         <div className="space-y-3 rounded-xl border border-sk-ink/10 bg-white/80 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold">{brand.labels.payrollPdfTitle}</h3>
-            {pdfHref ? (
-              <a
-                href={pdfHref}
-                className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-1.5 text-xs font-medium text-white"
-              >
-                {brand.labels.payrollDownloadPdf}
-              </a>
-            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {isAdmin && csvHref ? (
+                <a
+                  href={csvHref}
+                  className="rounded border border-sk-ink/20 bg-white px-3 py-1.5 text-xs font-medium text-sk-ink"
+                >
+                  {brand.labels.payrollExportCsv}
+                </a>
+              ) : null}
+              {pdfHref ? (
+                <a
+                  href={pdfHref}
+                  className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-1.5 text-xs font-medium text-white"
+                >
+                  {brand.labels.payrollDownloadPdf}
+                </a>
+              ) : null}
+            </div>
           </div>
+          {isAdmin && userId && month ? (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="rounded bg-sk-brand px-3 py-1.5 text-xs text-white"
+                onClick={async () => {
+                  try {
+                    await fetchJson("/api/admin/payroll-snapshot", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userId, month }),
+                    });
+                    showToast(brand.labels.payrollSnapshotSavedToast, "success");
+                    void mutReport();
+                  } catch (e) {
+                    showToast(
+                      getUiErrorInfo(e, brand.labels.payrollSnapshotNoComputation)
+                        .message,
+                      "error"
+                    );
+                  }
+                }}
+              >
+                {brand.labels.payrollFinalizeMonth}
+              </button>
+              {report.snapshot ? (
+                <button
+                  type="button"
+                  className="rounded border border-red-300 px-3 py-1.5 text-xs text-red-800"
+                  onClick={async () => {
+                    try {
+                      await fetchJson(
+                        `/api/admin/payroll-snapshot?userId=${encodeURIComponent(userId)}&month=${encodeURIComponent(month)}`,
+                        { method: "DELETE" }
+                      );
+                      showToast(brand.labels.payrollSnapshotDeletedToast, "success");
+                      void mutReport();
+                    } catch (e) {
+                      showToast(
+                        getUiErrorInfo(e, brand.labels.payrollSnapshotNotFound).message,
+                        "error"
+                      );
+                    }
+                  }}
+                >
+                  {brand.labels.payrollUnlockMonth}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <table className="w-full text-xs">
             <tbody className="divide-y divide-sk-ink/10">
               <tr>
@@ -340,9 +453,34 @@ export function PayrollMonthPanel({ isAdmin }: { isAdmin: boolean }) {
                 </td>
               </tr>
               <tr>
+                <td className="py-1 text-sk-ink/70">
+                  {brand.labels.payrollPdfGrossProductive}
+                </td>
+                <td className="py-1 text-right tabular-nums">
+                  CHF {report.computation.grossProductiveChf}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-1 text-sk-ink/70">
+                  {brand.labels.payrollPdfGrossInternal}
+                </td>
+                <td className="py-1 text-right tabular-nums">
+                  CHF {report.computation.grossInternalChf}
+                </td>
+              </tr>
+              <tr>
                 <td className="py-1 font-medium">{brand.labels.payrollRowGross}</td>
                 <td className="py-1 text-right font-medium tabular-nums">
                   CHF {report.computation.grossChf}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-1 text-sk-ink/70" colSpan={2}>
+                  {brand.labels.payrollWhtBasisLabel}: CHF{" "}
+                  {report.computation.whtAnnualBasisChf} (
+                  {whtMethodLab(report.computation.whtAnnualBasisMethod)}).{" "}
+                  {brand.labels.payrollYtdBeforeMonth}: CHF{" "}
+                  {report.computation.ytdFinalizedGrossBeforeMonthChf}
                 </td>
               </tr>
               <tr>

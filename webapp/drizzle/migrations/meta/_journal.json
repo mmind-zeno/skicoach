@@ -92,6 +92,13 @@
       "when": 1743090000000,
       "tag": "0013_staff_payroll_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1743100000000,
+      "tag": "0014_payroll_v2_snapshots_rates",
+      "breakpoints": true
     }
   ]
 }

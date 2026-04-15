@@ -288,8 +288,26 @@ export const staffPayrollProfiles = pgTable("staff_payroll_profiles", {
   userId: uuid("user_id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
-  grossHourlyRateChf: decimal("gross_hourly_rate_chf", {
+   grossHourlyRateChf: decimal("gross_hourly_rate_chf", {
     precision: 10,
+    scale: 2,
+    mode: "string",
+  }),
+  /** Produktiv (Unterricht); falls leer weiterhin `gross_hourly_rate_chf` (Legacy). */
+  grossHourlyRateProductiveChf: decimal("gross_hourly_rate_productive_chf", {
+    precision: 10,
+    scale: 2,
+    mode: "string",
+  }),
+  /** Intern / allgemein; leer = gleicher Satz wie produktiv. */
+  grossHourlyRateInternalChf: decimal("gross_hourly_rate_internal_chf", {
+    precision: 10,
+    scale: 2,
+    mode: "string",
+  }),
+  /** Optional: Jahres-Brutto-Schätzung für Quellensteuer (Merkblatt), statt YTD/×12. */
+  estimatedAnnualGrossChf: decimal("estimated_annual_gross_chf", {
+    precision: 12,
     scale: 2,
     mode: "string",
   }),
@@ -312,6 +330,45 @@ export const staffPayrollProfiles = pgTable("staff_payroll_profiles", {
     .notNull()
     .defaultNow(),
 });
+
+/** Freigegebene Monats-Lohnberechnung (YTD, Audit). */
+export const payrollMonthSnapshots = pgTable(
+  "payroll_month_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    monthYyyyMm: text("month_yyyy_mm").notNull(),
+    grossChf: decimal("gross_chf", {
+      precision: 12,
+      scale: 2,
+      mode: "string",
+    }).notNull(),
+    snapshotJson: jsonb("snapshot_json")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    finalizedAt: timestamp("finalized_at", {
+      withTimezone: true,
+      mode: "date",
+    })
+      .notNull()
+      .defaultNow(),
+    finalizedBy: uuid("finalized_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => ({
+    userMonthUnique: uniqueIndex("payroll_month_snapshots_user_month_unique").on(
+      t.userId,
+      t.monthYyyyMm
+    ),
+    userMonthIdx: index("payroll_month_snapshots_user_month_idx").on(
+      t.userId,
+      t.monthYyyyMm
+    ),
+  })
+);
 
 /** Sperrzeit / Pause im Kalender einer Person (user_id). */
 export const availabilityBlocks = pgTable(
@@ -560,6 +617,12 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     fields: [users.id],
     references: [staffPayrollProfiles.userId],
   }),
+  payrollSnapshotsAsSubject: many(payrollMonthSnapshots, {
+    relationName: "payrollSnapshotSubject",
+  }),
+  payrollSnapshotsFinalized: many(payrollMonthSnapshots, {
+    relationName: "payrollSnapshotFinalizer",
+  }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -654,6 +717,22 @@ export const staffPayrollProfilesRelations = relations(
   })
 );
 
+export const payrollMonthSnapshotsRelations = relations(
+  payrollMonthSnapshots,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [payrollMonthSnapshots.userId],
+      references: [users.id],
+      relationName: "payrollSnapshotSubject",
+    }),
+    finalizedByUser: one(users, {
+      fields: [payrollMonthSnapshots.finalizedBy],
+      references: [users.id],
+      relationName: "payrollSnapshotFinalizer",
+    }),
+  })
+);
+
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   teacher: one(users, {
     fields: [bookings.teacherId],
@@ -744,6 +823,7 @@ export const dbSchema = {
   staffVacationPeriods,
   staffTimeLogs,
   staffPayrollProfiles,
+  payrollMonthSnapshots,
   outboundWebhooks,
   courseTypes,
   bookings,
@@ -765,6 +845,7 @@ export const dbSchema = {
   staffVacationPeriodsRelations,
   staffTimeLogsRelations,
   staffPayrollProfilesRelations,
+  payrollMonthSnapshotsRelations,
   courseTypesRelations,
   bookingsRelations,
   bookingRequestsRelations,

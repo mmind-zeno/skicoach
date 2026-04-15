@@ -14,6 +14,7 @@ const REQUIRED: { table: string; column: string }[] = [
   { table: "staff_vacation_periods", column: "user_id" },
   { table: "staff_time_logs", column: "user_id" },
   { table: "staff_payroll_profiles", column: "user_id" },
+  { table: "payroll_month_snapshots", column: "user_id" },
   { table: "outbound_webhooks", column: "url" },
   { table: "guest_contacts", column: "guest_id" },
 ];

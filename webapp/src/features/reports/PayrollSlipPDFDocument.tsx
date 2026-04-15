@@ -24,11 +24,20 @@ const styles = StyleSheet.create({
   th: { flexDirection: "row", padding: 5, backgroundColor: "#f0f4f8", fontWeight: "bold" },
   colL: { flex: 2 },
   colR: { flex: 1, textAlign: "right" },
+  sub: { fontSize: 8, color: "#555", paddingLeft: 8 },
   foot: { marginTop: 16, fontSize: 7, color: "#888" },
 });
 
+function whtMethodLabel(
+  m: "manual" | "ytd_plus_current" | "times12"
+): string {
+  if (m === "manual") return brand.labels.payrollWhtMethodManual;
+  if (m === "ytd_plus_current") return brand.labels.payrollWhtMethodYtd;
+  return brand.labels.payrollWhtMethodTimes12;
+}
+
 export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportDto }) {
-  const { hours, computation } = report;
+  const { hours, computation, snapshot } = report;
   if (!computation) {
     return (
       <Document>
@@ -50,6 +59,12 @@ export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportD
           {computation.ratesVersionLabel} · {brand.labels.payrollPdfNotAdvice}
         </Text>
 
+        {snapshot ? (
+          <Text style={[styles.muted, { marginBottom: 8 }]}>
+            {brand.labels.payrollPdfSnapshotNote}: {snapshot.finalizedAt.slice(0, 10)}
+          </Text>
+        ) : null}
+
         <View style={styles.row}>
           <Text style={styles.label}>{brand.labels.labelName}</Text>
           <Text>{name}</Text>
@@ -66,19 +81,37 @@ export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportD
         <View style={styles.table}>
           <View style={styles.th}>
             <Text style={styles.colL}>{brand.labels.payrollPdfSectionHours}</Text>
-            <Text style={styles.colR}>h</Text>
+            <Text style={styles.colR}>h / CHF</Text>
           </View>
           <View style={styles.tr}>
-            <Text style={styles.colL}>{brand.labels.monthlyHoursProductive}</Text>
+            <Text style={styles.colL}>
+              {brand.labels.monthlyHoursProductive} ({computation.hourlyRateProductive}{" "}
+              CHF/h)
+            </Text>
             <Text style={styles.colR}>{computation.productiveDecimalHours}</Text>
           </View>
           <View style={styles.tr}>
-            <Text style={styles.colL}>{brand.labels.monthlyHoursInternalTotal}</Text>
+            <Text style={styles.colL}>
+              {brand.labels.monthlyHoursInternalTotal} ({computation.hourlyRateInternal}{" "}
+              CHF/h)
+            </Text>
             <Text style={styles.colR}>{computation.internalDecimalHours}</Text>
           </View>
           <View style={styles.tr}>
-            <Text style={styles.colL}>{brand.labels.monthlyHoursTotalWorked}</Text>
-            <Text style={styles.colR}>{computation.totalDecimalHours}</Text>
+            <Text style={styles.colL}>{brand.labels.payrollPdfGrossProductive}</Text>
+            <Text style={styles.colR}>{computation.grossProductiveChf}</Text>
+          </View>
+          <View style={styles.tr}>
+            <Text style={styles.colL}>{brand.labels.payrollPdfGrossInternal}</Text>
+            <Text style={styles.colR}>{computation.grossInternalChf}</Text>
+          </View>
+          <View style={styles.tr}>
+            <Text style={[styles.colL, { fontWeight: "bold" }]}>
+              {brand.labels.monthlyHoursTotalWorked}
+            </Text>
+            <Text style={[styles.colR, { fontWeight: "bold" }]}>
+              {computation.totalDecimalHours}
+            </Text>
           </View>
         </View>
 
@@ -91,11 +124,28 @@ export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportD
             <Text style={styles.colL}>{brand.labels.payrollRowGross}</Text>
             <Text style={styles.colR}>{computation.grossChf}</Text>
           </View>
+          {computation.employeeSocialBreakdown.map((line) => (
+            <View key={line.key} style={styles.tr}>
+              <Text style={[styles.colL, styles.sub]}>
+                {line.labelDe} ({line.pct}%)
+              </Text>
+              <Text style={styles.colR}>-{line.chf}</Text>
+            </View>
+          ))}
           <View style={styles.tr}>
-            <Text style={styles.colL}>
+            <Text style={[styles.colL, { fontWeight: "bold" }]}>
               {brand.labels.payrollRowEmployeeSocial} ({computation.employeeSocialPct}%)
             </Text>
-            <Text style={styles.colR}>-{computation.employeeSocialChf}</Text>
+            <Text style={[styles.colR, { fontWeight: "bold" }]}>
+              -{computation.employeeSocialChf}
+            </Text>
+          </View>
+          <View style={styles.tr}>
+            <Text style={styles.colL}>
+              {brand.labels.payrollPdfWhtBasis} ({whtMethodLabel(computation.whtAnnualBasisMethod)}
+              ): {computation.whtAnnualBasisChf}
+            </Text>
+            <Text style={styles.colR}> </Text>
           </View>
           <View style={styles.tr}>
             <Text style={styles.colL}>
@@ -121,11 +171,21 @@ export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportD
             <Text style={styles.colL}>{brand.labels.payrollPdfSectionEmployer}</Text>
             <Text style={styles.colR}>CHF</Text>
           </View>
+          {computation.employerSocialBreakdown.map((line) => (
+            <View key={line.key} style={styles.tr}>
+              <Text style={[styles.colL, styles.sub]}>
+                {line.labelDe} ({line.pct}%)
+              </Text>
+              <Text style={styles.colR}>{line.chf}</Text>
+            </View>
+          ))}
           <View style={styles.tr}>
-            <Text style={styles.colL}>
+            <Text style={[styles.colL, { fontWeight: "bold" }]}>
               {brand.labels.payrollRowEmployerSocial} ({computation.employerSocialPct}%)
             </Text>
-            <Text style={styles.colR}>{computation.employerSocialChf}</Text>
+            <Text style={[styles.colR, { fontWeight: "bold" }]}>
+              {computation.employerSocialChf}
+            </Text>
           </View>
           <View style={styles.tr}>
             <Text style={styles.colL}>{brand.labels.payrollRowKvgEmployerMonth}</Text>
@@ -135,7 +195,7 @@ export function PayrollSlipPDFDocument({ report }: { report: PayrollMonthReportD
 
         <Text style={styles.foot}>
           {brand.labels.payrollPdfFooterMerkblatt}: {LI_PAYROLL_MERKBLATT_PDF_URL}
- </Text>
+        </Text>
         <Text style={styles.foot}>{brand.labels.payrollPdfFooterObligations}</Text>
       </Page>
     </Document>
