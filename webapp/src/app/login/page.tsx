@@ -100,8 +100,8 @@ function LoginForm() {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center bg-sk-surface px-5 py-10 sm:px-8 lg:bg-white lg:py-12">
-        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-8 shadow-sk-ambient ring-1 ring-sk-outline/25 lg:p-10">
+      <div className="flex flex-col justify-center bg-sk-surface px-5 py-10 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:px-8 lg:bg-white lg:py-12">
+        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-6 shadow-sk-ambient ring-1 ring-sk-outline/25 sm:p-8 lg:p-10">
           <div className="mb-6 flex justify-center lg:hidden">
             <div className="rounded-full bg-sk-cta/12 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-sk-cta">
               {brand.siteName}
@@ -167,7 +167,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-60"
+              className="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-60 sm:text-sm"
             >
               {loading
                 ? brand.labels.loginButtonSending

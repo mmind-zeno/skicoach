@@ -87,6 +87,8 @@ const FORK_DEFAULTS = {
     navImpressum: "Impressum",
     /** Öffentlicher Bereich: Skip-Link zum Inhalt */
     navSkipToContent: "Zum Inhalt springen",
+    /** Öffentliche Site: Desktop-Nav für Screenreader */
+    publicMainNavAria: "Hauptnavigation",
     navGuestAppointments: "Meine Termine",
     /** Gäste-CRM: Filter nach Fähigkeitsstufe (Ski) — Fork z. B. „Level“ */
     clientSkillFilterLabel: "Niveau",

@@ -1,3 +1,4 @@
+import { PublicSiteHeader } from "@/components/public/PublicSiteHeader";
 import Link from "next/link";
 import { brand } from "@/config/brand";
 
@@ -8,61 +9,41 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen bg-sk-surface text-sk-ink">
-      <a
-        href="#public-main"
-        className="skip-to-main"
-      >
+      <a href="#public-main" className="skip-to-main">
         {brand.labels.navSkipToContent}
       </a>
-      <header className="sticky top-0 z-40 border-b border-sk-outline/15 bg-white/75 shadow-[0_8px_30px_-12px_rgba(24,28,32,0.12)] backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3.5 md:px-6">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight text-sk-brand md:text-base"
-          >
-            {brand.siteName}
-          </Link>
-          <nav className="flex max-w-[min(100%,22rem)] flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm text-sk-brand/90 sm:max-w-none md:justify-start">
-            <Link href="/buchen" className="transition hover:text-sk-cta">
-              {brand.labels.requestServiceCta}
-            </Link>
-            <Link
-              href="/buchen/meine-termine"
-              className="transition hover:text-sk-cta"
-            >
-              {brand.labels.navGuestAppointments}
-            </Link>
-            <Link href="/login" className="transition hover:text-sk-cta">
-              {brand.labels.teamLoginNav}
-            </Link>
-            <Link href="/" className="transition hover:text-sk-cta">
-              {brand.labels.navHome}
-            </Link>
-            <Link href="/datenschutz" className="transition hover:text-sk-cta">
-              {brand.labels.navPrivacy}
-            </Link>
-            <Link href="/impressum" className="transition hover:text-sk-cta">
-              {brand.labels.navImpressum}
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <PublicSiteHeader />
       <div id="public-main" tabIndex={-1} className="outline-none">
         {children}
       </div>
-      <footer className="mt-16 border-t border-sk-outline/20 py-8 text-center text-xs text-sk-ink/50">
-        <a href={`mailto:${brand.supportEmail}`} className="underline hover:text-sk-brand">
-          {brand.labels.navContact}
-        </a>
-        {" · "}
-        <Link href="/datenschutz" className="underline hover:text-sk-brand">
-          {brand.labels.navPrivacy}
-        </Link>
-        {" · "}
-        <Link href="/impressum" className="underline hover:text-sk-brand">
-          {brand.labels.navImpressum}
-        </Link>
-        <div className="mt-2 text-[10px] text-sk-ink/60">
+      <footer className="public-safe-x public-safe-b mt-12 border-t border-sk-outline/20 py-8 text-center text-xs text-sk-ink/50 md:mt-16">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-2 sm:gap-y-1">
+          <a
+            href={`mailto:${brand.supportEmail}`}
+            className="inline-flex min-h-[44px] items-center justify-center font-medium underline hover:text-sk-brand sm:min-h-0"
+          >
+            {brand.labels.navContact}
+          </a>
+          <span className="hidden text-sk-ink/30 sm:inline" aria-hidden>
+            ·
+          </span>
+          <Link
+            href="/datenschutz"
+            className="inline-flex min-h-[44px] items-center justify-center underline hover:text-sk-brand sm:min-h-0"
+          >
+            {brand.labels.navPrivacy}
+          </Link>
+          <span className="hidden text-sk-ink/30 sm:inline" aria-hidden>
+            ·
+          </span>
+          <Link
+            href="/impressum"
+            className="inline-flex min-h-[44px] items-center justify-center underline hover:text-sk-brand sm:min-h-0"
+          >
+            {brand.labels.navImpressum}
+          </Link>
+        </div>
+        <div className="mx-auto mt-4 max-w-5xl text-[10px] leading-relaxed text-sk-ink/60">
           {brand.labels.publicFooterLegalPrefix}{" "}
           {brand.labels.privacyHostingNoteBeforeLink}
           <a

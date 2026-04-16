@@ -37,7 +37,7 @@ export function InternalShell({
             onClick={() => setMobileNavOpen(false)}
           />
         ) : null}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-sk-outline/15 bg-sk-surface/95 px-4 py-3 backdrop-blur-md md:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-sk-outline/15 bg-sk-surface/95 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] backdrop-blur-md md:hidden">
           <button
             type="button"
             className="rounded-lg border border-sk-ink/15 bg-white px-3 py-2 text-sm font-medium text-sk-ink shadow-sm active:scale-[0.98]"
@@ -49,7 +49,7 @@ export function InternalShell({
         </header>
         {isAdmin ? <AdminNewRequestToast /> : null}
         <main className="min-h-screen bg-gradient-to-br from-sk-surface via-sk-surface to-sk-container-low md:pl-[220px]">
-          <div className="mx-auto max-w-[1680px] px-4 py-5 sm:px-5 md:px-8 md:py-8 lg:px-10 lg:py-10">
+          <div className="mx-auto max-w-[1680px] px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-5 md:px-8 md:py-8 lg:px-10 lg:py-10">
             {children}
           </div>
         </main>

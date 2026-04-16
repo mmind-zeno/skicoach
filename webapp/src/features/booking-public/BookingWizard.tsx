@@ -208,10 +208,10 @@ export function BookingWizard() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-10">
+    <div className="public-safe-x mx-auto max-w-4xl px-0 py-6 sm:py-8 md:px-6 md:py-10">
       <ol
         aria-label={brand.labels.bookingWizardStepperAria}
-        className="mb-8 flex list-none justify-center gap-2 text-sm"
+        className="mb-6 flex list-none justify-center gap-1.5 overflow-x-auto pb-1 sm:mb-8 sm:gap-2"
       >
         {[1, 2, 3, 4].map((s) => (
           <li key={s} aria-current={s === step ? "step" : undefined}>
@@ -221,7 +221,7 @@ export function BookingWizard() {
                 .replace("{total}", "4")}
             </span>
             <span
-              className={`block h-2 w-16 rounded-full ${
+              className={`block h-2 w-10 shrink-0 rounded-full sm:w-16 ${
                 s <= step ? "bg-sk-cta" : "bg-sk-ink/15"
               }`}
               aria-hidden
@@ -232,7 +232,7 @@ export function BookingWizard() {
 
       {step === 1 ? (
         <section
-          className="sk-surface-card p-5 md:p-8"
+          className="sk-surface-card p-4 sm:p-5 md:p-8"
           aria-labelledby="booking-wizard-step-1-heading"
         >
           <h2
@@ -254,7 +254,7 @@ export function BookingWizard() {
               ) : null}
             </p>
           ) : null}
-          <div
+                   <div
             className="mt-4 grid gap-3 sm:grid-cols-2"
             role="group"
             aria-label={brand.labels.publicWizardCoursePickGroupAria}
@@ -267,7 +267,7 @@ export function BookingWizard() {
                 onClick={() => {
                   setCourseId(c.id);
                 }}
-                className={`rounded-xl border-2 p-4 text-left transition ${
+                className={`min-h-[3.25rem] rounded-xl border-2 p-4 text-left transition active:scale-[0.99] ${
                   courseId === c.id
                     ? "border-sk-cta bg-sk-highlight"
                     : "border-transparent bg-white shadow hover:border-sk-brand/40"
@@ -285,7 +285,7 @@ export function BookingWizard() {
           </div>
           <button
             type="button"
-            className="mt-6 rounded-lg bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
+            className="mt-6 w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto"
             disabled={!courseId}
             onClick={() => {
               setLoadErr(null);
@@ -300,7 +300,7 @@ export function BookingWizard() {
 
       {step === 2 ? (
         <section
-          className="sk-surface-card p-5 md:p-8"
+          className="sk-surface-card p-4 sm:p-5 md:p-8"
           aria-labelledby="booking-wizard-step-2-heading"
         >
           <h2
@@ -319,10 +319,10 @@ export function BookingWizard() {
               ) : null}
             </p>
           ) : null}
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex items-center justify-between gap-2 rounded-xl bg-sk-highlight/35 px-1 py-1">
             <button
               type="button"
-              className="text-sk-brand"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-lg font-medium text-sk-brand transition hover:bg-white/80"
               aria-label={brand.labels.calMonthPrevAria}
               onClick={() => {
                 const m = addMonths(month, -1);
@@ -332,12 +332,15 @@ export function BookingWizard() {
             >
               ←
             </button>
-            <span className="font-medium capitalize" aria-live="polite">
+            <span
+              className="min-w-0 flex-1 truncate text-center text-sm font-semibold capitalize sm:text-base"
+              aria-live="polite"
+            >
               {format(month, "MMMM yyyy", { locale: appDateFnsLocale })}
             </span>
             <button
               type="button"
-              className="text-sk-brand"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-lg font-medium text-sk-brand transition hover:bg-white/80"
               aria-label={brand.labels.calMonthNextAria}
               onClick={() => {
                 const m = addMonths(month, 1);
@@ -348,9 +351,9 @@ export function BookingWizard() {
               →
             </button>
           </div>
-          <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs">
+          <div className="mt-4 grid grid-cols-7 gap-0.5 text-center text-[10px] sm:gap-1 sm:text-xs">
             {weekdayShort.map((d) => (
-              <div key={d} className="py-1 text-sk-ink/50">
+              <div key={d} className="py-1 font-medium text-sk-ink/50">
                 {d}
               </div>
             ))}
@@ -374,7 +377,7 @@ export function BookingWizard() {
                     setDay(key);
                     void loadSlots(key);
                   }}
-                  className="rounded p-2 text-sm disabled:opacity-40"
+                  className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg p-1 text-xs font-medium disabled:opacity-40 sm:min-h-[44px] sm:p-2 sm:text-sm"
                   style={{
                     backgroundColor:
                       day === key ? COL.selected : a === "past" ? COL.past : COL[a],
@@ -403,10 +406,10 @@ export function BookingWizard() {
               {brand.labels.publicAvailFull}
             </span>
           </p>
-          <div className="mt-6 flex gap-2">
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
-              className="rounded-lg border border-sk-outline/35 bg-white px-4 py-2 text-sm font-medium text-sk-brand shadow-sm transition hover:bg-sk-highlight"
+              className="w-full min-h-[48px] rounded-xl border border-sk-outline/35 bg-white px-4 py-3 text-base font-semibold text-sk-brand shadow-sm transition hover:bg-sk-highlight active:scale-[0.99] sm:w-auto sm:py-2 sm:text-sm"
               onClick={() => {
                 setLoadErr(null);
                 setStep(1);
@@ -416,7 +419,7 @@ export function BookingWizard() {
             </button>
             <button
               type="button"
-              className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
+              className="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
               disabled={!day}
               onClick={() => {
                 setLoadErr(null);
@@ -432,7 +435,7 @@ export function BookingWizard() {
 
       {step === 3 ? (
         <section
-          className="sk-surface-card p-5 md:p-8"
+          className="sk-surface-card p-4 sm:p-5 md:p-8"
           aria-labelledby="booking-wizard-step-3-heading"
         >
           <h2
@@ -469,7 +472,7 @@ export function BookingWizard() {
                     aria-pressed={slotTime === s.time}
                     aria-label={s.time}
                     onClick={() => setSlotTime(s.time)}
-                    className={`rounded-full px-3 py-1 text-sm ${
+                    className={`min-h-[44px] rounded-full px-4 py-2 text-sm font-medium ${
                       !s.available
                         ? "bg-sk-ink/10 text-sk-ink/40 line-through"
                         : slotTime === s.time
@@ -508,14 +511,14 @@ export function BookingWizard() {
                 onChange={(e) => setWebsite(e.target.value)}
                 aria-hidden="true"
               />
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-2">
                 <div>
                   <label htmlFor="booking-first-name" className="sr-only">
                     {brand.labels.placeholderFirstName}
                   </label>
                   <input
                     id="booking-first-name"
-                    className="w-full rounded border px-2 py-2"
+                    className="sk-field min-h-[48px] w-full text-base sm:text-sm"
                     placeholder={brand.labels.placeholderFirstName}
                     autoComplete="given-name"
                     value={firstName}
@@ -528,7 +531,7 @@ export function BookingWizard() {
                   </label>
                   <input
                     id="booking-last-name"
-                    className="w-full rounded border px-2 py-2"
+                    className="sk-field min-h-[48px] w-full text-base sm:text-sm"
                     placeholder={brand.labels.placeholderLastName}
                     autoComplete="family-name"
                     value={lastName}
@@ -542,7 +545,7 @@ export function BookingWizard() {
                 </label>
                 <input
                   id="booking-email"
-                  className="w-full rounded border px-2 py-2"
+                  className="sk-field min-h-[48px] w-full text-base sm:text-sm"
                   type="email"
                   placeholder={brand.labels.placeholderEmail}
                   autoComplete="email"
@@ -556,7 +559,7 @@ export function BookingWizard() {
                 </label>
                 <input
                   id="booking-phone"
-                  className="w-full rounded border px-2 py-2"
+                  className="sk-field min-h-[48px] w-full text-base sm:text-sm"
                   placeholder={brand.labels.placeholderPhoneOptional}
                   autoComplete="tel"
                   value={phone}
@@ -564,13 +567,13 @@ export function BookingWizard() {
                 />
               </div>
               <div
-                className="text-xs font-medium text-sk-ink/70"
+                className="text-sm font-medium text-sk-ink/70"
                 id="booking-wizard-niveau-label"
               >
                 {brand.labels.clientSkillFilterLabel}
               </div>
               <div
-                className="mt-1 flex flex-wrap gap-2"
+                className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap"
                 role="radiogroup"
                 aria-labelledby="booking-wizard-niveau-label"
               >
@@ -583,10 +586,10 @@ export function BookingWizard() {
                     role="radio"
                     aria-checked={niveau === k}
                     onClick={() => setNiveau(k)}
-                    className={`rounded-full px-3 py-1 ${
+                    className={`min-h-[48px] flex-1 rounded-xl px-4 py-2.5 text-center text-sm font-semibold sm:flex-none sm:rounded-full ${
                       niveau === k
                         ? "bg-sk-cta text-white"
-                        : "bg-sk-surface text-sk-ink"
+                        : "border border-sk-outline/25 bg-sk-surface text-sk-ink"
                     }`}
                   >
                     {niveauLabels[k]}
@@ -599,7 +602,7 @@ export function BookingWizard() {
                 </label>
                 <textarea
                   id="booking-message"
-                  className="w-full rounded border px-2 py-2"
+                  className="sk-field min-h-[6rem] w-full resize-y text-base sm:text-sm"
                   rows={3}
                   placeholder={brand.labels.placeholderMessageOptional}
                   value={message}
@@ -651,10 +654,10 @@ export function BookingWizard() {
               ) : null}
             </p>
           ) : null}
-          <div className="mt-6 flex gap-2">
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
-              className="rounded-lg border border-sk-outline/35 bg-white px-4 py-2 text-sm font-medium text-sk-brand shadow-sm transition hover:bg-sk-highlight"
+              className="w-full min-h-[48px] rounded-xl border border-sk-outline/35 bg-white px-4 py-3 text-base font-semibold text-sk-brand shadow-sm transition hover:bg-sk-highlight active:scale-[0.99] sm:w-auto sm:py-2 sm:text-sm"
               onClick={() => {
                 setLoadErr(null);
                 setErr(null);
@@ -666,7 +669,7 @@ export function BookingWizard() {
             <button
               type="button"
               disabled={loading}
-              className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-2 text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid disabled:opacity-50"
+              className="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
               onClick={() => void submit()}
             >
               {brand.labels.publicWizardSubmitRequestCtaTemplate.replace(
@@ -680,7 +683,7 @@ export function BookingWizard() {
 
       {step === 4 ? (
         <section
-          className="sk-surface-card relative overflow-hidden p-8 text-center md:p-10"
+          className="sk-surface-card relative overflow-hidden p-6 text-center sm:p-8 md:p-10"
           aria-labelledby="booking-wizard-step-4-heading"
           role="status"
           aria-live="polite"
@@ -704,7 +707,7 @@ export function BookingWizard() {
               firstName
             )}
           </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-sk-ink/80">
+          <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-sk-ink/80">
             {brand.labels.publicThanksIntroTemplate.replace(
               "{request}",
               brand.labels.requestSingular
@@ -718,7 +721,7 @@ export function BookingWizard() {
           ) : null}
           <button
             type="button"
-            className="mt-8 rounded-xl border-2 border-sk-cta/35 bg-white px-5 py-2.5 text-sm font-medium text-sk-cta shadow-sm transition hover:border-sk-cta hover:bg-sk-highlight/40"
+            className="mx-auto mt-8 flex w-full max-w-md min-h-[48px] items-center justify-center rounded-xl border-2 border-sk-cta/35 bg-white px-5 py-3 text-base font-semibold text-sk-cta shadow-sm transition hover:border-sk-cta hover:bg-sk-highlight/40 active:scale-[0.99] sm:text-sm"
             onClick={reset}
           >
             {brand.labels.publicWizardNewRequestAgainTemplate.replace(

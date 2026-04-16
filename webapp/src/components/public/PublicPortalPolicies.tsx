@@ -15,17 +15,17 @@ export function PublicPortalPolicies({ cancelMinHours }: Props) {
 
   return (
     <section
-      className="mx-auto max-w-4xl px-4 pb-2 md:px-6"
+      className="public-safe-x mx-auto max-w-4xl pb-2 md:px-6"
       aria-labelledby="public-portal-policies-heading"
     >
-      <div className="rounded-2xl border border-sk-outline/20 bg-white/90 p-5 shadow-sm md:p-6">
+      <div className="rounded-2xl border border-sk-outline/20 bg-white/90 p-4 shadow-sm sm:p-5 md:p-6">
         <h2
           id="public-portal-policies-heading"
-          className="text-base font-semibold tracking-tight text-sk-ink md:text-lg"
+          className="text-base font-semibold tracking-tight text-sk-ink sm:text-lg"
         >
           {brand.labels.publicPortalPoliciesHeading}
         </h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-sk-ink/85">
+        <ul className="mt-3 list-disc space-y-2.5 pl-4 text-sm leading-relaxed text-sk-ink/85 sm:pl-5 sm:text-[0.9375rem]">
           <li>{brand.labels.publicPortalPoliciesCancellationLead}</li>
           <li>{deadline}</li>
           <li>{brand.labels.publicPortalPoliciesPayment}</li>

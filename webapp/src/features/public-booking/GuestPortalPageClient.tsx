@@ -153,14 +153,14 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
 
   if (!token) {
     return (
-      <div className="mx-auto max-w-md px-4 py-10">
-        <h1 className="text-xl font-semibold text-sk-ink">
+      <div className="public-safe-x mx-auto max-w-md px-0 py-8 sm:py-10">
+        <h1 className="text-[1.35rem] font-semibold leading-snug text-sk-ink sm:text-xl">
           {brand.labels.guestPortalPageTitle}
         </h1>
-        <p className="mt-2 text-sm text-sk-ink/80">
+        <p className="mt-3 text-base leading-relaxed text-sk-ink/80 sm:text-sm">
           {brand.labels.guestPortalPageIntro}
         </p>
-        <form onSubmit={requestLink} className="mt-6 space-y-3" noValidate>
+        <form onSubmit={requestLink} className="mt-6 space-y-4" noValidate>
           <div>
             <label
               htmlFor="guest-portal-email"
@@ -174,7 +174,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-sk-ink/20 bg-white px-3 py-2.5 text-sk-ink outline-none ring-sk-brand focus:ring-2"
+              className="sk-field mt-2 min-h-[48px] w-full text-base sm:text-sm"
               autoComplete="email"
               aria-invalid={err ? true : undefined}
               aria-describedby={err ? "guest-portal-email-error" : undefined}
@@ -193,7 +193,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-xl bg-sk-cta px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sk-cta-mid disabled:opacity-50"
+            className="w-full min-h-[48px] rounded-xl bg-sk-cta px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-sk-cta-mid active:scale-[0.99] disabled:opacity-50"
           >
             {brand.labels.guestPortalSendLink}
           </button>
@@ -209,10 +209,10 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
     );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
+    <div className="public-safe-x mx-auto max-w-3xl px-0 py-6 sm:py-8">
       <dialog
         ref={cancelDialogRef}
-        className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-sk-ink/15 bg-white p-6 shadow-xl backdrop:bg-black/40"
+        className="w-[calc(100%-1.5rem)] max-w-md rounded-2xl border border-sk-ink/15 bg-white p-5 shadow-xl backdrop:bg-black/40 sm:w-[calc(100%-2rem)] sm:p-6"
         aria-labelledby="guest-portal-cancel-title"
         aria-describedby="guest-portal-cancel-desc"
         onClose={() => setPendingCancelId(null)}
@@ -224,17 +224,17 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
           {brand.labels.guestPortalCancelConfirmBody}
         </p>
         <p className="mt-2 text-xs text-sk-ink/65">{cancelDeadlineHint}</p>
-        <div className="mt-6 flex flex-wrap justify-end gap-2">
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
-            className="rounded-lg border border-sk-outline/40 px-4 py-2 text-sm font-medium text-sk-brand"
+            className="min-h-[48px] w-full rounded-xl border border-sk-outline/40 px-4 py-3 text-base font-semibold text-sk-brand sm:w-auto sm:py-2 sm:text-sm"
             onClick={() => setPendingCancelId(null)}
           >
             {brand.labels.guestPortalCancelConfirmBack}
           </button>
           <button
             type="button"
-            className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+            className="min-h-[48px] w-full rounded-xl bg-zinc-800 px-4 py-3 text-base font-semibold text-white hover:bg-zinc-900 sm:w-auto sm:py-2 sm:text-sm"
             disabled={busy}
             onClick={() => {
               const id = pendingCancelId;
@@ -246,14 +246,14 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
           </button>
         </div>
       </dialog>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-sk-ink">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <h1 className="text-[1.35rem] font-semibold leading-snug text-sk-ink sm:text-xl">
           {brand.labels.guestPortalPageTitle}
         </h1>
         <button
           type="button"
           onClick={logout}
-          className="text-sm font-medium text-sk-brand underline"
+          className="min-h-[44px] self-start text-left text-sm font-semibold text-sk-brand underline sm:min-h-0"
         >
           {brand.labels.guestPortalLogout}
         </button>
@@ -277,9 +277,9 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
           {rows.map((r) => (
             <li
               key={r.id}
-              className="rounded-2xl border border-sk-ink/10 bg-white/90 p-4 shadow-sm"
+              className="rounded-2xl border border-sk-ink/10 bg-white/90 p-4 shadow-sm sm:p-5"
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="font-medium text-sk-ink">
                     {r.date} · {r.startTime}–{r.endTime}
@@ -302,7 +302,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
                   {r.invoiceId ? (
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-lg border border-sk-brand/40 px-3 py-2 text-sm font-medium text-sk-brand"
+                      className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-sk-brand/40 px-4 py-3 text-base font-semibold text-sk-brand sm:w-auto sm:py-2 sm:text-sm"
                       onClick={() => {
                         void (async () => {
                           const res = await fetch(
@@ -328,7 +328,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
                       type="button"
                       disabled={busy}
                       onClick={() => setPendingCancelId(r.id)}
-                      className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-300 disabled:opacity-50"
+                      className="min-h-[48px] w-full rounded-xl bg-zinc-200 px-4 py-3 text-base font-semibold text-zinc-900 hover:bg-zinc-300 disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
                     >
                       {brand.labels.guestPortalCancel}
                     </button>

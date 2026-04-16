@@ -9,7 +9,7 @@ export default function BuchenPage() {
   const cancelMinHours = getGuestCancelMinHours();
   return (
     <div className="min-h-screen bg-sk-surface">
-      <div className="border-b border-sk-outline/20 px-4 pt-8 md:px-6 md:pt-10">
+      <div className="border-b border-sk-outline/20 public-safe-x pt-6 sm:pt-8 md:px-6 md:pt-10">
         <ProductHeroBanner
           title={brand.labels.requestServiceCta}
           description={brand.homeLead}

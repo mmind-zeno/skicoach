@@ -42,6 +42,7 @@ export const BRAND_LABELS_EN = {
   navPrivacy: "Privacy",
   navImpressum: "Legal notice",
   navSkipToContent: "Skip to main content",
+  publicMainNavAria: "Main navigation",
   navGuestAppointments: "My appointments",
   navDashboard: "Dashboard",
   clientSkillFilterLabel: "Level",
