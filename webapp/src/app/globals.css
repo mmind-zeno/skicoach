@@ -50,4 +50,11 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /**
+   * Skip-Link (öffentliches Layout): nur sichtbar bei Tastatur-Fokus (WCAG 2.4.1).
+   */
+  .skip-to-main {
+    @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded-lg bg-sk-cta px-4 py-2 text-sm font-medium text-white shadow-lg transition focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-sk-brand focus:ring-offset-2;
+  }
 }

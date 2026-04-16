@@ -6,6 +6,7 @@ import {
 } from "@/lib/client-fetch";
 
 const CODE_TO_MESSAGE: Record<string, string> = {
+  maintenance: brand.labels.apiMaintenanceMode,
   RATE_LIMITED: brand.labels.apiTooManyRequests,
   INVALID_INPUT: brand.labels.apiInvalidData,
   UNAUTHORIZED: brand.labels.apiUnauthorized,

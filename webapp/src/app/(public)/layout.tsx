@@ -8,6 +8,12 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen bg-sk-surface text-sk-ink">
+      <a
+        href="#public-main"
+        className="skip-to-main"
+      >
+        {brand.labels.navSkipToContent}
+      </a>
       <header className="sticky top-0 z-40 border-b border-sk-outline/15 bg-white/75 shadow-[0_8px_30px_-12px_rgba(24,28,32,0.12)] backdrop-blur-xl backdrop-saturate-150">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2 px-4 py-3.5 md:px-6">
           <Link
@@ -41,7 +47,9 @@ export default function PublicLayout({
           </nav>
         </div>
       </header>
-      {children}
+      <div id="public-main" tabIndex={-1} className="outline-none">
+        {children}
+      </div>
       <footer className="mt-16 border-t border-sk-outline/20 py-8 text-center text-xs text-sk-ink/50">
         <a href={`mailto:${brand.supportEmail}`} className="underline hover:text-sk-brand">
           {brand.labels.navContact}

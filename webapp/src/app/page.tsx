@@ -3,12 +3,30 @@ import { ProductHeroBanner } from "@/components/ui/ProductHeroBanner";
 import { ProductPreviewBooking } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
 import { featurePublicBooking } from "@/lib/features";
+import { isMaintenanceMode } from "@/lib/maintenance-mode";
 
 export default function Home() {
+  const maintenance = isMaintenanceMode() && featurePublicBooking();
   return (
     <div className="min-h-screen bg-sk-surface text-sk-ink">
       <main className="px-4 py-10">
         <div className="mx-auto max-w-5xl">
+          {maintenance ? (
+            <div
+              className="mb-6 rounded-xl border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+              role="status"
+            >
+              <p className="font-medium">{brand.labels.homeMaintenanceBannerText}</p>
+              <p className="mt-1">
+                <Link
+                  href="/wartung"
+                  className="font-medium text-sk-brand underline hover:text-sk-cta"
+                >
+                  {brand.labels.homeMaintenanceBannerCta}
+                </Link>
+              </p>
+            </div>
+          ) : null}
           <ProductHeroBanner
             title={brand.siteName}
             description={brand.homeLead}

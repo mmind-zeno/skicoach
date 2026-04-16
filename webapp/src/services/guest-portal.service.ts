@@ -5,6 +5,7 @@ import { normalizeGuestEmail } from "../lib/guest-portal-token";
 import { bookingDateTimesToRange } from "../lib/datetime";
 import { updateBooking } from "./booking.service";
 import { brand } from "../config/brand";
+import { getGuestCancelMinHours } from "../lib/guest-cancel-policy";
 import { NotFoundError, ValidationError } from "../lib/errors";
 
 export async function findGuestIdByEmail(email: string): Promise<string | null> {
@@ -97,12 +98,6 @@ export async function assertGuestOwnsBooking(
   }
 }
 
-function cancelHoursMin(): number {
-  const raw = process.env.GUEST_CANCEL_MIN_HOURS_BEFORE?.trim();
-  const n = raw ? Number.parseInt(raw, 10) : 24;
-  return Number.isFinite(n) && n >= 0 ? n : 24;
-}
-
 export async function guestCancelBooking(
   guestId: string,
   bookingId: string
@@ -121,11 +116,11 @@ export async function guestCancelBooking(
     String(row.endTime)
   );
   const hoursLeft = (start.getTime() - Date.now()) / 3600000;
-  if (hoursLeft < cancelHoursMin()) {
+  if (hoursLeft < getGuestCancelMinHours()) {
     throw new ValidationError(
       brand.labels.guestPortalCancelTooLateTemplate.replace(
         "{hours}",
-        String(cancelHoursMin())
+        String(getGuestCancelMinHours())
       )
     );
   }

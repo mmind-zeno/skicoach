@@ -87,6 +87,15 @@ export function BookingWizard() {
     []
   );
 
+  const availabilityAriaWord = (a: Avail[string]) =>
+    a === "free"
+      ? brand.labels.publicAvailFree
+      : a === "partial"
+        ? brand.labels.publicAvailPartial
+        : a === "full"
+          ? brand.labels.publicAvailFull
+          : brand.labels.publicCalNotSelectable;
+
   useEffect(() => {
     void (async () => {
       try {
@@ -200,20 +209,36 @@ export function BookingWizard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 md:px-6 md:py-10">
-      <div className="mb-8 flex justify-center gap-2 text-sm">
+      <ol
+        aria-label={brand.labels.bookingWizardStepperAria}
+        className="mb-8 flex list-none justify-center gap-2 text-sm"
+      >
         {[1, 2, 3, 4].map((s) => (
-          <div
-            key={s}
-            className={`h-2 w-16 rounded-full ${
-              s <= step ? "bg-sk-cta" : "bg-sk-ink/15"
-            }`}
-          />
+          <li key={s} aria-current={s === step ? "step" : undefined}>
+            <span className="sr-only">
+              {brand.labels.bookingWizardStepStatusTemplate
+                .replace("{current}", String(s))
+                .replace("{total}", "4")}
+            </span>
+            <span
+              className={`block h-2 w-16 rounded-full ${
+                s <= step ? "bg-sk-cta" : "bg-sk-ink/15"
+              }`}
+              aria-hidden
+            />
+          </li>
         ))}
-      </div>
+      </ol>
 
       {step === 1 ? (
-        <section className="sk-surface-card p-5 md:p-8">
-          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
+        <section
+          className="sk-surface-card p-5 md:p-8"
+          aria-labelledby="booking-wizard-step-1-heading"
+        >
+          <h2
+            id="booking-wizard-step-1-heading"
+            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+          >
             {brand.labels.publicWizardPickServiceTypeTemplate.replace(
               "{serviceType}",
               brand.labels.serviceTypeSingular
@@ -229,11 +254,16 @@ export function BookingWizard() {
               ) : null}
             </p>
           ) : null}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div
+            className="mt-4 grid gap-3 sm:grid-cols-2"
+            role="group"
+            aria-label={brand.labels.publicWizardCoursePickGroupAria}
+          >
             {courses.map((c) => (
               <button
                 key={c.id}
                 type="button"
+                aria-pressed={courseId === c.id}
                 onClick={() => {
                   setCourseId(c.id);
                 }}
@@ -269,8 +299,14 @@ export function BookingWizard() {
       ) : null}
 
       {step === 2 ? (
-        <section className="sk-surface-card p-5 md:p-8">
-          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
+        <section
+          className="sk-surface-card p-5 md:p-8"
+          aria-labelledby="booking-wizard-step-2-heading"
+        >
+          <h2
+            id="booking-wizard-step-2-heading"
+            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+          >
             {brand.labels.publicWizardPickDate}
           </h2>
           {loadErr ? (
@@ -287,6 +323,7 @@ export function BookingWizard() {
             <button
               type="button"
               className="text-sk-brand"
+              aria-label={brand.labels.calMonthPrevAria}
               onClick={() => {
                 const m = addMonths(month, -1);
                 setMonth(m);
@@ -295,12 +332,13 @@ export function BookingWizard() {
             >
               ←
             </button>
-            <span className="font-medium capitalize">
+            <span className="font-medium capitalize" aria-live="polite">
               {format(month, "MMMM yyyy", { locale: appDateFnsLocale })}
             </span>
             <button
               type="button"
               className="text-sk-brand"
+              aria-label={brand.labels.calMonthNextAria}
               onClick={() => {
                 const m = addMonths(month, 1);
                 setMonth(m);
@@ -323,11 +361,15 @@ export function BookingWizard() {
               const key = format(d, "yyyy-MM-dd");
               const a = availability[key] ?? "past";
               const selectable = a === "free" || a === "partial";
+              const dateLong = format(d, "EEEE, d. MMMM yyyy", {
+                locale: appDateFnsLocale,
+              });
               return (
                 <button
                   key={key}
                   type="button"
                   disabled={!selectable}
+                  aria-label={`${dateLong} — ${availabilityAriaWord(a)}`}
                   onClick={() => {
                     setDay(key);
                     void loadSlots(key);
@@ -389,8 +431,14 @@ export function BookingWizard() {
       ) : null}
 
       {step === 3 ? (
-        <section className="sk-surface-card p-5 md:p-8">
-          <h2 className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl">
+        <section
+          className="sk-surface-card p-5 md:p-8"
+          aria-labelledby="booking-wizard-step-3-heading"
+        >
+          <h2
+            id="booking-wizard-step-3-heading"
+            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+          >
             {brand.labels.publicWizardTimeAndContact}
           </h2>
           {loadErr ? (
@@ -405,15 +453,21 @@ export function BookingWizard() {
           ) : null}
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
             <div>
-              <div className="text-sm font-medium text-sk-ink">
+              <div id="booking-wizard-slots-label" className="text-sm font-medium text-sk-ink">
                 {brand.labels.publicWizardSlotsTitle}
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div
+                className="mt-2 flex flex-wrap gap-2"
+                role="group"
+                aria-labelledby="booking-wizard-slots-label"
+              >
                 {slots.map((s) => (
                   <button
                     key={s.time}
                     type="button"
                     disabled={!s.available}
+                    aria-pressed={slotTime === s.time}
+                    aria-label={s.time}
                     onClick={() => setSlotTime(s.time)}
                     className={`rounded-full px-3 py-1 text-sm ${
                       !s.available
@@ -444,44 +498,90 @@ export function BookingWizard() {
               ) : null}
             </div>
             <div className="space-y-3 text-sm">
-              <input type="text" name="website" className="hidden" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              <input
+                type="text"
+                name="website"
+                className="hidden"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                aria-hidden="true"
+              />
               <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label htmlFor="booking-first-name" className="sr-only">
+                    {brand.labels.placeholderFirstName}
+                  </label>
+                  <input
+                    id="booking-first-name"
+                    className="w-full rounded border px-2 py-2"
+                    placeholder={brand.labels.placeholderFirstName}
+                    autoComplete="given-name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="booking-last-name" className="sr-only">
+                    {brand.labels.placeholderLastName}
+                  </label>
+                  <input
+                    id="booking-last-name"
+                    className="w-full rounded border px-2 py-2"
+                    placeholder={brand.labels.placeholderLastName}
+                    autoComplete="family-name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="booking-email" className="sr-only">
+                  {brand.labels.placeholderEmail}
+                </label>
                 <input
-                  className="rounded border px-2 py-2"
-                  placeholder={brand.labels.placeholderFirstName}
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-                <input
-                  className="rounded border px-2 py-2"
-                  placeholder={brand.labels.placeholderLastName}
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  id="booking-email"
+                  className="w-full rounded border px-2 py-2"
+                  type="email"
+                  placeholder={brand.labels.placeholderEmail}
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <input
-                className="w-full rounded border px-2 py-2"
-                type="email"
-                placeholder={brand.labels.placeholderEmail}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                className="w-full rounded border px-2 py-2"
-                placeholder={brand.labels.placeholderPhoneOptional}
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              <div className="text-xs font-medium text-sk-ink/70">
+              <div>
+                <label htmlFor="booking-phone" className="sr-only">
+                  {brand.labels.placeholderPhoneOptional}
+                </label>
+                <input
+                  id="booking-phone"
+                  className="w-full rounded border px-2 py-2"
+                  placeholder={brand.labels.placeholderPhoneOptional}
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              <div
+                className="text-xs font-medium text-sk-ink/70"
+                id="booking-wizard-niveau-label"
+              >
                 {brand.labels.clientSkillFilterLabel}
               </div>
-              <div className="mt-1 flex flex-wrap gap-2">
+              <div
+                className="mt-1 flex flex-wrap gap-2"
+                role="radiogroup"
+                aria-labelledby="booking-wizard-niveau-label"
+              >
                 {(
                   ["anfaenger", "fortgeschritten", "experte"] as const
                 ).map((k) => (
                   <button
                     key={k}
                     type="button"
+                    role="radio"
+                    aria-checked={niveau === k}
                     onClick={() => setNiveau(k)}
                     className={`rounded-full px-3 py-1 ${
                       niveau === k
@@ -493,15 +593,24 @@ export function BookingWizard() {
                   </button>
                 ))}
               </div>
-              <textarea
-                className="w-full rounded border px-2 py-2"
-                rows={3}
-                placeholder={brand.labels.placeholderMessageOptional}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
+              <div>
+                <label htmlFor="booking-message" className="sr-only">
+                  {brand.labels.placeholderMessageOptional}
+                </label>
+                <textarea
+                  id="booking-message"
+                  className="w-full rounded border px-2 py-2"
+                  rows={3}
+                  placeholder={brand.labels.placeholderMessageOptional}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </div>
               {TURNSTILE_SITE ? (
-                <div className="mt-3 rounded border border-sk-ink/10 bg-white/80 p-3">
+                <div
+                  className="mt-3 rounded border border-sk-ink/10 bg-white/80 p-3"
+                  aria-label={brand.labels.publicTurnstileLabel}
+                >
                   <p className="mb-2 text-xs text-sk-ink/60">
                     {brand.labels.publicTurnstileLabel}
                   </p>
@@ -570,7 +679,12 @@ export function BookingWizard() {
       ) : null}
 
       {step === 4 ? (
-        <section className="sk-surface-card relative overflow-hidden p-8 text-center md:p-10">
+        <section
+          className="sk-surface-card relative overflow-hidden p-8 text-center md:p-10"
+          aria-labelledby="booking-wizard-step-4-heading"
+          role="status"
+          aria-live="polite"
+        >
           <div
             className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-200/40 blur-2xl"
             aria-hidden
@@ -581,7 +695,10 @@ export function BookingWizard() {
           >
             ✓
           </div>
-          <h2 className="mt-4 text-xl font-semibold text-sk-ink">
+          <h2
+            id="booking-wizard-step-4-heading"
+            className="mt-4 text-xl font-semibold text-sk-ink"
+          >
             {brand.labels.publicThanksTitleTemplate.replace(
               "{name}",
               firstName

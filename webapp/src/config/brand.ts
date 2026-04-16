@@ -85,6 +85,8 @@ const FORK_DEFAULTS = {
     navContact: "Kontakt",
     navPrivacy: "Datenschutz",
     navImpressum: "Impressum",
+    /** Öffentlicher Bereich: Skip-Link zum Inhalt */
+    navSkipToContent: "Zum Inhalt springen",
     navGuestAppointments: "Meine Termine",
     /** Gäste-CRM: Filter nach Fähigkeitsstufe (Ski) — Fork z. B. „Level“ */
     clientSkillFilterLabel: "Niveau",
@@ -226,6 +228,8 @@ const FORK_DEFAULTS = {
     apiTurnstileFailed: "Sicherheitsprüfung fehlgeschlagen",
     apiTooManyRequests:
       "Zu viele Anfragen. Bitte später erneut versuchen.",
+    apiMaintenanceMode:
+      "Das Buchungsportal ist vorübergehend nicht erreichbar. Bitte später erneut versuchen.",
     apiPublicSlotsParamsRequired:
       "courseTypeId und date (YYYY-MM-DD) erforderlich",
     apiPublicAvailabilityParamsRequired:
@@ -382,6 +386,12 @@ const FORK_DEFAULTS = {
     guestPortalColTeacher: "Lehrkraft",
     guestPortalColStatus: "Status",
     guestPortalEmpty: "Keine Termine gefunden.",
+    guestPortalLoadingList: "Termine werden geladen …",
+    guestPortalCancelConfirmTitle: "Termin stornieren?",
+    guestPortalCancelConfirmBody:
+      "Der Termin wird als storniert markiert. Dies können Sie je nach Regelung nicht mehr rückgängig machen.",
+    guestPortalCancelConfirmBack: "Abbrechen",
+    guestPortalCancelConfirmSubmit: "Ja, stornieren",
     bookingAssignTeacherLabel: "Lehrkraft (Vertretung)",
     emailGuestPortalMagicSubject: "Ihre Termine bei {siteName}",
     emailGuestPortalMagicGreeting: "Hallo {name},",
@@ -537,6 +547,7 @@ const FORK_DEFAULTS = {
     publicAvailFree: "Frei",
     publicAvailPartial: "Teilweise",
     publicAvailFull: "Voll",
+    publicCalNotSelectable: "Nicht wählbar",
     publicApproxEndShort: "Ende ca.",
     calWeekdayMo: "Mo",
     calWeekdayDi: "Di",
@@ -545,6 +556,12 @@ const FORK_DEFAULTS = {
     calWeekdayFr: "Fr",
     calWeekdaySa: "Sa",
     calWeekdaySo: "So",
+    calMonthPrevAria: "Vorheriger Monat",
+    calMonthNextAria: "Nächster Monat",
+    bookingWizardStepperAria: "Buchungsschritte",
+    bookingWizardStepStatusTemplate: "Schritt {current} von {total}",
+    publicWizardCoursePickGroupAria: "Kurstyp wählen",
+    publicWizardNiveauGroupAria: "Niveau wählen",
     placeholderFirstName: "Vorname",
     placeholderLastName: "Nachname",
     placeholderMessageOptional: "Nachricht (optional)",
@@ -553,6 +570,24 @@ const FORK_DEFAULTS = {
     publicSummaryPriceLabel: "Preis",
     publicNoPaymentDisclaimer:
       "Keine Zahlung jetzt — wir bestätigen per E-Mail innerhalb von 24h.",
+    publicPortalPoliciesHeading: "Storno und Zahlung",
+    publicPortalPoliciesCancellationLead:
+      "Stornierungen nehmen Sie über «Meine Termine» vor, solange der Termin noch nicht durchgeführt oder bereits storniert ist.",
+    publicPortalPoliciesCancellationDeadlineTemplate:
+      "Online-Storno ist bis spätestens {hours} Stunden vor vereinbartem Terminbeginn möglich.",
+    publicPortalPoliciesPayment:
+      "Im Portal erfolgt keine Vorauszahlung. Nach Bestätigung erhalten Sie eine Rechnung; Zahlungsziel und Kontodaten entnehmen Sie der Rechnung bzw. den Angaben Ihrer Bestätigungs-E-Mail.",
+    maintenancePageBadge: "Status",
+    maintenancePageTitle: "Buchungsportal in Wartung",
+    maintenancePageMetaDescription:
+      "Das öffentliche Buchungsportal ist vorübergehend nicht verfügbar.",
+    maintenancePageBody:
+      "Wir führen gerade Arbeiten am System durch oder das Portal ist kurzzeitig eingeschränkt. Bitte versuchen Sie es später erneut oder schreiben Sie uns eine E-Mail.",
+    maintenancePageMagicLinkHint:
+      "Wenn Sie einen Zugangslink aus einer E-Mail geöffnet haben: Bitte denselben Link nach Ende der Wartung erneut anklicken (der Link in der Adresszeile wird bei Wartung nicht übernommen).",
+    homeMaintenanceBannerText:
+      "Hinweis: Das Buchungsportal ist vorübergehend in Wartung.",
+    homeMaintenanceBannerCta: "Details zur Wartung",
     publicThanksTitleTemplate: "Vielen Dank, {name}!",
     publicThanksIntroTemplate:
       "Ihre {request} wurde erhalten. Sie erhalten in Kürze eine Bestätigung an",

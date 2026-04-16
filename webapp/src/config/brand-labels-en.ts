@@ -41,6 +41,7 @@ export const BRAND_LABELS_EN = {
   navContact: "Contact",
   navPrivacy: "Privacy",
   navImpressum: "Legal notice",
+  navSkipToContent: "Skip to main content",
   navGuestAppointments: "My appointments",
   navDashboard: "Dashboard",
   clientSkillFilterLabel: "Level",
@@ -124,6 +125,8 @@ export const BRAND_LABELS_EN = {
   apiNotFound: "Not found",
   apiValidationDefault: "Invalid input",
   apiTooManyRequests: "Too many requests. Please try again later.",
+  apiMaintenanceMode:
+    "The booking portal is temporarily unavailable. Please try again later.",
   adminRequestConfirm: "Confirm",
   adminRequestReject: "Decline",
   adminRequestConfirmedToastTemplate:
@@ -164,6 +167,7 @@ export const BRAND_LABELS_EN = {
   publicAvailFree: "Free",
   publicAvailPartial: "Partial",
   publicAvailFull: "Full",
+  publicCalNotSelectable: "Not selectable",
   publicApproxEndShort: "Ends approx.",
   calWeekdayMo: "Mon",
   calWeekdayDi: "Tue",
@@ -172,6 +176,12 @@ export const BRAND_LABELS_EN = {
   calWeekdayFr: "Fri",
   calWeekdaySa: "Sat",
   calWeekdaySo: "Sun",
+  calMonthPrevAria: "Previous month",
+  calMonthNextAria: "Next month",
+  bookingWizardStepperAria: "Booking steps",
+  bookingWizardStepStatusTemplate: "Step {current} of {total}",
+  publicWizardCoursePickGroupAria: "Choose course type",
+  publicWizardNiveauGroupAria: "Choose level",
   placeholderFirstName: "First name",
   placeholderLastName: "Last name",
   placeholderMessageOptional: "Message (optional)",
@@ -180,6 +190,24 @@ export const BRAND_LABELS_EN = {
   publicSummaryPriceLabel: "Price",
   publicNoPaymentDisclaimer:
     "No payment now — we confirm by email within 24 hours.",
+  publicPortalPoliciesHeading: "Cancellation and payment",
+  publicPortalPoliciesCancellationLead:
+    "Cancel via “My appointments” while the session is still scheduled and not yet completed.",
+  publicPortalPoliciesCancellationDeadlineTemplate:
+    "Online cancellation is possible until {hours} hours before the agreed start time.",
+  publicPortalPoliciesPayment:
+    "There is no prepayment in this portal. After confirmation you will receive an invoice; payment terms and bank details are on the invoice or in your confirmation email.",
+  maintenancePageBadge: "Status",
+  maintenancePageTitle: "Booking portal under maintenance",
+  maintenancePageMetaDescription:
+    "The public booking portal is temporarily unavailable.",
+  maintenancePageBody:
+    "We are performing maintenance or the portal is briefly limited. Please try again later or email us.",
+  maintenancePageMagicLinkHint:
+    "If you opened an access link from an email: please use the same link again after maintenance (the address bar link is not kept during maintenance).",
+  homeMaintenanceBannerText:
+    "Note: The booking portal is temporarily under maintenance.",
+  homeMaintenanceBannerCta: "Maintenance details",
   publicThanksTitleTemplate: "Thank you, {name}!",
   publicThanksIntroTemplate:
     "Your {request} was received. You will get a confirmation shortly at",
@@ -499,6 +527,12 @@ export const BRAND_LABELS_EN = {
   guestPortalColTeacher: "Instructor",
   guestPortalColStatus: "Status",
   guestPortalEmpty: "No appointments found.",
+  guestPortalLoadingList: "Loading appointments…",
+  guestPortalCancelConfirmTitle: "Cancel this appointment?",
+  guestPortalCancelConfirmBody:
+    "The appointment will be marked as cancelled. You may not be able to undo this depending on the policy.",
+  guestPortalCancelConfirmBack: "Go back",
+  guestPortalCancelConfirmSubmit: "Yes, cancel",
   bookingAssignTeacherLabel: "Instructor (substitution)",
   emailGuestPortalMagicSubject: "Your appointments at {siteName}",
   emailGuestPortalMagicGreeting: "Hello {name},",

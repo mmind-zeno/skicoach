@@ -105,6 +105,7 @@ export const authConfig = {
         path.startsWith("/buchen") ||
         path.startsWith("/datenschutz") ||
         path.startsWith("/impressum") ||
+        path.startsWith("/wartung") ||
         path.startsWith("/api/auth") ||
         path.startsWith("/api/public")
       ) {

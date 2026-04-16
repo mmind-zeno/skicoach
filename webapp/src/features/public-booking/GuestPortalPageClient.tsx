@@ -2,7 +2,7 @@
 
 import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Row = {
   id: string;
@@ -17,13 +17,19 @@ type Row = {
   invoiceNumber: string | null;
 };
 
-export function GuestPortalPageClient() {
+type Props = {
+  cancelMinHours: number;
+};
+
+export function GuestPortalPageClient({ cancelMinHours }: Props) {
   const [email, setEmail] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingCancelId, setPendingCancelId] = useState<string | null>(null);
+  const cancelDialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -74,6 +80,16 @@ export function GuestPortalPageClient() {
     if (token) void load(token);
   }, [token, load]);
 
+  useEffect(() => {
+    const el = cancelDialogRef.current;
+    if (!el) return;
+    if (pendingCancelId) {
+      if (!el.open) el.showModal();
+    } else if (el.open) {
+      el.close();
+    }
+  }, [pendingCancelId]);
+
   async function requestLink(ev: React.FormEvent) {
     ev.preventDefault();
     setErr(null);
@@ -99,9 +115,8 @@ export function GuestPortalPageClient() {
     }
   }
 
-  async function cancelBooking(id: string) {
+  async function cancelBookingConfirmed(id: string) {
     if (!token) return;
-    if (!confirm(`${brand.labels.guestPortalCancel}?`)) return;
     setBusy(true);
     setErr(null);
     try {
@@ -145,25 +160,33 @@ export function GuestPortalPageClient() {
         <p className="mt-2 text-sm text-sk-ink/80">
           {brand.labels.guestPortalPageIntro}
         </p>
-        <form onSubmit={requestLink} className="mt-6 space-y-3">
-          <label className="block text-sm font-medium text-sk-ink">
-            {brand.labels.guestPortalEmailLabel}
+        <form onSubmit={requestLink} className="mt-6 space-y-3" noValidate>
+          <div>
+            <label
+              htmlFor="guest-portal-email"
+              className="block text-sm font-medium text-sk-ink"
+            >
+              {brand.labels.guestPortalEmailLabel}
+            </label>
             <input
+              id="guest-portal-email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full rounded-lg border border-sk-ink/20 bg-white px-3 py-2.5 text-sk-ink outline-none ring-sk-brand focus:ring-2"
               autoComplete="email"
+              aria-invalid={err ? true : undefined}
+              aria-describedby={err ? "guest-portal-email-error" : undefined}
             />
-          </label>
+          </div>
           {err ? (
-            <p className="text-sm text-red-700" role="alert">
+            <p id="guest-portal-email-error" className="text-sm text-red-700" role="alert">
               {err}
             </p>
           ) : null}
           {msg ? (
-            <p className="text-sm text-emerald-800" role="status">
+            <p className="text-sm text-emerald-800" role="status" aria-live="polite">
               {msg}
             </p>
           ) : null}
@@ -179,8 +202,50 @@ export function GuestPortalPageClient() {
     );
   }
 
+  const cancelDeadlineHint =
+    brand.labels.publicPortalPoliciesCancellationDeadlineTemplate.replace(
+      "{hours}",
+      String(cancelMinHours)
+    );
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
+      <dialog
+        ref={cancelDialogRef}
+        className="w-[calc(100%-2rem)] max-w-md rounded-2xl border border-sk-ink/15 bg-white p-6 shadow-xl backdrop:bg-black/40"
+        aria-labelledby="guest-portal-cancel-title"
+        aria-describedby="guest-portal-cancel-desc"
+        onClose={() => setPendingCancelId(null)}
+      >
+        <h2 id="guest-portal-cancel-title" className="text-lg font-semibold text-sk-ink">
+          {brand.labels.guestPortalCancelConfirmTitle}
+        </h2>
+        <p id="guest-portal-cancel-desc" className="mt-2 text-sm text-sk-ink/80">
+          {brand.labels.guestPortalCancelConfirmBody}
+        </p>
+        <p className="mt-2 text-xs text-sk-ink/65">{cancelDeadlineHint}</p>
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            className="rounded-lg border border-sk-outline/40 px-4 py-2 text-sm font-medium text-sk-brand"
+            onClick={() => setPendingCancelId(null)}
+          >
+            {brand.labels.guestPortalCancelConfirmBack}
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-900"
+            disabled={busy}
+            onClick={() => {
+              const id = pendingCancelId;
+              setPendingCancelId(null);
+              if (id) void cancelBookingConfirmed(id);
+            }}
+          >
+            {brand.labels.guestPortalCancelConfirmSubmit}
+          </button>
+        </div>
+      </dialog>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-sk-ink">
           {brand.labels.guestPortalPageTitle}
@@ -193,13 +258,16 @@ export function GuestPortalPageClient() {
           {brand.labels.guestPortalLogout}
         </button>
       </div>
+      <p className="mt-2 text-xs text-sk-ink/65">{cancelDeadlineHint}</p>
       {err ? (
-        <p className="mt-3 text-sm text-red-700" role="alert">
+        <p className="mt-3 text-sm text-red-700" role="alert" aria-live="assertive">
           {err}
         </p>
       ) : null}
       {busy && !rows ? (
-        <p className="mt-6 text-sm text-sk-ink/60">…</p>
+        <p className="mt-6 text-sm text-sk-ink/60" role="status" aria-live="polite">
+          {brand.labels.guestPortalLoadingList}
+        </p>
       ) : null}
       {rows && rows.length === 0 ? (
         <p className="mt-6 text-sm text-sk-ink/70">{brand.labels.guestPortalEmpty}</p>
@@ -259,7 +327,7 @@ export function GuestPortalPageClient() {
                     <button
                       type="button"
                       disabled={busy}
-                      onClick={() => void cancelBooking(r.id)}
+                      onClick={() => setPendingCancelId(r.id)}
                       className="rounded-lg bg-zinc-200 px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-300 disabled:opacity-50"
                     >
                       {brand.labels.guestPortalCancel}
