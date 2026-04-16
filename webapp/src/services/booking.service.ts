@@ -27,6 +27,7 @@ import type {
   BookingStatus,
 } from "../features/calendar/types";
 import { brand } from "../config/brand";
+import { toGuest } from "./guest.service";
 
 function toTeacherDto(u: typeof users.$inferSelect) {
   return {
@@ -34,21 +35,6 @@ function toTeacherDto(u: typeof users.$inferSelect) {
     name: u.name,
     email: u.email,
     colorIndex: u.colorIndex,
-  };
-}
-
-function toGuestDto(g: typeof guests.$inferSelect) {
-  return {
-    id: g.id,
-    name: g.name,
-    email: g.email,
-    phone: g.phone,
-    niveau: g.niveau,
-    language: g.language,
-    notes: g.notes,
-    company: g.company ?? null,
-    crmSource: g.crmSource ?? null,
-    createdAt: g.createdAt.toISOString(),
   };
 }
 
@@ -90,7 +76,7 @@ function toBookingDto(
     paymentStatus: (b.paymentStatus ?? "none") as BookingPaymentStatus,
     paymentExternalRef: b.paymentExternalRef ?? null,
     createdAt: b.createdAt.toISOString(),
-    guest: toGuestDto(guest),
+    guest: toGuest(guest),
     teacher: toTeacherDto(teacher),
     courseType: toCourseDto(courseType),
   };

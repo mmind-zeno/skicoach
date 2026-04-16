@@ -1,6 +1,6 @@
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { bookings, guestContacts, guests, users } from "../../drizzle/schema";
-import { getDb, getPool } from "../lib/db";
+import { getDb } from "../lib/db";
 import { NotFoundError, ValidationError } from "../lib/errors";
 import type {
   CreateGuestInput,
@@ -8,40 +8,13 @@ import type {
   GuestBookingSummary,
   GuestContactEntry,
   GuestContactKind,
+  GuestGender,
   GuestListItem,
+  GuestPreferredContactChannel,
   GuestWithBookings,
   UpdateGuestInput,
 } from "../features/guests/types";
 import { brand } from "../config/brand";
-
-/** Ohne CRM-Spalten: SELECT/RETURNING referenziert company/crm_source nicht (Legacy-DBs vor 0002/0005). */
-const guestDbCoreReturning = {
-  id: guests.id,
-  name: guests.name,
-  email: guests.email,
-  phone: guests.phone,
-  niveau: guests.niveau,
-  language: guests.language,
-  notes: guests.notes,
-  createdAt: guests.createdAt,
-} as const;
-
-const guestDbFullReturning = {
-  ...guestDbCoreReturning,
-  company: guests.company,
-  crmSource: guests.crmSource,
-} as const;
-
-const guestQueryColumnsMinimal = {
-  id: true,
-  name: true,
-  email: true,
-  phone: true,
-  niveau: true,
-  language: true,
-  notes: true,
-  createdAt: true,
-} as const;
 
 function rowCreatedAtToIso(value: unknown): string {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -55,7 +28,45 @@ function rowCreatedAtToIso(value: unknown): string {
   return new Date().toISOString();
 }
 
-function toGuest(row: typeof guests.$inferSelect): Guest {
+function dateOfBirthToIso(value: unknown): string | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  return null;
+}
+
+function parseGender(value: string | null): GuestGender | null {
+  if (!value) return null;
+  if (
+    value === "weiblich" ||
+    value === "maennlich" ||
+    value === "divers" ||
+    value === "unbekannt"
+  ) {
+    return value;
+  }
+  return null;
+}
+
+function parseChannel(
+  value: string | null
+): GuestPreferredContactChannel | null {
+  if (!value) return null;
+  if (
+    value === "email" ||
+    value === "phone" ||
+    value === "sms" ||
+    value === "whatsapp"
+  ) {
+    return value;
+  }
+  return null;
+}
+
+export function toGuest(row: typeof guests.$inferSelect): Guest {
   return {
     id: row.id,
     name: row.name,
@@ -66,6 +77,22 @@ function toGuest(row: typeof guests.$inferSelect): Guest {
     notes: row.notes,
     company: row.company ?? null,
     crmSource: row.crmSource ?? null,
+    salutation: row.salutation ?? null,
+    street: row.street ?? null,
+    postalCode: row.postalCode ?? null,
+    city: row.city ?? null,
+    country: row.country ?? null,
+    dateOfBirth: dateOfBirthToIso(row.dateOfBirth),
+    gender: parseGender(row.gender),
+    nationality: row.nationality ?? null,
+    heightCm: row.heightCm ?? null,
+    weightKg: row.weightKg ?? null,
+    shoeSizeEu: row.shoeSizeEu ?? null,
+    emergencyContactName: row.emergencyContactName ?? null,
+    emergencyContactPhone: row.emergencyContactPhone ?? null,
+    medicalNotes: row.medicalNotes ?? null,
+    preferredContactChannel: parseChannel(row.preferredContactChannel),
+    marketingOptIn: row.marketingOptIn ?? false,
     createdAt: rowCreatedAtToIso(row.createdAt),
   };
 }
@@ -104,6 +131,22 @@ export async function listGuestsForSelect(
       notes: row.notes,
       company: row.company,
       crmSource: row.crmSource,
+      salutation: row.salutation,
+      street: row.street,
+      postalCode: row.postalCode,
+      city: row.city,
+      country: row.country,
+      dateOfBirth: row.dateOfBirth,
+      gender: row.gender,
+      nationality: row.nationality,
+      heightCm: row.heightCm,
+      weightKg: row.weightKg,
+      shoeSizeEu: row.shoeSizeEu,
+      emergencyContactName: row.emergencyContactName,
+      emergencyContactPhone: row.emergencyContactPhone,
+      medicalNotes: row.medicalNotes,
+      preferredContactChannel: row.preferredContactChannel,
+      marketingOptIn: row.marketingOptIn,
       createdAt: row.createdAt,
     })
   );
@@ -123,7 +166,11 @@ export async function findAll(
         ilike(guests.name, `%${q}%`),
         ilike(guests.email, `%${q}%`),
         ilike(guests.phone, `%${q}%`),
-        ilike(guests.company, `%${q}%`)
+        ilike(guests.company, `%${q}%`),
+        ilike(guests.city, `%${q}%`),
+        ilike(guests.postalCode, `%${q}%`),
+        ilike(guests.street, `%${q}%`),
+        ilike(guests.nationality, `%${q}%`)
       )
     : undefined;
 
@@ -176,7 +223,6 @@ export async function findByIdWithBookings(id: string): Promise<GuestWithBooking
     where: eq(guests.id, id),
     with: {
       bookings: {
-        /** Nur Kern-Spalten — vermeidet „column does not exist“, wenn 0008+ noch nicht migriert. */
         columns: {
           id: true,
           teacherId: true,
@@ -247,68 +293,47 @@ export async function findByIdWithBookings(id: string): Promise<GuestWithBooking
   };
 }
 
-export async function createGuest(input: CreateGuestInput): Promise<Guest> {
-  const db = getDb();
-  const base = {
+function dateInputToDb(value: string | null | undefined): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const d = new Date(`${value}T12:00:00.000Z`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function buildInsertValues(
+  input: CreateGuestInput
+): typeof guests.$inferInsert {
+  return {
     name: input.name.trim(),
     email: input.email?.trim() || null,
     phone: input.phone?.trim() || null,
     niveau: input.niveau ?? "anfaenger",
     language: input.language ?? brand.defaultGuestLanguage,
     notes: input.notes?.trim() || null,
-  };
-  const withCrm =
-    input.company !== undefined || input.crmSource !== undefined;
-
-  if (!withCrm) {
-    /** Drizzle insert listet alle Tabellenspalten inkl. company/crm_source (DEFAULT) — schlägt fehl, wenn Spalten fehlen. */
-    const { rows } = await getPool().query<
-      Pick<
-        typeof guests.$inferSelect,
-        | "id"
-        | "name"
-        | "email"
-        | "phone"
-        | "niveau"
-        | "language"
-        | "notes"
-        | "createdAt"
-      >
-    >(
-      `INSERT INTO guests (name, email, phone, niveau, language, notes)
-       VALUES ($1, $2, $3, $4::guest_niveau, $5, $6)
-       RETURNING id, name, email, phone, niveau, language, notes, created_at AS "createdAt"`,
-      [
-        base.name,
-        base.email,
-        base.phone,
-        base.niveau,
-        base.language,
-        base.notes,
-      ]
-    );
-    const row = rows[0];
-    if (!row) {
-      throw new ValidationError(
-        `${brand.labels.clientSingular} konnte nicht angelegt werden`
-      );
-    }
-    return toGuest({
-      ...row,
-      company: null,
-      crmSource: null,
-    } as typeof guests.$inferSelect);
-  }
-
-  const values = {
-    ...base,
     company: input.company?.trim() || null,
     crmSource: input.crmSource?.trim() || null,
+    salutation: input.salutation?.trim() || null,
+    street: input.street?.trim() || null,
+    postalCode: input.postalCode?.trim() || null,
+    city: input.city?.trim() || null,
+    country: input.country?.trim() || null,
+    dateOfBirth: dateInputToDb(input.dateOfBirth ?? null),
+    gender: input.gender ?? null,
+    nationality: input.nationality?.trim() || null,
+    heightCm: input.heightCm ?? null,
+    weightKg: input.weightKg ?? null,
+    shoeSizeEu: input.shoeSizeEu?.trim() || null,
+    emergencyContactName: input.emergencyContactName?.trim() || null,
+    emergencyContactPhone: input.emergencyContactPhone?.trim() || null,
+    medicalNotes: input.medicalNotes?.trim() || null,
+    preferredContactChannel: input.preferredContactChannel ?? null,
+    marketingOptIn: input.marketingOptIn ?? false,
   };
-  const [row] = await db
-    .insert(guests)
-    .values(values)
-    .returning(guestDbFullReturning);
+}
+
+export async function createGuest(input: CreateGuestInput): Promise<Guest> {
+  const db = getDb();
+  const values = buildInsertValues(input);
+  const [row] = await db.insert(guests).values(values).returning();
   if (!row) {
     throw new ValidationError(
       `${brand.labels.clientSingular} konnte nicht angelegt werden`
@@ -339,7 +364,36 @@ export async function updateGuest(id: string, input: UpdateGuestInput): Promise<
   if (input.language !== undefined) patch.language = input.language;
   if (input.notes !== undefined) patch.notes = input.notes?.trim() || null;
   if (input.company !== undefined) patch.company = input.company?.trim() || null;
-  if (input.crmSource !== undefined) patch.crmSource = input.crmSource?.trim() || null;
+  if (input.crmSource !== undefined)
+    patch.crmSource = input.crmSource?.trim() || null;
+  if (input.salutation !== undefined)
+    patch.salutation = input.salutation?.trim() || null;
+  if (input.street !== undefined) patch.street = input.street?.trim() || null;
+  if (input.postalCode !== undefined)
+    patch.postalCode = input.postalCode?.trim() || null;
+  if (input.city !== undefined) patch.city = input.city?.trim() || null;
+  if (input.country !== undefined)
+    patch.country = input.country?.trim() || null;
+  if (input.dateOfBirth !== undefined)
+    patch.dateOfBirth = dateInputToDb(input.dateOfBirth);
+  if (input.gender !== undefined) patch.gender = input.gender;
+  if (input.nationality !== undefined)
+    patch.nationality = input.nationality?.trim() || null;
+  if (input.heightCm !== undefined) patch.heightCm = input.heightCm;
+  if (input.weightKg !== undefined) patch.weightKg = input.weightKg;
+  if (input.shoeSizeEu !== undefined)
+    patch.shoeSizeEu = input.shoeSizeEu?.trim() || null;
+  if (input.emergencyContactName !== undefined)
+    patch.emergencyContactName = input.emergencyContactName?.trim() || null;
+  if (input.emergencyContactPhone !== undefined)
+    patch.emergencyContactPhone = input.emergencyContactPhone?.trim() || null;
+  if (input.medicalNotes !== undefined)
+    patch.medicalNotes = input.medicalNotes?.trim() || null;
+  if (input.preferredContactChannel !== undefined)
+    patch.preferredContactChannel = input.preferredContactChannel;
+  if (input.marketingOptIn !== undefined)
+    patch.marketingOptIn = input.marketingOptIn;
+
   if (Object.keys(patch).length === 0) return getGuestById(id);
   await getDb().update(guests).set(patch).where(eq(guests.id, id));
   return getGuestById(id);
@@ -402,14 +456,9 @@ export async function findOrCreateByEmail(
   const normalized = email.trim().toLowerCase();
   const existing = await getDb().query.guests.findFirst({
     where: eq(guests.email, normalized),
-    columns: guestQueryColumnsMinimal,
   });
   if (existing) {
-    return toGuest({
-      ...existing,
-      company: null,
-      crmSource: null,
-    } as typeof guests.$inferSelect);
+    return toGuest(existing);
   }
   return createGuest({
     name: name.trim(),

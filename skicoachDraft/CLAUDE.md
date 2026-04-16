@@ -3,7 +3,7 @@
 > Dieses Dokument ist die verbindliche Architektur- und Coding-Referenz.
 > Claude Code liest dieses File automatisch und befolgt alle Regeln in jedem Prompt.
 
-**Release (Webapp):** `0.9.4` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
+**Release (Webapp):** `0.9.5` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### Interner Bereich (Login erforderlich)
 - Kalender & Terminverwaltung 15+ Skilehrer (react-big-calendar)
-- Gästedatenbank
+- Gästedatenbank (CRM-Profil: Adresse, Person, Ausrüstung, Notfall, Marketing-Opt-in — siehe Schema unten)
 - Rechnungen automatisch (PDF, CHF, 7.7% MwSt LI)
 - Team-Chat (Socket.io)
 - Admin-Panel
@@ -123,6 +123,13 @@ Schrift:        12–15px, Weights: 400 body / 500 labels — Pilot: Plus Jakart
 - Lokalisation: Deutsch (date-fns de Locale)
 ```
 
+### iCal-Feed, Google Calendar & Outlook (read-only)
+
+- **Bereits vorhanden:** **iCal-Feed** pro Lehrer — `GET /api/calendar/ical?token=…` mit HMAC-signiertem Token (`userId` + Ablauf), Secret `ICAL_FEED_SECRET` (Fallback `AUTH_SECRET`), siehe `src/lib/ical-feed-token.ts`. Feature-Flag: `NEXT_PUBLIC_FEATURE_ICAL` (Default an).
+- **Google Calendar:** „Weitere Kalender“ → „Per URL“ → Feed-URL eintragen (read-only Abo, Aktualisierung seitens Google verzögert möglich).
+- **Outlook (Web/Desktop):** „Kalender hinzufügen“ → „Aus dem Internet abonnieren“ / Subscribe — gleiche ICS-URL.
+- **Nicht implementiert (Ausblick):** Zwei-Wege-Sync oder „Termin in Google anlegen“ braucht **Google Calendar API** bzw. **Microsoft Graph** mit OAuth pro Nutzer, Refresh-Tokens in DB und Idempotenz (externe Event-IDs). Das ist deutlich mehr Aufwand als der Feed; sinnvoll als separates Epic.
+
 ---
 
 ## Architektur (nie brechen)
@@ -187,9 +194,14 @@ Route-Gruppen wie `app/(internal)/` erscheinen **nicht** in der URL. Middleware 
 users: id, name, email, emailVerified, image (Profil-URL, nullable),
        role(admin|teacher), phone, colorIndex(0-5), isActive, createdAt
 
-// guests — Gäste
+// guests — Gäste (CRM)
 guests: id, name, email, phone, niveau(anfaenger|fortgeschritten|experte),
-        language(de), notes, createdAt
+        language(de), notes, createdAt,
+        salutation?, street?, postalCode?, city?, country?,
+        dateOfBirth?(date), gender?, nationality?,
+        heightCm?, weightKg?, shoeSizeEu?,
+        emergencyContactName?, emergencyContactPhone?,
+        medicalNotes?, preferredContactChannel?, marketingOptIn(boolean, default false)
 
 // courseTypes — Kurstypen
 courseTypes: id, name, durationMin, priceCHF, maxParticipants,
@@ -307,4 +319,4 @@ Fehlerklassen: UnauthorizedError | ForbiddenError | NotFoundError in src/lib/err
 
 ---
 
-*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.4***
+*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.5***

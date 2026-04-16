@@ -39,6 +39,22 @@ export async function PATCH(
       notes: body.notes,
       company: body.company,
       crmSource: body.crmSource,
+      salutation: body.salutation,
+      street: body.street,
+      postalCode: body.postalCode,
+      city: body.city,
+      country: body.country,
+      dateOfBirth: body.dateOfBirth,
+      gender: body.gender,
+      nationality: body.nationality,
+      heightCm: body.heightCm,
+      weightKg: body.weightKg,
+      shoeSizeEu: body.shoeSizeEu,
+      emergencyContactName: body.emergencyContactName,
+      emergencyContactPhone: body.emergencyContactPhone,
+      medicalNotes: body.medicalNotes,
+      preferredContactChannel: body.preferredContactChannel,
+      marketingOptIn: body.marketingOptIn,
     });
     return NextResponse.json(guest);
   } catch (e) {

@@ -38,6 +38,9 @@ export function GuestList({
                 {brand.labels.labelEmail}
               </th>
               <th className="px-4 py-3">{brand.labels.guestListPhoneAbbrev}</th>
+              <th className="px-4 py-3 hidden md:table-cell">
+                {brand.labels.guestListCityAbbrev}
+              </th>
               <th className="px-4 py-3 hidden lg:table-cell">
                 {brand.labels.labelCompany}
               </th>
@@ -66,6 +69,9 @@ export function GuestList({
                 </td>
                 <td className="px-4 py-2.5 text-sk-ink/70">
                   {g.phone ?? brand.labels.uiEmDash}
+                </td>
+                <td className="px-4 py-2.5 text-sk-ink/65 hidden md:table-cell">
+                  {g.city ?? brand.labels.uiEmDash}
                 </td>
                 <td className="px-4 py-2.5 text-sk-ink/60 hidden lg:table-cell">
                   {g.company ?? brand.labels.uiEmDash}

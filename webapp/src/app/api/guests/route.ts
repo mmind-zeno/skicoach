@@ -36,6 +36,22 @@ export async function POST(request: Request) {
         notes: d.notes ?? null,
         company: d.company?.trim() || null,
         crmSource: d.crmSource?.trim() || null,
+        salutation: d.salutation?.trim() || null,
+        street: d.street?.trim() || null,
+        postalCode: d.postalCode?.trim() || null,
+        city: d.city?.trim() || null,
+        country: d.country?.trim() || null,
+        dateOfBirth: d.dateOfBirth ?? null,
+        gender: d.gender ?? null,
+        nationality: d.nationality?.trim() || null,
+        heightCm: d.heightCm ?? null,
+        weightKg: d.weightKg ?? null,
+        shoeSizeEu: d.shoeSizeEu?.trim() || null,
+        emergencyContactName: d.emergencyContactName?.trim() || null,
+        emergencyContactPhone: d.emergencyContactPhone?.trim() || null,
+        medicalNotes: d.medicalNotes?.trim() || null,
+        preferredContactChannel: d.preferredContactChannel ?? null,
+        marketingOptIn: d.marketingOptIn ?? false,
       });
       return NextResponse.json(g, { status: 201 });
     }
