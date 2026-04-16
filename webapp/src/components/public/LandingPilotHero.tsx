@@ -11,6 +11,10 @@ type Props = {
   ctaSecondaryClass: string;
 };
 
+/** Unsplash: schneebedeckte Berggipfel über Wolken — Stockfoto, Unsplash-Lizenz; kein KI-Generator. */
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=85";
+
 /** Alpine-Hero im Stitch-Pilot-Stil (ohne externe Google-CDNs). */
 export function LandingPilotHero({
   preview = <ProductPreviewBooking />,
@@ -22,15 +26,15 @@ export function LandingPilotHero({
     <section className="relative -mx-4 mb-8 min-h-[min(88vh,52rem)] overflow-hidden rounded-2xl sm:-mx-0 sm:rounded-3xl md:mb-10">
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1551524164-687a55dd1126?auto=format&fit=crop&w=2000&q=80"
-          alt=""
+          src={HERO_IMAGE}
+          alt="Schneebedeckte Alpengipfel über einer Wolkendecke, kühles Tageslicht"
           fill
-          className="object-cover"
+          className="object-cover object-[center_20%] sm:object-[center_25%]"
           sizes="(max-width: 768px) 100vw, 1200px"
           priority
         />
         <div
-          className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/45 to-white/10"
+          className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/35 to-transparent"
           aria-hidden
         />
       </div>
