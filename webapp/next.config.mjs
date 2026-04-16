@@ -8,6 +8,15 @@ const pkg = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8"));
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
+  },
   // Kein `standalone`: Docker nutzt Custom Server (`server.ts`) mit Socket.io auf gleichem Port.
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,

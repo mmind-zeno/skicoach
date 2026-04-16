@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { brand } from "@/config/brand";
 import { getPublicSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
@@ -7,6 +7,12 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-ascent-sans",
   display: "swap",
 });
 
@@ -62,7 +68,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang={brand.htmlLang}>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

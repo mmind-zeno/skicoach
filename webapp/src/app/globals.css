@@ -68,7 +68,24 @@ body {
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
   }
 
-  .public-safe-t {
+   .public-safe-t {
     padding-top: max(0.25rem, env(safe-area-inset-top, 0px));
+  }
+
+  /**
+   * Stitch „Atmospheric Ascent“ — nur Startseiten-Pilot (siehe `isLandingPilotEnabled`).
+   */
+  .landing-pilot {
+    --ascent-primary: #0058bc;
+    --ascent-primary-container: #0070eb;
+    --ascent-on-surface: #191c1e;
+    --ascent-on-surface-variant: #414755;
+    --ascent-surface: #f7f9fb;
+    --ascent-container-low: #f2f4f6;
+    font-family: var(--font-ascent-sans), var(--font-inter), system-ui, sans-serif;
+  }
+
+  .landing-pilot .skip-to-main {
+    @apply bg-[var(--ascent-primary)] focus:ring-[var(--ascent-primary-container)];
   }
 }
