@@ -309,6 +309,25 @@ export const BRAND_LABELS_EN = {
   loginFallbackLoading: "Loading…",
   loginLinkToHome: "Back to home",
   calendarPickAppointmentHintTemplate: "Select an {appointment} in the calendar…",
+  calendarExternalSubscribeTitle: "External calendar (Google, Outlook, Apple)",
+  calendarExternalLoading: "Loading calendar link…",
+  calendarExternalSubscribeLead:
+    "Subscribe to your Skicoach appointments (read-only). Updates in the other app may be delayed.",
+  calendarExternalHttpsUrlLabel: "Link (https)",
+  calendarExternalWebcalUrlLabel: "Subscription link (webcal)",
+  calendarExternalCopyButton: "Copy",
+  calendarExternalCopiedToast: "Copied to clipboard.",
+  calendarExternalCopyFailed: "Could not copy.",
+  calendarExternalOpenWebcal: "Open subscription",
+  calendarExternalInstructionsGoogle:
+    "Google Calendar: Settings → Add calendar → From URL → paste the link.",
+  calendarExternalInstructionsOutlook:
+    "Outlook (web/desktop): Add calendar → Subscribe from web → paste the link.",
+  calendarExternalInstructionsApple:
+    "Apple Calendar: File → New calendar subscription → paste the link.",
+  calendarExternalPrivacyNote:
+    "Treat the link like a password — anyone with it can see your appointments in this feed.",
+  calendarExternalLoadError: "Could not load calendar link.",
   guestPageSelectClientHintTemplate: "Select a {client}…",
   bookingModalInvalidSlot: "Invalid time slot.",
   bookingModalPickClientOrNewTemplate: "Please select or create a {client}.",

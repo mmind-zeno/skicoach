@@ -11,6 +11,7 @@ import { BookingCreateModal } from "./BookingCreateModal";
 import { BookingDetailPanel } from "./BookingDetailPanel";
 import { CalendarView } from "./CalendarView";
 import { ScheduleContextLegend } from "./ScheduleContextLegend";
+import { ExternalCalendarSubscribeCard } from "./ExternalCalendarSubscribeCard";
 import { TeacherLegend, type TeacherLegendItem } from "./TeacherLegend";
 import type { CalendarEventItem, CalendarOverlayResource } from "../types";
 import { brand } from "@/config/brand";
@@ -244,6 +245,8 @@ export function CalendarShell({
           ) : null}
         </div>
       </header>
+
+      <ExternalCalendarSubscribeCard />
 
       {error ? (
         <p className="text-sm text-red-700" role="alert">

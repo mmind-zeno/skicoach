@@ -3,7 +3,7 @@
 > Dieses Dokument ist die verbindliche Architektur- und Coding-Referenz.
 > Claude Code liest dieses File automatisch und befolgt alle Regeln in jedem Prompt.
 
-**Release (Webapp):** `0.9.5` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
+**Release (Webapp):** `0.9.6` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
 
 ---
 
@@ -126,6 +126,7 @@ Schrift:        12–15px, Weights: 400 body / 500 labels — Pilot: Plus Jakart
 ### iCal-Feed, Google Calendar & Outlook (read-only)
 
 - **Bereits vorhanden:** **iCal-Feed** pro Lehrer — `GET /api/calendar/ical?token=…` mit HMAC-signiertem Token (`userId` + Ablauf), Secret `ICAL_FEED_SECRET` (Fallback `AUTH_SECRET`), siehe `src/lib/ical-feed-token.ts`. Feature-Flag: `NEXT_PUBLIC_FEATURE_ICAL` (Default an).
+- **Link für eingeloggte Lehrkräfte:** `GET /api/calendar/feed-link` (Session) liefert `{ httpsUrl, webcalUrl }`. UI: Karte auf `/kalender` (`ExternalCalendarSubscribeCard.tsx`).
 - **Google Calendar:** „Weitere Kalender“ → „Per URL“ → Feed-URL eintragen (read-only Abo, Aktualisierung seitens Google verzögert möglich).
 - **Outlook (Web/Desktop):** „Kalender hinzufügen“ → „Aus dem Internet abonnieren“ / Subscribe — gleiche ICS-URL.
 - **Nicht implementiert (Ausblick):** Zwei-Wege-Sync oder „Termin in Google anlegen“ braucht **Google Calendar API** bzw. **Microsoft Graph** mit OAuth pro Nutzer, Refresh-Tokens in DB und Idempotenz (externe Event-IDs). Das ist deutlich mehr Aufwand als der Feed; sinnvoll als separates Epic.
@@ -319,4 +320,4 @@ Fehlerklassen: UnauthorizedError | ForbiddenError | NotFoundError in src/lib/err
 
 ---
 
-*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.5***
+*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.6***

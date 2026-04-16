@@ -705,6 +705,26 @@ const FORK_DEFAULTS = {
       "RESEND_API_KEY fehlt — Magic-Link kann nicht versendet werden.",
     calendarPickAppointmentHintTemplate:
       "{appointment} im Kalender wählen …",
+    calendarExternalSubscribeTitle:
+      "Externer Kalender (Google, Outlook, Apple)",
+    calendarExternalLoading: "Kalender-Link wird geladen…",
+    calendarExternalSubscribeLead:
+      "Ihre Skicoach-Termine abonnieren (nur lesen). Updates im anderen Kalender können verzögert erscheinen.",
+    calendarExternalHttpsUrlLabel: "Link (https)",
+    calendarExternalWebcalUrlLabel: "Abonnement-Link (webcal)",
+    calendarExternalCopyButton: "Kopieren",
+    calendarExternalCopiedToast: "In die Zwischenablage kopiert.",
+    calendarExternalCopyFailed: "Kopieren nicht möglich.",
+    calendarExternalOpenWebcal: "Abonnement öffnen",
+    calendarExternalInstructionsGoogle:
+      "Google Kalender: Einstellungen → Weitere Kalender hinzufügen → Per URL → Link einfügen.",
+    calendarExternalInstructionsOutlook:
+      "Outlook (Web/Desktop): Kalender → Hinzufügen → Aus dem Internet / Abonnement → Link einfügen.",
+    calendarExternalInstructionsApple:
+      "Apple Kalender: Ablage → Neues Kalenderabonnement → Link einfügen.",
+    calendarExternalPrivacyNote:
+      "Link geheim halten — wer ihn hat, sieht Ihre Termine in diesem Feed.",
+    calendarExternalLoadError: "Kalender-Link konnte nicht geladen werden.",
     guestPageSelectClientHintTemplate: "{client} auswählen …",
     bookingModalInvalidSlot: "Ungültiger Zeitslot.",
     bookingModalPickClientOrNewTemplate:
