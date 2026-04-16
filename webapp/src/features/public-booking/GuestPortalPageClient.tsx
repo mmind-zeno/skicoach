@@ -159,7 +159,7 @@ export function GuestPortalPageClient({
 
   if (!token) {
     return (
-      <div className="public-safe-x mx-auto max-w-md px-0 py-8 sm:py-10">
+      <div className="public-safe-x public-safe-b mx-auto max-w-md px-0 py-8 sm:py-10">
         {pilot ? (
           <span className="sr-only">{brand.labels.guestPortalPageTitle}</span>
         ) : (
@@ -214,7 +214,7 @@ export function GuestPortalPageClient({
     );
 
   return (
-    <div className="public-safe-x mx-auto max-w-3xl px-0 py-6 sm:py-8">
+    <div className="public-safe-x public-safe-b mx-auto max-w-3xl px-0 py-6 sm:py-8">
       <dialog
         ref={cancelDialogRef}
         className={ui.dialog}
@@ -239,7 +239,7 @@ export function GuestPortalPageClient({
           </button>
           <button
             type="button"
-            className="min-h-[48px] w-full rounded-xl bg-zinc-800 px-4 py-3 text-base font-semibold text-white hover:bg-zinc-900 sm:w-auto sm:py-2 sm:text-sm"
+            className={ui.dialogDangerBtn}
             disabled={busy}
             onClick={() => {
               const id = pendingCancelId;
@@ -330,7 +330,7 @@ export function GuestPortalPageClient({
                       type="button"
                       disabled={busy}
                       onClick={() => setPendingCancelId(r.id)}
-                      className="min-h-[48px] w-full rounded-xl bg-zinc-200 px-4 py-3 text-base font-semibold text-zinc-900 hover:bg-zinc-300 disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+                      className={ui.cancelOutlineBtn}
                     >
                       {brand.labels.guestPortalCancel}
                     </button>

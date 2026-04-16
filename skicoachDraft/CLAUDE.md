@@ -3,7 +3,7 @@
 > Dieses Dokument ist die verbindliche Architektur- und Coding-Referenz.
 > Claude Code liest dieses File automatisch und befolgt alle Regeln in jedem Prompt.
 
-**Release (Webapp):** `0.9.3` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
+**Release (Webapp):** `0.9.4` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
 
 ---
 
@@ -307,4 +307,4 @@ Fehlerklassen: UnauthorizedError | ForbiddenError | NotFoundError in src/lib/err
 
 ---
 
-*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.3***
+*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.4***

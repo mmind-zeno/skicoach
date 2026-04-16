@@ -143,6 +143,10 @@ export function getGuestPortalUi(pilot: boolean) {
       rowMeta: "text-xs text-[var(--ascent-on-surface-variant)]/85",
       invoiceBtn:
         "inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-[var(--ascent-primary)]/35 bg-white px-4 py-3 text-base font-semibold text-[var(--ascent-primary)] shadow-sm sm:w-auto sm:py-2 sm:text-sm",
+      dialogDangerBtn:
+        "min-h-[48px] w-full rounded-xl bg-[var(--ascent-primary)] px-4 py-3 text-base font-bold text-white shadow-[0_8px_24px_-8px_rgba(0,88,188,0.4)] transition active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm",
+      cancelOutlineBtn:
+        "min-h-[48px] w-full rounded-xl border-2 border-[var(--ascent-primary)]/22 bg-[var(--ascent-surface)] px-4 py-3 text-base font-semibold text-[var(--ascent-on-surface)] transition hover:bg-[var(--ascent-container-low)] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm",
     };
   }
   return {
@@ -169,5 +173,9 @@ export function getGuestPortalUi(pilot: boolean) {
     rowMeta: "text-xs text-sk-ink/60",
     invoiceBtn:
       "inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-sk-brand/40 px-4 py-3 text-base font-semibold text-sk-brand sm:w-auto sm:py-2 sm:text-sm",
+    dialogDangerBtn:
+      "min-h-[48px] w-full rounded-xl bg-zinc-800 px-4 py-3 text-base font-semibold text-white hover:bg-zinc-900 disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm",
+    cancelOutlineBtn:
+      "min-h-[48px] w-full rounded-xl bg-zinc-200 px-4 py-3 text-base font-semibold text-zinc-900 hover:bg-zinc-300 disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm",
   };
 }

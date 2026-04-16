@@ -213,7 +213,7 @@ export function BookingWizard({ pilot }: { pilot: boolean }) {
   }
 
   return (
-    <div className="public-safe-x mx-auto max-w-4xl px-0 py-6 sm:py-8 md:px-6 md:py-10">
+    <div className="public-safe-x public-safe-b mx-auto max-w-4xl px-0 py-6 sm:py-8 md:px-6 md:py-10">
       <ol
         aria-label={brand.labels.bookingWizardStepperAria}
         className="mb-6 flex list-none justify-center gap-1.5 overflow-x-auto pb-1 sm:mb-8 sm:gap-2"

@@ -635,6 +635,15 @@ const FORK_DEFAULTS = {
     invoicePdfTotalChf: "Total CHF",
     invoicePdfPaymentInfo: "Zahlungsinformationen",
     invoicePdfIbanPrefix: "IBAN:",
+    /** Rechnungs-PDF: Adressblöcke */
+    invoicePdfIssuerHeading: "Rechnungssteller",
+    invoicePdfRecipientHeading: "Rechnungsempfänger",
+    invoicePdfMetaDateLabel: "Rechnungsdatum",
+    invoicePdfMetaServiceLabel: "Leistung / Termin",
+    invoicePdfTablePos: "Pos.",
+    invoicePdfThankYou: "Vielen Dank für Ihren Besuch.",
+    invoicePdfFooterLegalNote:
+      "Zahlbar innert 30 Tagen netto, sofern nicht anders vereinbart.",
     /** Team-Login / Magic-Link (`app/login`) */
     loginMetadataTitleTemplate: "Anmelden · {siteName}",
     loginMetadataDescriptionTemplate: "{teamLoginHome} per Magic-Link",
