@@ -3,6 +3,8 @@
 > Dieses Dokument ist die verbindliche Architektur- und Coding-Referenz.
 > Claude Code liest dieses File automatisch und befolgt alle Regeln in jedem Prompt.
 
+**Release (Webapp):** `0.9.3` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
+
 ---
 
 ## Projektübersicht
@@ -53,7 +55,21 @@
 
 ## Design-System (verbindlich für ALLE Komponenten)
 
-### Farben
+### Zwei Modi: Legacy (`sk-*`) und Ascent-Pilot
+
+In Produktion ist der **„Atmospheric Ascent“-Pilot** standardmässig aktiv (`NEXT_PUBLIC_LANDING_PILOT`, Default `true` in `docker-compose.yml`). Schaltlogik: `webapp/src/lib/landing-pilot.ts` → `isLandingPilotEnabled()`.
+
+| Kontext | Klasse / Verhalten |
+|--------|---------------------|
+| Öffentliche Seiten (Pilot) | `.landing-pilot` auf Layout/Startseite; Tokens `--ascent-*` in `webapp/src/app/globals.css` |
+| Intern + Login (Pilot) | `.app-ascent` auf Shell; `InternalShell` / `InternalSidebar` mit `ascent`-Prop; Login: `app/login/login-client.tsx` |
+| Pilot aus | Bestehende Tailwind-`sk-*`-Farben und Layout wie unten (Legacy-Tabelle) |
+
+Wichtige Dateien Pilot: `public-ascent-ui.ts`, `public-ascent-assets.ts` (Unsplash-URLs), `PublicPilotPageHero`, `PublicSiteHeader`, `PublicPilotFooter`, `(public)/layout.tsx`, `(internal)/layout.tsx`. Eigene Fotos: unter `webapp/public/` ablegen und URLs tauschen.
+
+Design-Brief / Stitch: `skicoachDraft/STITCH_DESIGN_PROMPT.md`.
+
+### Farben (Legacy — wenn Pilot **aus** oder für Kalender/Event-Farben unverändert)
 ```
 Primär:          #1B4F8A  (Dunkelblau — Sidebar, Buttons, Links)
 Primär-Hell:     #E8F0FA  (Hover, selektierte Elemente)
@@ -87,12 +103,12 @@ anfrage (neu): #EDE9FE / #5b21b6  (Lila)
 
 ### Layout
 ```
-Sidebar:        200px, #1B4F8A, weiße Schrift
+Sidebar:        220px (intern); Legacy: #1B4F8A — Pilot: Gradient Ascent primary → #004494
 Topbar:         Weiss, 52px, Titel links — Actions rechts
 Content-Padding: 20px
 Cards:          weiss, border 1px rgba(0,0,0,0.08), radius 10px
 Border-Radius:  Buttons 8px, Pills 20px, Cards 10px
-Schrift:        12–15px, Weights: 400 body / 500 labels
+Schrift:        12–15px, Weights: 400 body / 500 labels — Pilot: Plus Jakarta über --font-ascent-sans (siehe Root layout)
 ```
 
 ### Kalender (react-big-calendar)
@@ -286,9 +302,9 @@ Fehlerklassen: UnauthorizedError | ForbiddenError | NotFoundError in src/lib/err
 5. [ ] API Route mit Zod in `src/app/api/{f}/route.ts`
 6. [ ] useSWR Hook in `src/features/{f}/hooks/`
 7. [ ] Komponenten in `src/features/{f}/components/`
-8. [ ] Design: #1B4F8A primär, Lehrer-Farben aus colorIndex, Status-Farben konsistent
+8. [ ] Design: Pilot aktiv → Ascent-Tokens / bestehende Pilot-Komponenten nutzen; Pilot aus → #1B4F8A primär; Lehrer-Farben aus colorIndex; Status-Farben konsistent
 9. [ ] `.env.example` aktualisieren
 
 ---
 
-*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206*
+*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.3***
