@@ -1,8 +1,9 @@
 "use client";
 
-import { brand } from "@/config/brand";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { brand } from "@/config/brand";
+import { getGuestPortalUi } from "@/lib/public-ascent-ui";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Row = {
   id: string;
@@ -19,9 +20,14 @@ type Row = {
 
 type Props = {
   cancelMinHours: number;
+  pilot?: boolean;
 };
 
-export function GuestPortalPageClient({ cancelMinHours }: Props) {
+export function GuestPortalPageClient({
+  cancelMinHours,
+  pilot = false,
+}: Props) {
+  const ui = useMemo(() => getGuestPortalUi(pilot), [pilot]);
   const [email, setEmail] = useState("");
   const [token, setToken] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -154,18 +160,21 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
   if (!token) {
     return (
       <div className="public-safe-x mx-auto max-w-md px-0 py-8 sm:py-10">
-        <h1 className="text-[1.35rem] font-semibold leading-snug text-sk-ink sm:text-xl">
-          {brand.labels.guestPortalPageTitle}
-        </h1>
-        <p className="mt-3 text-base leading-relaxed text-sk-ink/80 sm:text-sm">
-          {brand.labels.guestPortalPageIntro}
-        </p>
-        <form onSubmit={requestLink} className="mt-6 space-y-4" noValidate>
+        {pilot ? (
+          <span className="sr-only">{brand.labels.guestPortalPageTitle}</span>
+        ) : (
+          <h1 className={ui.h1}>{brand.labels.guestPortalPageTitle}</h1>
+        )}
+        {pilot ? null : (
+          <p className={ui.intro}>{brand.labels.guestPortalPageIntro}</p>
+        )}
+        <form
+          onSubmit={requestLink}
+          className={pilot ? "mt-2 space-y-4" : "mt-6 space-y-4"}
+          noValidate
+        >
           <div>
-            <label
-              htmlFor="guest-portal-email"
-              className="block text-sm font-medium text-sk-ink"
-            >
+            <label htmlFor="guest-portal-email" className={ui.label}>
               {brand.labels.guestPortalEmailLabel}
             </label>
             <input
@@ -174,7 +183,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="sk-field mt-2 min-h-[48px] w-full text-base sm:text-sm"
+              className={ui.field}
               autoComplete="email"
               aria-invalid={err ? true : undefined}
               aria-describedby={err ? "guest-portal-email-error" : undefined}
@@ -190,11 +199,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
               {msg}
             </p>
           ) : null}
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full min-h-[48px] rounded-xl bg-sk-cta px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-sk-cta-mid active:scale-[0.99] disabled:opacity-50"
-          >
+          <button type="submit" disabled={busy} className={ui.submit}>
             {brand.labels.guestPortalSendLink}
           </button>
         </form>
@@ -212,22 +217,22 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
     <div className="public-safe-x mx-auto max-w-3xl px-0 py-6 sm:py-8">
       <dialog
         ref={cancelDialogRef}
-        className="w-[calc(100%-1.5rem)] max-w-md rounded-2xl border border-sk-ink/15 bg-white p-5 shadow-xl backdrop:bg-black/40 sm:w-[calc(100%-2rem)] sm:p-6"
+        className={ui.dialog}
         aria-labelledby="guest-portal-cancel-title"
         aria-describedby="guest-portal-cancel-desc"
         onClose={() => setPendingCancelId(null)}
       >
-        <h2 id="guest-portal-cancel-title" className="text-lg font-semibold text-sk-ink">
+        <h2 id="guest-portal-cancel-title" className={ui.dialogTitle}>
           {brand.labels.guestPortalCancelConfirmTitle}
         </h2>
-        <p id="guest-portal-cancel-desc" className="mt-2 text-sm text-sk-ink/80">
+        <p id="guest-portal-cancel-desc" className={ui.dialogBody}>
           {brand.labels.guestPortalCancelConfirmBody}
         </p>
-        <p className="mt-2 text-xs text-sk-ink/65">{cancelDeadlineHint}</p>
+        <p className={ui.dialogHint}>{cancelDeadlineHint}</p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
-            className="min-h-[48px] w-full rounded-xl border border-sk-outline/40 px-4 py-3 text-base font-semibold text-sk-brand sm:w-auto sm:py-2 sm:text-sm"
+            className={ui.dialogOutlineBtn}
             onClick={() => setPendingCancelId(null)}
           >
             {brand.labels.guestPortalCancelConfirmBack}
@@ -246,46 +251,43 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
           </button>
         </div>
       </dialog>
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <h1 className="text-[1.35rem] font-semibold leading-snug text-sk-ink sm:text-xl">
-          {brand.labels.guestPortalPageTitle}
-        </h1>
-        <button
-          type="button"
-          onClick={logout}
-          className="min-h-[44px] self-start text-left text-sm font-semibold text-sk-brand underline sm:min-h-0"
-        >
+      <div
+        className={`flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center ${pilot ? "sm:justify-end" : "sm:justify-between"}`}
+      >
+        {pilot ? (
+          <span className="sr-only">{brand.labels.guestPortalPageTitle}</span>
+        ) : (
+          <h1 className={ui.h1}>{brand.labels.guestPortalPageTitle}</h1>
+        )}
+        <button type="button" onClick={logout} className={ui.linkBtn}>
           {brand.labels.guestPortalLogout}
         </button>
       </div>
-      <p className="mt-2 text-xs text-sk-ink/65">{cancelDeadlineHint}</p>
+      <p className={ui.dialogHint}>{cancelDeadlineHint}</p>
       {err ? (
         <p className="mt-3 text-sm text-red-700" role="alert" aria-live="assertive">
           {err}
         </p>
       ) : null}
       {busy && !rows ? (
-        <p className="mt-6 text-sm text-sk-ink/60" role="status" aria-live="polite">
+        <p className={ui.loading} role="status" aria-live="polite">
           {brand.labels.guestPortalLoadingList}
         </p>
       ) : null}
       {rows && rows.length === 0 ? (
-        <p className="mt-6 text-sm text-sk-ink/70">{brand.labels.guestPortalEmpty}</p>
+        <p className={ui.empty}>{brand.labels.guestPortalEmpty}</p>
       ) : null}
       {rows && rows.length > 0 ? (
         <ul className="mt-6 space-y-4">
           {rows.map((r) => (
-            <li
-              key={r.id}
-              className="rounded-2xl border border-sk-ink/10 bg-white/90 p-4 shadow-sm sm:p-5"
-            >
+            <li key={r.id} className={ui.card}>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="font-medium text-sk-ink">
+                  <div className={ui.rowTitle}>
                     {r.date} · {r.startTime}–{r.endTime}
                   </div>
-                  <div className="text-sm text-sk-ink/80">{r.courseName}</div>
-                  <div className="text-xs text-sk-ink/60">
+                  <div className={ui.rowSub}>{r.courseName}</div>
+                  <div className={ui.rowMeta}>
                     {brand.labels.guestPortalColTeacher}: {r.teacherName}
                   </div>
                   <div className="mt-2">
@@ -302,7 +304,7 @@ export function GuestPortalPageClient({ cancelMinHours }: Props) {
                   {r.invoiceId ? (
                     <button
                       type="button"
-                      className="inline-flex min-h-[48px] w-full items-center justify-center rounded-xl border border-sk-brand/40 px-4 py-3 text-base font-semibold text-sk-brand sm:w-auto sm:py-2 sm:text-sm"
+                      className={ui.invoiceBtn}
                       onClick={() => {
                         void (async () => {
                           const res = await fetch(

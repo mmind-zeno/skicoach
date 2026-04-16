@@ -92,3 +92,17 @@ Liefere ein kohärentes Layout, echte deutsche Beispieltexte (Platzhalter-Namen 
 ## Abgleich mit dem Code (nach dem Design)
 
 Die laufende App nutzt aktuell feste Tokens in `webapp/src/lib/colors.ts` und `webapp/src/app/globals.css`. **Dieser Prompt zwingt keine Übereinstimmung** — Ziel ist zuerst ein **überzeugendes Stitch-Design**. Beim Implementieren in Tailwind werden Farben und Abstände **von den Entwickler:innen an dein Ergebnis angeglichen** (oder du dokumentierst am Ende eine kompakte Token-Tabelle als Referenz).
+
+---
+
+## KI-Bildbriefe (optional, für eigene Assets)
+
+Wenn du **eigene** Hintergrundbilder erzeugen willst (z. B. Imagen, Midjourney, Flux), halte dich an diese Vorgaben — **ohne Text im Bild**, **ohne Logos**, für **Web-Hero** geeignet (Querformat, viel Himmel/Freifläche links für Textoverlay).
+
+| Verwendung | Exakter Bildauftrag (engl. Prompt empfiehlt sich für viele Modelle) |
+|------------|----------------------------------------------------------------------|
+| **Startseite Hero** | Photorealistic alpine landscape at sunrise, sharp snow-covered mountain peaks rising above a soft cloud inversion layer, cold blue hour light, clear sky, no people, no ski lifts, no buildings, ultra wide 16:9, negative space on the left third for UI text, natural colors, high dynamic range, crisp detail |
+| **Buchungsseite /buchen** (optional, derzeit nur Farbverlauf) | Soft abstract alpine atmosphere, very subtle snow texture and cool blue-white gradient, minimal, no recognizable peaks, no text, calm editorial background for a booking app, 16:9, light and airy |
+| **Gastportal „Meine Termine“** (optional) | Cozy but professional winter sports mood: shallow depth of field, blurred gentle snowfall, hint of ski slope bokeh, cool tones, no readable signs, no faces, 16:9, calm and trustworthy |
+
+**Technisch:** Ausgabe mind. **2400×1350** px oder größer; **JPEG oder WebP**; keine übermäßige Sättigung; Kontrast nicht extrem (Overlay im UI hell).

@@ -13,6 +13,7 @@ import { brand } from "@/config/brand";
 import { fetchJson } from "@/lib/client-fetch";
 import { getUiErrorInfo, type UiErrorInfo } from "@/lib/client-error-message";
 import { appDateFnsLocale } from "@/lib/locale-shared";
+import { getBookingWizardUi } from "@/lib/public-ascent-ui";
 
 const TURNSTILE_SITE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 
@@ -26,15 +27,7 @@ type Course = {
 
 type Avail = Record<string, "free" | "partial" | "full" | "past">;
 
-const COL = {
-  free: "#EAF3DE",
-  partial: "#FEF3C7",
-  full: "#FEE2E2",
-  past: "#E5E7EB",
-  selected: "#ab3500",
-};
-
-export function BookingWizard() {
+export function BookingWizard({ pilot }: { pilot: boolean }) {
   const [step, setStep] = useState(1);
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState<string | null>(null);
@@ -59,6 +52,18 @@ export function BookingWizard() {
   const [doneId, setDoneId] = useState<string | null>(null);
   const [err, setErr] = useState<UiErrorInfo | null>(null);
   const [loadErr, setLoadErr] = useState<UiErrorInfo | null>(null);
+
+  const ui = useMemo(() => getBookingWizardUi(pilot), [pilot]);
+  const availColors = useMemo(
+    () => ({
+      free: "#EAF3DE",
+      partial: "#FEF3C7",
+      full: "#FEE2E2",
+      past: "#E5E7EB",
+      selected: ui.colSelected,
+    }),
+    [ui.colSelected]
+  );
 
   const selectedCourse = courses.find((c) => c.id === courseId) ?? null;
 
@@ -222,7 +227,7 @@ export function BookingWizard() {
             </span>
             <span
               className={`block h-2 w-10 shrink-0 rounded-full sm:w-16 ${
-                s <= step ? "bg-sk-cta" : "bg-sk-ink/15"
+                s <= step ? ui.stepperOn : ui.stepperOff
               }`}
               aria-hidden
             />
@@ -232,12 +237,12 @@ export function BookingWizard() {
 
       {step === 1 ? (
         <section
-          className="sk-surface-card p-4 sm:p-5 md:p-8"
+          className={ui.card}
           aria-labelledby="booking-wizard-step-1-heading"
         >
           <h2
             id="booking-wizard-step-1-heading"
-            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+            className={ui.heading}
           >
             {brand.labels.publicWizardPickServiceTypeTemplate.replace(
               "{serviceType}",
@@ -268,13 +273,11 @@ export function BookingWizard() {
                   setCourseId(c.id);
                 }}
                 className={`min-h-[3.25rem] rounded-xl border-2 p-4 text-left transition active:scale-[0.99] ${
-                  courseId === c.id
-                    ? "border-sk-cta bg-sk-highlight"
-                    : "border-transparent bg-white shadow hover:border-sk-brand/40"
+                  courseId === c.id ? ui.courseOn : ui.courseOff
                 }`}
               >
-                <div className="font-medium text-sk-cta">{c.name}</div>
-                <div className="mt-1 text-sm text-sk-ink/70">
+                <div className={ui.courseName}>{c.name}</div>
+                <div className={ui.courseMeta}>
                   {brand.labels.publicBookingCourseMetaTemplate
                     .replace("{durationMin}", String(c.durationMin))
                     .replace("{maxParticipants}", String(c.maxParticipants))
@@ -285,7 +288,7 @@ export function BookingWizard() {
           </div>
           <button
             type="button"
-            className="mt-6 w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-6 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto"
+            className={`mt-6 ${ui.btnPrimary}`}
             disabled={!courseId}
             onClick={() => {
               setLoadErr(null);
@@ -300,12 +303,12 @@ export function BookingWizard() {
 
       {step === 2 ? (
         <section
-          className="sk-surface-card p-4 sm:p-5 md:p-8"
+          className={ui.card}
           aria-labelledby="booking-wizard-step-2-heading"
         >
           <h2
             id="booking-wizard-step-2-heading"
-            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+            className={ui.heading}
           >
             {brand.labels.publicWizardPickDate}
           </h2>
@@ -319,10 +322,10 @@ export function BookingWizard() {
               ) : null}
             </p>
           ) : null}
-          <div className="mt-4 flex items-center justify-between gap-2 rounded-xl bg-sk-highlight/35 px-1 py-1">
+          <div className={ui.calToolbar}>
             <button
               type="button"
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-lg font-medium text-sk-brand transition hover:bg-white/80"
+              className={ui.calNavBtn}
               aria-label={brand.labels.calMonthPrevAria}
               onClick={() => {
                 const m = addMonths(month, -1);
@@ -333,14 +336,14 @@ export function BookingWizard() {
               ←
             </button>
             <span
-              className="min-w-0 flex-1 truncate text-center text-sm font-semibold capitalize sm:text-base"
+              className={ui.calMonthTitle}
               aria-live="polite"
             >
               {format(month, "MMMM yyyy", { locale: appDateFnsLocale })}
             </span>
             <button
               type="button"
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-lg font-medium text-sk-brand transition hover:bg-white/80"
+              className={ui.calNavBtn}
               aria-label={brand.labels.calMonthNextAria}
               onClick={() => {
                 const m = addMonths(month, 1);
@@ -353,7 +356,7 @@ export function BookingWizard() {
           </div>
           <div className="mt-4 grid grid-cols-7 gap-0.5 text-center text-[10px] sm:gap-1 sm:text-xs">
             {weekdayShort.map((d) => (
-              <div key={d} className="py-1 font-medium text-sk-ink/50">
+              <div key={d} className={ui.weekday}>
                 {d}
               </div>
             ))}
@@ -380,8 +383,12 @@ export function BookingWizard() {
                   className="flex min-h-[40px] min-w-0 items-center justify-center rounded-lg p-1 text-xs font-medium disabled:opacity-40 sm:min-h-[44px] sm:p-2 sm:text-sm"
                   style={{
                     backgroundColor:
-                      day === key ? COL.selected : a === "past" ? COL.past : COL[a],
-                    color: day === key ? "#fff" : "#181c20",
+                      day === key
+                        ? availColors.selected
+                        : a === "past"
+                          ? availColors.past
+                          : availColors[a],
+                    color: day === key ? "#fff" : ui.calDayText,
                   }}
                 >
                   {format(d, "d")}
@@ -389,27 +396,33 @@ export function BookingWizard() {
               );
             })}
           </div>
-          <p className="mt-4 flex flex-wrap gap-3 text-xs text-sk-ink/70">
+          <p className={ui.legend}>
             <span className="inline-flex items-center gap-1">
-              <span className="h-3 w-3 rounded" style={{ background: COL.free }} />
+              <span
+                className="h-3 w-3 rounded"
+                style={{ background: availColors.free }}
+              />
               {brand.labels.publicAvailFree}
             </span>
             <span className="inline-flex items-center gap-1">
               <span
                 className="h-3 w-3 rounded"
-                style={{ background: COL.partial }}
+                style={{ background: availColors.partial }}
               />
               {brand.labels.publicAvailPartial}
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="h-3 w-3 rounded" style={{ background: COL.full }} />
+              <span
+                className="h-3 w-3 rounded"
+                style={{ background: availColors.full }}
+              />
               {brand.labels.publicAvailFull}
             </span>
           </p>
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
-              className="w-full min-h-[48px] rounded-xl border border-sk-outline/35 bg-white px-4 py-3 text-base font-semibold text-sk-brand shadow-sm transition hover:bg-sk-highlight active:scale-[0.99] sm:w-auto sm:py-2 sm:text-sm"
+              className={ui.btnSecondary}
               onClick={() => {
                 setLoadErr(null);
                 setStep(1);
@@ -419,7 +432,7 @@ export function BookingWizard() {
             </button>
             <button
               type="button"
-              className="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+              className={ui.btnPrimary}
               disabled={!day}
               onClick={() => {
                 setLoadErr(null);
@@ -435,12 +448,12 @@ export function BookingWizard() {
 
       {step === 3 ? (
         <section
-          className="sk-surface-card p-4 sm:p-5 md:p-8"
+          className={ui.card}
           aria-labelledby="booking-wizard-step-3-heading"
         >
           <h2
             id="booking-wizard-step-3-heading"
-            className="text-xl font-semibold tracking-tight text-sk-ink md:text-2xl"
+            className={ui.heading}
           >
             {brand.labels.publicWizardTimeAndContact}
           </h2>
@@ -456,7 +469,7 @@ export function BookingWizard() {
           ) : null}
           <div className="mt-4 grid gap-6 lg:grid-cols-2">
             <div>
-              <div id="booking-wizard-slots-label" className="text-sm font-medium text-sk-ink">
+              <div id="booking-wizard-slots-label" className={ui.slotsSectionLabel}>
                 {brand.labels.publicWizardSlotsTitle}
               </div>
               <div
@@ -474,10 +487,10 @@ export function BookingWizard() {
                     onClick={() => setSlotTime(s.time)}
                     className={`min-h-[44px] rounded-full px-4 py-2 text-sm font-medium ${
                       !s.available
-                        ? "bg-sk-ink/10 text-sk-ink/40 line-through"
+                        ? ui.slotDisabled
                         : slotTime === s.time
-                          ? "bg-sk-cta text-white"
-                          : "bg-[#EAF3DE] text-sk-ink"
+                          ? ui.slotOn
+                          : ui.slotOff
                     }`}
                   >
                     {s.time}
@@ -485,7 +498,7 @@ export function BookingWizard() {
                 ))}
               </div>
               {selectedCourse && slotTime ? (
-                <p className="mt-2 text-xs text-sk-ink/60">
+                <p className={ui.meta}>
                   {brand.labels.publicApproxEndShort}{" "}
                   {format(
                     new Date(
@@ -518,7 +531,7 @@ export function BookingWizard() {
                   </label>
                   <input
                     id="booking-first-name"
-                    className="sk-field min-h-[48px] w-full text-base sm:text-sm"
+                    className={`${ui.field} w-full`}
                     placeholder={brand.labels.placeholderFirstName}
                     autoComplete="given-name"
                     value={firstName}
@@ -531,7 +544,7 @@ export function BookingWizard() {
                   </label>
                   <input
                     id="booking-last-name"
-                    className="sk-field min-h-[48px] w-full text-base sm:text-sm"
+                    className={`${ui.field} w-full`}
                     placeholder={brand.labels.placeholderLastName}
                     autoComplete="family-name"
                     value={lastName}
@@ -545,7 +558,7 @@ export function BookingWizard() {
                 </label>
                 <input
                   id="booking-email"
-                  className="sk-field min-h-[48px] w-full text-base sm:text-sm"
+                  className={`${ui.field} w-full`}
                   type="email"
                   placeholder={brand.labels.placeholderEmail}
                   autoComplete="email"
@@ -559,17 +572,14 @@ export function BookingWizard() {
                 </label>
                 <input
                   id="booking-phone"
-                  className="sk-field min-h-[48px] w-full text-base sm:text-sm"
+                  className={`${ui.field} w-full`}
                   placeholder={brand.labels.placeholderPhoneOptional}
                   autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
-              <div
-                className="text-sm font-medium text-sk-ink/70"
-                id="booking-wizard-niveau-label"
-              >
+                           <div className={ui.labelMuted} id="booking-wizard-niveau-label">
                 {brand.labels.clientSkillFilterLabel}
               </div>
               <div
@@ -587,9 +597,7 @@ export function BookingWizard() {
                     aria-checked={niveau === k}
                     onClick={() => setNiveau(k)}
                     className={`min-h-[48px] flex-1 rounded-xl px-4 py-2.5 text-center text-sm font-semibold sm:flex-none sm:rounded-full ${
-                      niveau === k
-                        ? "bg-sk-cta text-white"
-                        : "border border-sk-outline/25 bg-sk-surface text-sk-ink"
+                      niveau === k ? ui.niveauOn : ui.niveauOff
                     }`}
                   >
                     {niveauLabels[k]}
@@ -602,7 +610,7 @@ export function BookingWizard() {
                 </label>
                 <textarea
                   id="booking-message"
-                  className="sk-field min-h-[6rem] w-full resize-y text-base sm:text-sm"
+                  className={`${ui.fieldArea} w-full`}
                   rows={3}
                   placeholder={brand.labels.placeholderMessageOptional}
                   value={message}
@@ -611,10 +619,10 @@ export function BookingWizard() {
               </div>
               {TURNSTILE_SITE ? (
                 <div
-                  className="mt-3 rounded border border-sk-ink/10 bg-white/80 p-3"
+                  className={ui.turnstileBox}
                   aria-label={brand.labels.publicTurnstileLabel}
                 >
-                  <p className="mb-2 text-xs text-sk-ink/60">
+                  <p className={ui.turnstileHint}>
                     {brand.labels.publicTurnstileLabel}
                   </p>
                   <PublicTurnstile
@@ -624,7 +632,7 @@ export function BookingWizard() {
                 </div>
               ) : null}
               {selectedCourse && day ? (
-                <div className="rounded bg-sk-surface p-3 text-xs text-sk-ink/80">
+                <div className={ui.summaryBox}>
                   <div>
                     {brand.labels.serviceSingular}: {selectedCourse.name}
                   </div>
@@ -637,7 +645,7 @@ export function BookingWizard() {
                     {brand.labels.invoiceTableCurrency}{" "}
                     {selectedCourse.priceCHF}
                   </div>
-                  <p className="mt-2 text-sk-ink/60">
+                  <p className={ui.summaryMuted}>
                     {brand.labels.publicNoPaymentDisclaimer}
                   </p>
                 </div>
@@ -657,7 +665,7 @@ export function BookingWizard() {
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <button
               type="button"
-              className="w-full min-h-[48px] rounded-xl border border-sk-outline/35 bg-white px-4 py-3 text-base font-semibold text-sk-brand shadow-sm transition hover:bg-sk-highlight active:scale-[0.99] sm:w-auto sm:py-2 sm:text-sm"
+              className={ui.btnSecondary}
               onClick={() => {
                 setLoadErr(null);
                 setErr(null);
@@ -669,7 +677,7 @@ export function BookingWizard() {
             <button
               type="button"
               disabled={loading}
-              className="w-full min-h-[48px] rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] disabled:opacity-50 sm:w-auto sm:py-2 sm:text-sm"
+              className={ui.btnPrimary}
               onClick={() => void submit()}
             >
               {brand.labels.publicWizardSubmitRequestCtaTemplate.replace(
@@ -683,7 +691,7 @@ export function BookingWizard() {
 
       {step === 4 ? (
         <section
-          className="sk-surface-card relative overflow-hidden p-6 text-center sm:p-8 md:p-10"
+          className={`${ui.card} relative overflow-hidden text-center`}
           aria-labelledby="booking-wizard-step-4-heading"
           role="status"
           aria-live="polite"
@@ -700,28 +708,28 @@ export function BookingWizard() {
           </div>
           <h2
             id="booking-wizard-step-4-heading"
-            className="mt-4 text-xl font-semibold text-sk-ink"
+            className={ui.thanksTitle}
           >
             {brand.labels.publicThanksTitleTemplate.replace(
               "{name}",
               firstName
             )}
           </h2>
-          <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-sk-ink/80">
+          <p className={ui.thanksBody}>
             {brand.labels.publicThanksIntroTemplate.replace(
               "{request}",
               brand.labels.requestSingular
             )}{" "}
-            <span className="font-medium text-sk-brand">{email}</span>.
+            <span className={ui.thanksEmail}>{email}</span>.
           </p>
           {doneId && doneId !== "ok" ? (
-            <p className="mt-4 inline-block rounded-lg border border-sk-ink/10 bg-white/80 px-3 py-1.5 font-mono text-xs text-sk-ink/60">
+            <p className={ui.refBox}>
               {brand.labels.publicReferenceLabel}: {doneId}
             </p>
           ) : null}
           <button
             type="button"
-            className="mx-auto mt-8 flex w-full max-w-md min-h-[48px] items-center justify-center rounded-xl border-2 border-sk-cta/35 bg-white px-5 py-3 text-base font-semibold text-sk-cta shadow-sm transition hover:border-sk-cta hover:bg-sk-highlight/40 active:scale-[0.99] sm:text-sm"
+            className={ui.resetBtn}
             onClick={reset}
           >
             {brand.labels.publicWizardNewRequestAgainTemplate.replace(

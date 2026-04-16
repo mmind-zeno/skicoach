@@ -18,7 +18,7 @@ export function PublicPortalPolicies({ cancelMinHours }: Props) {
       className="public-safe-x mx-auto max-w-4xl pb-2 md:px-6"
       aria-labelledby="public-portal-policies-heading"
     >
-      <div className="rounded-2xl border border-sk-outline/20 bg-white/90 p-4 shadow-sm sm:p-5 md:p-6">
+      <div className="public-portal-policies-card rounded-2xl border border-sk-outline/20 bg-white/90 p-4 shadow-sm sm:p-5 md:p-6">
         <h2
           id="public-portal-policies-heading"
           className="text-base font-semibold tracking-tight text-sk-ink sm:text-lg"

@@ -1,12 +1,31 @@
-import { PublicSiteHeader } from "@/components/public/PublicSiteHeader";
 import Link from "next/link";
+import { PublicPilotFooter } from "@/components/public/PublicPilotFooter";
+import { PublicSiteHeader } from "@/components/public/PublicSiteHeader";
 import { brand } from "@/config/brand";
+import { isLandingPilotEnabled } from "@/lib/landing-pilot";
 
 export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pilot = isLandingPilotEnabled();
+
+  if (pilot) {
+    return (
+      <div className="landing-pilot min-h-screen bg-[var(--ascent-surface)] text-[var(--ascent-on-surface)]">
+        <a href="#public-main" className="skip-to-main">
+          {brand.labels.navSkipToContent}
+        </a>
+        <PublicSiteHeader landingPilot />
+        <div id="public-main" tabIndex={-1} className="outline-none">
+          {children}
+        </div>
+        <PublicPilotFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-sk-surface text-sk-ink">
       <a href="#public-main" className="skip-to-main">
