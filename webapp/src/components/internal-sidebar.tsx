@@ -14,12 +14,14 @@ function navActive(href: string, pathname: string): boolean {
 }
 
 export function InternalSidebar({
+  ascent = false,
   isAdmin,
   showInvoices = true,
   showChat = true,
   mobileOpen = false,
   onNavigate,
 }: {
+  ascent?: boolean;
   isAdmin: boolean;
   showInvoices?: boolean;
   showChat?: boolean;
@@ -52,10 +54,14 @@ export function InternalSidebar({
     ].join(" ");
   }
 
+  const asideBase = ascent
+    ? "fixed left-0 top-0 z-40 flex h-full w-[min(88vw,220px)] flex-col rounded-r-3xl bg-gradient-to-b from-[var(--ascent-primary)] to-[#004494] text-white shadow-[4px_0_28px_rgba(0,88,188,0.22)] transition-transform duration-200 ease-out md:z-10 md:w-[220px] md:translate-x-0"
+    : "fixed left-0 top-0 z-40 flex h-full w-[min(88vw,220px)] flex-col rounded-r-3xl bg-sk-brand text-white shadow-sk-nav transition-transform duration-200 ease-out md:z-10 md:w-[220px] md:translate-x-0";
+
   return (
     <aside
       className={[
-        "fixed left-0 top-0 z-40 flex h-full w-[min(88vw,220px)] flex-col rounded-r-3xl bg-sk-brand text-white shadow-sk-nav transition-transform duration-200 ease-out md:z-10 md:w-[220px] md:translate-x-0",
+        asideBase,
         mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
       ].join(" ")}
     >

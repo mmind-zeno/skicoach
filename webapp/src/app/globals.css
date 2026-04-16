@@ -73,9 +73,10 @@ body {
   }
 
   /**
-   * Stitch „Atmospheric Ascent“ — nur Startseiten-Pilot (siehe `isLandingPilotEnabled`).
+   * Stitch „Atmospheric Ascent“ — öffentlicher Pilot + interne Shell (siehe `isLandingPilotEnabled`).
    */
-  .landing-pilot {
+  .landing-pilot,
+  .app-ascent {
     --ascent-primary: #0058bc;
     --ascent-primary-container: #0070eb;
     --ascent-on-surface: #191c1e;
@@ -85,8 +86,15 @@ body {
     font-family: var(--font-ascent-sans), var(--font-inter), system-ui, sans-serif;
   }
 
-  .landing-pilot .skip-to-main {
+  .landing-pilot .skip-to-main,
+  .app-ascent .skip-to-main {
     @apply bg-[var(--ascent-primary)] focus:ring-[var(--ascent-primary-container)];
+  }
+
+  .app-ascent .sk-surface-card {
+    box-shadow:
+      0 24px 40px -12px rgba(25, 28, 30, 0.06),
+      0 0 0 1px rgba(0, 88, 188, 0.05);
   }
 
   .landing-pilot .public-portal-policies-card {
