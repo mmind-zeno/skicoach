@@ -23,6 +23,7 @@ export default function MeineTerminePage() {
       {pilot ? (
         <div className="public-safe-x pt-5 sm:pt-7 md:px-6 md:pt-9">
           <PublicPilotPageHero
+            atmosphere="guest-portal"
             title={brand.labels.guestPortalPageTitle}
             description={brand.labels.guestPortalPageIntro}
           />

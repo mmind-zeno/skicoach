@@ -23,6 +23,7 @@ export default function BuchenPage() {
       <div className="min-h-0">
         <div className="public-safe-x pt-5 sm:pt-7 md:px-6 md:pt-9">
           <PublicPilotPageHero
+            atmosphere="booking"
             title={brand.labels.requestServiceCta}
             description={brand.homeLead}
             preview={<ProductPreviewBooking />}
