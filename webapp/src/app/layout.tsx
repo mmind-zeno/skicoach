@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { brand } from "@/config/brand";
+import { getPublicSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
 const inter = Inter({
@@ -9,9 +10,38 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteOrigin = getPublicSiteOrigin();
+const ogLocale = brand.htmlLang === "en" ? "en_US" : "de_DE";
+
 export const metadata: Metadata = {
-  title: brand.siteName,
+  metadataBase: new URL(`${siteOrigin}/`),
+  title: {
+    default: brand.siteName,
+    template: `%s · ${brand.siteName}`,
+  },
   description: brand.marketingTagline,
+  applicationName: brand.siteName,
+  openGraph: {
+    type: "website",
+    locale: ogLocale,
+    siteName: brand.siteName,
+    title: brand.siteName,
+    description: brand.marketingTagline,
+    url: siteOrigin,
+  },
+  twitter: {
+    card: "summary",
+    title: brand.siteName,
+    description: brand.marketingTagline,
+  },
+  appleWebApp: {
+    capable: true,
+    title: brand.siteName,
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
@@ -19,6 +49,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#305f9b" },
+    { media: "(prefers-color-scheme: dark)", color: "#181c20" },
+  ],
 };
 
 export default function RootLayout({

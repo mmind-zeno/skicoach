@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { brand } from "@/config/brand";
 
 export const metadata: Metadata = {
-  title: `${brand.labels.maintenancePageTitle} · ${brand.siteName}`,
+  title: brand.labels.maintenancePageTitle,
   description: brand.labels.maintenancePageMetaDescription,
+  alternates: { canonical: "/wartung" },
+  robots: { index: false, follow: true },
 };
 
 export default function WartungPage() {

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import { brand } from "@/config/brand";
+
+export const metadata: Metadata = {
+  title: brand.labels.navPrivacy,
+  description: brand.labels.privacyMusterDisclaimer.slice(0, 158),
+  alternates: { canonical: "/datenschutz" },
+};
 
 function stripUnresolvedPlaceholders(text: string): string {
   return text.replace(/\{[a-zA-Z][a-zA-Z0-9]*\}/g, "—");

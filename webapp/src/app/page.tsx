@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicSiteHeader } from "@/components/public/PublicSiteHeader";
 import { ProductHeroBanner } from "@/components/ui/ProductHeroBanner";
@@ -5,6 +6,10 @@ import { ProductPreviewBooking } from "@/components/ui/product-ui-previews";
 import { brand } from "@/config/brand";
 import { featurePublicBooking } from "@/lib/features";
 import { isMaintenanceMode } from "@/lib/maintenance-mode";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const ctaClassPrimary =
   "inline-flex min-h-[48px] w-full items-center justify-center rounded-xl bg-gradient-to-r from-sk-cta to-sk-cta-mid px-5 text-base font-semibold text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid active:scale-[0.99] sm:w-auto sm:px-6";

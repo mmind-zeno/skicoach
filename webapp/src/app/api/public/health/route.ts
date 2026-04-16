@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { brand } from "@/config/brand";
 import { featureSnapshot } from "@/lib/features";
+import { isMaintenanceMode } from "@/lib/maintenance-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ export async function GET() {
     ok: true,
     service: brand.serviceSlug,
     version: process.env.NEXT_PUBLIC_APP_VERSION ?? "unknown",
+    nodeEnv: process.env.NODE_ENV ?? "unknown",
+    maintenance: isMaintenanceMode(),
     ...(gitSha ? { gitSha } : {}),
     features: featureSnapshot(),
     ts: new Date().toISOString(),
