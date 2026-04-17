@@ -16,7 +16,6 @@ export const BRAND_LABELS_EN = {
   serviceTypeSingular: "Course type",
   serviceTypePlural: "Course types",
   requestServiceCta: "Request a course",
-  teamLoginNav: "Login (team)",
   teamLoginHome: "Team login",
   teamAreaTitle: "Team area",
   appointmentSingular: "Appointment",
@@ -292,10 +291,6 @@ export const BRAND_LABELS_EN = {
   loginTitle: "Sign in",
   loginLeadMagicLink:
     "Magic link by email. After clicking the link in your inbox you are signed in.",
-  loginDevNoticeStrong: "Without outbound email (Resend):",
-  loginDevNoticeBeforeCmd: "an admin can on the server run",
-  loginDevNoticeAfterCmd:
-    " (container) to create a one-time link — see README.",
   loginErrorConfiguration:
     "Server configuration incomplete (e.g. RESEND_API_KEY or AUTH_SECRET).",
   loginErrorAccessDenied: "Access denied — this account is deactivated.",

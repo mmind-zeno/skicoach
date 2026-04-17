@@ -51,7 +51,6 @@ const FORK_DEFAULTS = {
     serviceTypeSingular: "Kurstyp",
     serviceTypePlural: "Kurstypen",
     requestServiceCta: "Kurs anfragen",
-    teamLoginNav: "Login (Team)",
     teamLoginHome: "Team-Login",
     teamAreaTitle: "Team-Bereich",
     /** Kalender-Detail / Storno: „Termin“ */
@@ -682,10 +681,6 @@ const FORK_DEFAULTS = {
     loginTitle: "Anmelden",
     loginLeadMagicLink:
       "Magic Link per E-Mail. Nach dem Klick im Postfach bist du eingeloggt.",
-    loginDevNoticeStrong: "Ohne E-Mail-Versand (Resend):",
-    loginDevNoticeBeforeCmd: "ein Admin kann auf dem Server mit",
-    loginDevNoticeAfterCmd:
-      "(Container) einen Einmal-Link erzeugen — siehe README.",
     loginErrorConfiguration:
       "Server-Konfiguration unvollständig (z. B. RESEND_API_KEY oder AUTH_SECRET).",
     loginErrorAccessDenied:

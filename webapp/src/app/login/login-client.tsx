@@ -203,17 +203,6 @@ function LoginForm({ pilot }: { pilot: boolean }) {
             {brand.labels.loginTestProjectBrief}
           </p>
 
-          <div className="mt-4 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950/90">
-            <strong className="font-medium">
-              {brand.labels.loginDevNoticeStrong}
-            </strong>{" "}
-            {brand.labels.loginDevNoticeBeforeCmd}{" "}
-            <code className="rounded bg-amber-100/80 px-1 font-mono text-[11px]">
-              npm run admin:login-url
-            </code>{" "}
-            {brand.labels.loginDevNoticeAfterCmd}
-          </div>
-
           {error ? (
             <p
               className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"

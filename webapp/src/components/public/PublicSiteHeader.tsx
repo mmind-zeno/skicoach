@@ -30,7 +30,7 @@ export function PublicSiteHeader({
   const links = [
     { href: "/buchen", label: brand.labels.requestServiceCta },
     { href: "/buchen/meine-termine", label: brand.labels.navGuestAppointments },
-    { href: "/login", label: brand.labels.teamLoginNav },
+    { href: "/login", label: brand.labels.teamLoginHome },
     { href: "/", label: brand.labels.navHome },
     { href: "/datenschutz", label: brand.labels.navPrivacy },
     { href: "/impressum", label: brand.labels.navImpressum },
