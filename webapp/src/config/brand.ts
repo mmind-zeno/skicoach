@@ -677,10 +677,38 @@ const FORK_DEFAULTS = {
       "Zahlbar innert 30 Tagen netto, sofern nicht anders vereinbart.",
     /** Team-Login / Magic-Link (`app/login`) */
     loginMetadataTitleTemplate: "Anmelden · {siteName}",
-    loginMetadataDescriptionTemplate: "{teamLoginHome} per Magic-Link",
+    loginMetadataDescriptionTemplate:
+      "{teamLoginHome} per Magic-Link oder Passwort",
     loginTitle: "Anmelden",
     loginLeadMagicLink:
       "Magic Link per E-Mail. Nach dem Klick im Postfach bist du eingeloggt.",
+    loginLeadPassword:
+      "Mit E-Mail und Passwort — nachdem du unter „Konto“ ein Passwort gesetzt hast.",
+    loginTabMagicLink: "Magic-Link",
+    loginTabPassword: "Passwort",
+    labelPassword: "Passwort",
+    loginButtonPasswordSignIn: "Anmelden",
+    loginButtonPasswordSigning: "Anmelden …",
+    loginPasswordWrong: "E-Mail oder Passwort ungültig.",
+    loginPasswordHint:
+      "Noch kein Passwort? Zuerst Magic-Link nutzen, dann unter „Konto“ ein Passwort festlegen.",
+    navAccount: "Konto",
+    accountPageTitle: "Konto",
+    accountPasswordSectionTitle: "Passwort",
+    accountPasswordSectionLead:
+      "Nach dem ersten Login per Magic-Link kannst du hier ein Passwort setzen oder ändern. Danach ist auch die Anmeldung mit Passwort auf der Login-Seite möglich.",
+    accountPasswordNew: "Neues Passwort",
+    accountPasswordNewPlaceholder: "min. 10 Zeichen",
+    accountPasswordConfirm: "Passwort bestätigen",
+    accountPasswordCurrent: "Aktuelles Passwort",
+    accountPasswordCurrentPlaceholder: "nur beim Ändern nötig",
+    accountPasswordSave: "Passwort speichern",
+    accountPasswordSaving: "Speichern …",
+    accountPasswordSuccess: "Passwort gespeichert.",
+    accountPasswordMismatch: "Die Passwörter stimmen nicht überein.",
+    accountPasswordTooShort: "Passwort mindestens 10 Zeichen.",
+    accountPasswordCurrentWrong: "Aktuelles Passwort ist falsch.",
+    accountPasswordCurrentRequired: "Bitte das aktuelle Passwort eingeben.",
     loginErrorConfiguration:
       "Server-Konfiguration unvollständig (z. B. RESEND_API_KEY oder AUTH_SECRET).",
     loginErrorAccessDenied:
@@ -930,8 +958,8 @@ const labels = {
   ...labelsCore,
   teamAreaLead:
     htmlLang === "en"
-      ? `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} and ${labelsCore.navChat} — secure magic link sign-in.`
-      : `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} und ${labelsCore.navChat} — sicher per Magic-Link.`,
+      ? `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} and ${labelsCore.navChat} — magic link or password sign-in.`
+      : `${labelsCore.navCalendar}, ${labelsCore.clientPlural}, ${labelsCore.navInvoices} und ${labelsCore.navChat} — per Magic-Link oder Passwort.`,
   sourceFromBookingPortal:
     htmlLang === "en"
       ? `From ${labelsCore.bookingRequestSingular} (portal)`

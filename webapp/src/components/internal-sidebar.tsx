@@ -124,6 +124,9 @@ export function InternalSidebar({
             {brand.labels.navChat}
           </Link>
         ) : null}
+        <Link className={linkClass("/konto")} href="/konto" onClick={onNavigate}>
+          {brand.labels.navAccount}
+        </Link>
         {isAdmin ? (
           <>
             <div className="my-2 border-t border-white/10" />

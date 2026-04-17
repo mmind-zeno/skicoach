@@ -1,6 +1,6 @@
 {
   "name": "webapp",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx watch server.ts",
@@ -25,7 +25,10 @@
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
     "@react-pdf/renderer": "^4.3.2",
+    "bcrypt": "^6.0.0",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.1",
     "next": "14.2.18",
     "next-auth": "^5.0.0-beta.30",
@@ -34,8 +37,6 @@
     "react-big-calendar": "^1.19.4",
     "react-dom": "^18",
     "resend": "^6.9.4",
-    "dotenv": "^17.3.1",
-    "drizzle-kit": "^0.31.10",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "swr": "^2.4.1",
@@ -43,6 +44,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.18.0",
     "@types/react": "^18",

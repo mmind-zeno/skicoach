@@ -3,7 +3,7 @@
 - Spezifikation: **`../skicoachDraft/CLAUDE.md`** · Prompts: **`../skicoachDraft/PROMPTS.md`**
 - Docker-Build aus **Repo-Root**: `docker compose build` (Context = dieses Verzeichnis)
 - Öffentlicher Health-Check: **`GET /api/public/health`** (JSON, ohne DB)
-- Auth: Magic Link (Resend) — bestehende Nutzer mit `is_active = false` werden abgewiesen; neue E-Mails erzeugen einen Nutzer wie von NextAuth vorgesehen
+- Auth: **Magic Link** (Resend) und optional **Passwort** (`users.password_hash`, bcrypt). Passwort nach erstem Login unter **`/konto`** setzen; Login-Seite Tab „Passwort“. Bestehende Nutzer mit `is_active = false` werden abgewiesen; neue E-Mails per Magic-Link erzeugen einen Nutzer wie von NextAuth vorgesehen
 - Kalender (**Prompt 4**): `react-big-calendar`, APIs unter `/api/bookings`, `/api/teachers`, `/api/course-types`, `/api/guests` — für neue Termine mindestens ein **Kurstyp** und **Gast** in der DB (z. B. via Drizzle Studio oder SQL)
 
 **Phase 1 (Prompts 5–9, ohne Stripe/Prompt 10):** Gäste (`/gaeste`), Rechnungen inkl. PDF (`/rechnungen`, `GET /api/invoices/[id]/pdf`), **Chat** (`/chat`) mit **Socket.io** auf `/socket.io` (Echtzeit) und **SWR** als Fallback (längeres Polling, wenn nicht verbunden), Admin (`/admin`, `/admin/anfragen`), öffentlicher Buchungsflow (`/buchen`). Rechnungs-PDF: `src/services/pdf.service.tsx`. Bankdaten PDF: `BANK_*` in `.env`.

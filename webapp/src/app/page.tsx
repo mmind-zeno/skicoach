@@ -97,7 +97,7 @@ export default function Home() {
                   {brand.labels.requestServiceCta}
                 </Link>
               ) : null}
-              <Link href="/kalender" className={ctaClassSecondary}>
+              <Link href="/login" className={ctaClassSecondary}>
                 {brand.labels.teamLoginHome}
               </Link>
             </div>

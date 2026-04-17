@@ -55,7 +55,7 @@ export function LandingPilotHero({
                 {brand.labels.requestServiceCta}
               </Link>
             ) : null}
-            <Link href="/kalender" className={ctaSecondaryClass}>
+            <Link href="/login" className={ctaSecondaryClass}>
               {brand.labels.teamLoginHome}
             </Link>
           </div>

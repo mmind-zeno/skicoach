@@ -120,6 +120,7 @@ export const authConfig = {
         "/lohnabrechnung",
         "/chat",
         "/admin",
+        "/konto",
       ];
       const isProtected = protectedPrefixes.some(
         (p) => path === p || path.startsWith(`${p}/`)

@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
+import Credentials from "next-auth/providers/credentials";
 import Resend from "next-auth/providers/resend";
 import { authConfig } from "./auth.config";
 import { clientIp } from "./client-ip";
@@ -10,6 +11,7 @@ import { authAdapterTables, users } from "../../drizzle/schema";
 import { magicLinkHtml, magicLinkText } from "./auth-email-templates";
 import { brand, getAuthResendFromEmail } from "@/config/brand";
 import { UnauthorizedError, ForbiddenError } from "./errors";
+import { verifyPassword, verifyPasswordDummy } from "./password-hash";
 import type { Session } from "next-auth";
 
 async function enforceMagicLinkRateLimits(
@@ -48,6 +50,65 @@ async function enforceMagicLinkRateLimits(
   }
 }
 
+async function authorizePasswordCredentials(
+  rawEmail: unknown,
+  rawPassword: unknown
+): Promise<{
+  id: string;
+  email: string;
+  name?: string | null;
+  role: "admin" | "teacher";
+} | null> {
+  const email =
+    typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : "";
+  const password = typeof rawPassword === "string" ? rawPassword : "";
+  if (!email.includes("@") || password.length < 1) {
+    return null;
+  }
+
+  try {
+    const hourSlot = Math.floor(Date.now() / 3_600_000);
+    const rateOk = await consumeRateLimitBucket(
+      `signin:pw:${email}:${hourSlot}`,
+      40,
+      3_600_000
+    );
+    if (!rateOk) {
+      return null;
+    }
+  } catch {
+    /* Rate-Limit-DB optional — Login nicht hart blockieren */
+  }
+
+  const row = await getDb().query.users.findFirst({
+    where: eq(users.email, email),
+    columns: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!row?.passwordHash) {
+    await verifyPasswordDummy(password);
+    return null;
+  }
+
+  const valid = await verifyPassword(password, row.passwordHash);
+  if (!valid) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    role: row.role,
+  };
+}
+
 const resendEmail = Resend({
   apiKey: process.env.RESEND_API_KEY ?? "",
   from: getAuthResendFromEmail(),
@@ -56,6 +117,17 @@ const resendEmail = Resend({
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
+    Credentials({
+      id: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      authorize: async (credentials) => authorizePasswordCredentials(
+        credentials?.email,
+        credentials?.password
+      ),
+    }),
     {
       ...resendEmail,
       async sendVerificationRequest(params) {

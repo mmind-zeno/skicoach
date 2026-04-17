@@ -287,10 +287,37 @@ export const BRAND_LABELS_EN = {
   invoicePdfFooterLegalNote:
     "Payable within 30 days net unless otherwise agreed.",
   loginMetadataTitleTemplate: "Sign in · {siteName}",
-  loginMetadataDescriptionTemplate: "{teamLoginHome} via magic link",
+  loginMetadataDescriptionTemplate: "{teamLoginHome} via magic link or password",
   loginTitle: "Sign in",
   loginLeadMagicLink:
     "Magic link by email. After clicking the link in your inbox you are signed in.",
+  loginLeadPassword:
+    "With email and password — after you set a password under Account.",
+  loginTabMagicLink: "Magic link",
+  loginTabPassword: "Password",
+  labelPassword: "Password",
+  loginButtonPasswordSignIn: "Sign in",
+  loginButtonPasswordSigning: "Signing in…",
+  loginPasswordWrong: "Invalid email or password.",
+  loginPasswordHint:
+    "No password yet? Use the magic link first, then set a password under Account.",
+  navAccount: "Account",
+  accountPageTitle: "Account",
+  accountPasswordSectionTitle: "Password",
+  accountPasswordSectionLead:
+    "After your first magic-link sign-in you can set or change your password here. You can then also sign in with password on the login page.",
+  accountPasswordNew: "New password",
+  accountPasswordNewPlaceholder: "min. 10 characters",
+  accountPasswordConfirm: "Confirm password",
+  accountPasswordCurrent: "Current password",
+  accountPasswordCurrentPlaceholder: "only when changing",
+  accountPasswordSave: "Save password",
+  accountPasswordSaving: "Saving…",
+  accountPasswordSuccess: "Password saved.",
+  accountPasswordMismatch: "Passwords do not match.",
+  accountPasswordTooShort: "Password must be at least 10 characters.",
+  accountPasswordCurrentWrong: "Current password is wrong.",
+  accountPasswordCurrentRequired: "Please enter your current password.",
   loginErrorConfiguration:
     "Server configuration incomplete (e.g. RESEND_API_KEY or AUTH_SECRET).",
   loginErrorAccessDenied: "Access denied — this account is deactivated.",

@@ -70,6 +70,8 @@ export const users = pgTable("users", {
   phone: text("phone"),
   colorIndex: integer("color_index").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  /** bcrypt-Hash; null = nur Magic-Link, bis unter /konto gesetzt */
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 

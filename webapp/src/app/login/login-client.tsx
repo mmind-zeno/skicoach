@@ -36,19 +36,31 @@ function LoginHeroBackdrop() {
   );
 }
 
+function safeInternalCallbackUrl(raw: string | null): string {
+  const fallback = "/kalender";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
+    return fallback;
+  }
+  return raw;
+}
+
 function LoginForm({ pilot }: { pilot: boolean }) {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/kalender";
+  const callbackUrl = safeInternalCallbackUrl(searchParams.get("callbackUrl"));
   const error = searchParams.get("error");
 
+  const [mode, setMode] = useState<"magic" | "password">("magic");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmitMagic(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+    setPasswordError(null);
     try {
       const result = await signIn("resend", {
         email: email.trim(),
@@ -61,6 +73,30 @@ function LoginForm({ pilot }: { pilot: boolean }) {
         setMessage(brand.labels.loginMessageLinkSent);
       }
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onSubmitPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    setPasswordError(null);
+    try {
+      const res = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        callbackUrl,
+        redirect: false,
+      });
+      if (!res || res.error) {
+        setPasswordError(brand.labels.loginPasswordWrong);
+        setLoading(false);
+        return;
+      }
+      window.location.href = callbackUrl;
+    } catch {
+      setPasswordError(brand.labels.loginPasswordWrong);
       setLoading(false);
     }
   }
@@ -100,6 +136,18 @@ function LoginForm({ pilot }: { pilot: boolean }) {
   const mobileBadgeClass = pilot
     ? "rounded-full bg-[var(--ascent-primary)]/12 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--ascent-primary)]"
     : "rounded-full bg-sk-cta/12 px-4 py-1 text-xs font-semibold uppercase tracking-wider text-sk-cta";
+
+  const tabWrapClass = pilot
+    ? "mt-5 flex rounded-xl bg-[var(--ascent-container-low)] p-1 shadow-[inset_0_0_0_1px_rgba(0,88,188,0.1)]"
+    : "mt-5 flex rounded-xl bg-sk-surface p-1 ring-1 ring-sk-outline/20";
+
+  const tabBtnActive = pilot
+    ? "flex-1 rounded-lg bg-white py-2 text-sm font-semibold text-[var(--ascent-primary)] shadow-sm"
+    : "flex-1 rounded-lg bg-white py-2 text-sm font-semibold text-sk-brand shadow-sm";
+
+  const tabBtnIdle = pilot
+    ? "flex-1 rounded-lg py-2 text-sm font-medium text-[var(--ascent-on-surface-variant)] transition hover:text-[var(--ascent-on-surface)]"
+    : "flex-1 rounded-lg py-2 text-sm font-medium text-sk-ink/65 transition hover:text-sk-ink";
 
   return (
     <div
@@ -191,7 +239,40 @@ function LoginForm({ pilot }: { pilot: boolean }) {
             </div>
           </div>
           <h1 className={h1Class}>{brand.labels.loginTitle}</h1>
-          <p className={leadClass}>{brand.labels.loginLeadMagicLink}</p>
+          <p className={leadClass}>
+            {mode === "magic"
+              ? brand.labels.loginLeadMagicLink
+              : brand.labels.loginLeadPassword}
+          </p>
+
+          <div className={tabWrapClass} role="tablist" aria-label="Anmeldung">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "magic"}
+              className={mode === "magic" ? tabBtnActive : tabBtnIdle}
+              onClick={() => {
+                setMode("magic");
+                setMessage(null);
+                setPasswordError(null);
+              }}
+            >
+              {brand.labels.loginTabMagicLink}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "password"}
+              className={mode === "password" ? tabBtnActive : tabBtnIdle}
+              onClick={() => {
+                setMode("password");
+                setMessage(null);
+                setPasswordError(null);
+              }}
+            >
+              {brand.labels.loginTabPassword}
+            </button>
+          </div>
 
           <p
             className={
@@ -219,26 +300,79 @@ function LoginForm({ pilot }: { pilot: boolean }) {
             </p>
           ) : null}
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
-            <label className={labelClass}>
-              {brand.labels.labelEmail}
-              <input
-                type="email"
-                name="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(ev) => setEmail(ev.target.value)}
-                className={fieldClass}
-                placeholder={brand.labels.loginEmailPlaceholder}
-              />
-            </label>
-            <button type="submit" disabled={loading} className={submitClass}>
-              {loading
-                ? brand.labels.loginButtonSending
-                : brand.labels.loginButtonSendLink}
-            </button>
-          </form>
+          {mode === "magic" ? (
+            <form onSubmit={onSubmitMagic} className="mt-6 space-y-4">
+              <label className={labelClass}>
+                {brand.labels.labelEmail}
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(ev) => setEmail(ev.target.value)}
+                  className={fieldClass}
+                  placeholder={brand.labels.loginEmailPlaceholder}
+                />
+              </label>
+              <button type="submit" disabled={loading} className={submitClass}>
+                {loading
+                  ? brand.labels.loginButtonSending
+                  : brand.labels.loginButtonSendLink}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={onSubmitPassword} className="mt-6 space-y-4">
+              <label className={labelClass}>
+                {brand.labels.labelEmail}
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(ev) => setEmail(ev.target.value)}
+                  className={fieldClass}
+                  placeholder={brand.labels.loginEmailPlaceholder}
+                />
+              </label>
+              <label className={labelClass}>
+                {brand.labels.labelPassword}
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(ev) => setPassword(ev.target.value)}
+                  className={fieldClass}
+                />
+              </label>
+              <button type="submit" disabled={loading} className={submitClass}>
+                {loading
+                  ? brand.labels.loginButtonPasswordSigning
+                  : brand.labels.loginButtonPasswordSignIn}
+              </button>
+              <p
+                className={
+                  pilot
+                    ? "text-xs text-[var(--ascent-on-surface-variant)]"
+                    : "text-xs text-sk-ink/65"
+                }
+              >
+                {brand.labels.loginPasswordHint}
+              </p>
+            </form>
+          )}
+
+          {passwordError ? (
+            <p
+              className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
+              role="alert"
+            >
+              {passwordError}
+            </p>
+          ) : null}
 
           {message ? (
             <p
@@ -257,7 +391,7 @@ function LoginForm({ pilot }: { pilot: boolean }) {
             }
           >
             <Link href="/" className={homeLinkClass}>
-              Zur Startseite
+              {brand.labels.loginLinkToHome}
             </Link>
           </p>
         </div>
