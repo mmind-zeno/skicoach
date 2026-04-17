@@ -31,8 +31,8 @@ const FORK_DEFAULTS = {
     "MMIND GmbH\nDuxgass 55\nFL-9494 Schaan\nFuerstentum Liechtenstein\nTelefon: +4176 458 32 96\nE-Mail: info@mmind.ai\nWeb: https://mmind.ai",
   /** Monitoring: JSON-Feld `service` im Health-Endpoint */
   serviceSlug: "skicoach-webapp",
-  /** Fallback Absender, wenn RESEND_FROM_EMAIL nicht gesetzt (sollte zur Domain passen) */
-  defaultResendFrom: "noreply@mmind.ai",
+  /** Fallback Absender, wenn RESEND_FROM_EMAIL nicht gesetzt (Resend: verifizierte Domain) */
+  defaultResendFrom: "noreply@email.mmind.space",
   /** NextAuth Resend-Provider: lokaler Fallback ohne verifizierte Domain */
   authResendFallback: "skicoach@localhost",
   labels: {

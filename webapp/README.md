@@ -12,7 +12,7 @@
 
 **Design-System (Prompt 3b, Auszug):** `src/lib/colors.ts` (inkl. Status- und Lehrer-Farben laut CLAUDE.md), UI-Bausteine unter `src/components/ui/` (`StatusBadge`, `TeacherBadge`, `TeacherAvatar`, `CHFAmount`, `PageHeader`, `MetricCard`).
 
-**Admin-Einladung (Lehrkraft):** `POST /api/admin/users` legt den Nutzer an und verschickt einen **Magic-Link** über `src/lib/invite-magic-link.ts` (Verification-Token wie Auth.js, **ohne** `signIn()` im API-Route-Handler — sonst könnten Auth-Cookies die Admin-Session überschreiben). Dafür `RESEND_API_KEY`, `AUTH_SECRET`/`NEXTAUTH_SECRET` und eine öffentliche Basis-URL (`AUTH_URL` / `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL`) setzen.
+**Admin-Einladung (Lehrkraft):** `POST /api/admin/users` legt den Nutzer an und verschickt einen **Magic-Link** über `src/lib/invite-magic-link.ts` (Verification-Token wie Auth.js, **ohne** `signIn()` im API-Route-Handler — sonst könnten Auth-Cookies die Admin-Session überschreiben). Dafür **`RESEND_API_KEY`** (Resend-Dashboard → API Keys), **`RESEND_FROM_EMAIL`** (Adresse auf einer **in Resend verifizierten** Domain, z. B. `noreply@email.mmind.space`), **`NEXTAUTH_SECRET`** und **`NEXTAUTH_URL`** / **`NEXT_PUBLIC_APP_URL`** setzen. In Resend ist kein Extra-„Projekt“ nötig — nur verifizierte Domain + Key.
 
 **Magic-Link erneut:** `POST /api/admin/users/resend-invite` mit `{ "email": "…" }` (Admin) — z. B. aus dem Admin-Tab „Lehrer & Nutzer“ (**Link erneut**). Hilft, wenn die Einladungs-Mail fehlgeschlagen ist oder der Nutzer schon existiert (409 bei Neuanlage).
 

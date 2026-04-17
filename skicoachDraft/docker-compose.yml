@@ -28,6 +28,7 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL}
       AUTH_TRUST_HOST: "true"
       RESEND_API_KEY: ${RESEND_API_KEY}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@email.mmind.space}
       NEXT_PUBLIC_APP_URL: ${NEXTAUTH_URL}
       ADMIN_NOTIFICATION_EMAIL: ${ADMIN_NOTIFICATION_EMAIL:-admin@skicoach.li}
       TZ: ${TZ:-Europe/Zurich}
