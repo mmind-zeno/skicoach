@@ -3,7 +3,7 @@
 > Dieses Dokument ist die verbindliche Architektur- und Coding-Referenz.
 > Claude Code liest dieses File automatisch und befolgt alle Regeln in jedem Prompt.
 
-**Release (Webapp):** `0.9.8` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
+**Release (Webapp):** `0.9.9` — siehe `webapp/package.json`, Docker-Build-Arg `NEXT_PUBLIC_APP_VERSION` (Default in Repo-Root `docker-compose.yml`). Live: `https://skicoach.mmind.space`.
 
 ---
 
@@ -13,7 +13,7 @@
 
 ### Interner Bereich (Login erforderlich)
 - Kalender & Terminverwaltung 15+ Skilehrer (react-big-calendar)
-- Gästedatenbank (CRM-Profil: Adresse, Person, Ausrüstung, Notfall, Marketing-Opt-in — siehe Schema unten)
+- Gästedatenbank (CRM-Profil: Adresse, Person, Ausrüstung, Notfall, Marketing-Opt-in, **Termin-Erinnerung per E-Mail** Opt-in — siehe Schema unten)
 - Rechnungen automatisch (PDF, CHF, 7.7% MwSt LI)
 - Team-Chat (Socket.io)
 - Admin-Panel
@@ -202,7 +202,8 @@ guests: id, name, email, phone, niveau(anfaenger|fortgeschritten|experte),
         dateOfBirth?(date), gender?, nationality?,
         heightCm?, weightKg?, shoeSizeEu?,
         emergencyContactName?, emergencyContactPhone?,
-        medicalNotes?, preferredContactChannel?, marketingOptIn(boolean, default false)
+        medicalNotes?, preferredContactChannel?, marketingOptIn(boolean, default false),
+        bookingReminderOptIn(boolean, default true) — E-Mail vor Termin; unabhängig von Marketing
 
 // courseTypes — Kurstypen
 courseTypes: id, name, durationMin, priceCHF, maxParticipants,
@@ -275,6 +276,13 @@ PDFs **nicht** unter `public/` ablegen (keine erratbaren öffentlichen URLs). Au
 4. System → Bestätigungs-Mail an Kunden
 ```
 
+### Termin-Erinnerungen (E-Mail)
+
+- **Service:** `webapp/src/services/booking-reminder.service.ts` — `runDueBookingReminders()`; Aufruf aus `server.ts` im Poll-Intervall (`REMINDER_POLL_INTERVAL_MS`).
+- **Log:** `booking_reminder_log` (Migration `0015`) — kein Doppelversand pro Buchung/Kanal.
+- **Pro Gast:** `guests.booking_reminder_opt_in` (Migration **`0018`**, Default `true`). Bei `false` wird keine Reminder-Mail gesendet (auch wenn E-Mail gesetzt). CRM: `/gaeste` (Detail + Neuer Gast).
+- **Env:** `REMINDER_HOURS_BEFORE`, `REMINDER_WINDOW_HOURS`, `REMINDER_EMAIL_ENABLED=false` schaltet den Lauf komplett ab.
+
 ---
 
 ## Rollen & Berechtigungen
@@ -320,4 +328,4 @@ Fehlerklassen: UnauthorizedError | ForbiddenError | NotFoundError in src/lib/err
 
 ---
 
-*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.8***
+*Next.js 14 · Drizzle · PostgreSQL 16 · TypeScript strict · react-big-calendar · Hetzner · skicoach.mmind.space · 49.13.139.206 · **v0.9.9***
