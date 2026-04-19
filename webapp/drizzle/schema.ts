@@ -548,16 +548,49 @@ export const bookingReminderLog = pgTable(
     bookingId: uuid("booking_id")
       .notNull()
       .references(() => bookings.id, { onDelete: "cascade" }),
+    /** Legacy: email | sms; neu: oft ein Eintrag pro Buchung nach einmaligem Versand */
     channel: text("channel").notNull().default("email"),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .notNull()
       .defaultNow(),
   },
   (t) => ({
-    bookingChannelUnique: uniqueIndex(
-      "booking_reminder_log_booking_channel_unique"
-    ).on(t.bookingId, t.channel),
+    bookingIdUnique: uniqueIndex("booking_reminder_log_booking_id_unique").on(
+      t.bookingId
+    ),
     bookingIdx: index("booking_reminder_log_booking_id_idx").on(t.bookingId),
+  })
+);
+
+/** Key-Value: Erinnerungs- und Kommunikations-Overrides (UI); leer = Env-Defaults */
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Marketing-Newsletter an Gäste mit marketing_opt_in (Admin) */
+export const newsletterCampaigns = pgTable(
+  "newsletter_campaigns",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    subject: text("subject").notNull(),
+    htmlBody: text("html_body").notNull(),
+    status: text("status").notNull().default("draft"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+    recipientCount: integer("recipient_count").notNull().default(0),
+    sentCount: integer("sent_count").notNull().default(0),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    createdIdx: index("newsletter_campaigns_created_at_idx").on(t.createdAt),
   })
 );
 
@@ -880,6 +913,8 @@ export const dbSchema = {
   bookingRequests,
   invoices,
   bookingReminderLog,
+  appSettings,
+  newsletterCampaigns,
   chatChannels,
   chatMessages,
   rateLimitBuckets,

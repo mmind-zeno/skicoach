@@ -127,6 +127,13 @@
       "when": 1743140000000,
       "tag": "0018_guest_booking_reminder_opt_in",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1743150000000,
+      "tag": "0019_communication_settings_newsletter",
+      "breakpoints": true
     }
   ]
 }

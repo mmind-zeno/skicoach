@@ -174,26 +174,32 @@ app.prepare().then(() => {
     console.log(`> Ready on http://${hostname}:${port} (Next + Socket.io)`);
   });
 
-  const reminderMs = Number(process.env.REMINDER_POLL_INTERVAL_MS) || 900_000;
-  if (
-    process.env.REMINDER_EMAIL_ENABLED !== "false" &&
-    process.env.REMINDER_EMAIL_ENABLED !== "0"
-  ) {
-    const tick = () => {
-      void import("./src/services/booking-reminder.service")
-        .then((m) => m.runDueBookingReminders())
-        .then(({ scanned, sent }) => {
-          if (sent > 0) {
-            // eslint-disable-next-line no-console
-            console.log(`[reminders] scanned=${scanned} sent=${sent}`);
-          }
-        })
-        .catch((err) => {
+  /** Erinnerungen: alle 60s Scheduler; Versand-Intervall aus DB/UI (Kommunikation) oder Env */
+  let lastReminderRunAt = 0;
+  const reminderSchedulerMs = 60_000;
+  const runReminderScheduler = () => {
+    void import("./src/services/communication-settings.service")
+      .then((m) => m.getCommunicationSettings())
+      .then((s) => {
+        if (!s.remindersEnabled) return null;
+        const now = Date.now();
+        if (now - lastReminderRunAt < s.reminderPollIntervalMs) return null;
+        lastReminderRunAt = now;
+        return import("./src/services/booking-reminder.service").then((x) =>
+          x.runDueBookingReminders()
+        );
+      })
+      .then((result) => {
+        if (result && result.sent > 0) {
           // eslint-disable-next-line no-console
-          console.error("[reminders]", err);
-        });
-    };
-    tick();
-    setInterval(tick, reminderMs);
-  }
+          console.log(`[reminders] scanned=${result.scanned} sent=${result.sent}`);
+        }
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error("[reminders]", err);
+      });
+  };
+  runReminderScheduler();
+  setInterval(runReminderScheduler, reminderSchedulerMs);
 });

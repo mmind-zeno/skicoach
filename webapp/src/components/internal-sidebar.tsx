@@ -152,6 +152,13 @@ export function InternalSidebar({
             >
               {brand.labels.navAudit}
             </Link>
+            <Link
+              className={linkClass("/admin/kommunikation")}
+              href="/admin/kommunikation"
+              onClick={onNavigate}
+            >
+              {brand.labels.navCommunication}
+            </Link>
           </>
         ) : null}
       </nav>

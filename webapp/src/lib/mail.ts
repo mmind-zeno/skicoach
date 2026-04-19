@@ -9,6 +9,8 @@ import {
   guestPortalMagicLinkMail,
   teacherSubstitutionMail,
 } from "@/lib/mail/transactional-booking";
+import { wrapNewsletterHtml } from "@/lib/mail/newsletter-layout";
+import type { ReminderMedium } from "@/services/communication-settings.service";
 
 function client() {
   const key = process.env.RESEND_API_KEY;
@@ -123,8 +125,13 @@ export async function sendGuestPortalMagicLink(
   await r.emails.send({ from: from(), to, subject, html });
 }
 
-async function postReminderSmsWebhook(to: string, text: string): Promise<void> {
-  const url = process.env.REMINDER_SMS_WEBHOOK_URL?.trim();
+async function postReminderSmsWebhook(
+  to: string,
+  text: string,
+  webhookUrl: string | null | undefined
+): Promise<void> {
+  const url =
+    webhookUrl?.trim() || process.env.REMINDER_SMS_WEBHOOK_URL?.trim();
   if (!url || !to) return;
   await fetch(url, {
     method: "POST",
@@ -141,9 +148,16 @@ export async function sendBookingReminderNotification(payload: {
   startTime: string;
   teacherName: string;
   guestPhone: string | null;
-}): Promise<void> {
+  medium: ReminderMedium;
+  smsWebhookUrl: string | null;
+}): Promise<{ sentEmail: boolean; sentSms: boolean }> {
+  let sentEmail = false;
+  let sentSms = false;
   const r = client();
-  if (r) {
+  const wantEmail = payload.medium === "email" || payload.medium === "both";
+  const wantSms = payload.medium === "sms" || payload.medium === "both";
+
+  if (wantEmail && r && payload.to.trim()) {
     const { subject, html } = bookingReminderMail({
       guestName: payload.guestName,
       courseName: payload.courseName,
@@ -151,15 +165,42 @@ export async function sendBookingReminderNotification(payload: {
       startTime: payload.startTime,
       teacherName: payload.teacherName,
     });
-    await r.emails.send({ from: from(), to: payload.to, subject, html });
+    await r.emails.send({ from: from(), to: payload.to.trim(), subject, html });
+    sentEmail = true;
   }
-  const smsLine = `${payload.courseName} ${payload.date} ${payload.startTime}`.trim();
-  if (payload.guestPhone) {
+
+  const smsLine =
+    `${payload.courseName} ${payload.date} ${payload.startTime}`.trim();
+  if (wantSms && payload.guestPhone?.trim()) {
     await postReminderSmsWebhook(
-      payload.guestPhone,
-      `${brand.labels.emailBookingReminderSubject.replace("{siteName}", brand.siteName)}: ${smsLine}`
+      payload.guestPhone.trim(),
+      `${brand.labels.emailBookingReminderSubject.replace("{siteName}", brand.siteName)}: ${smsLine}`,
+      payload.smsWebhookUrl
     );
+    sentSms = true;
   }
+
+  return { sentEmail, sentSms };
+}
+
+export async function sendNewsletterToGuest(payload: {
+  to: string;
+  guestName: string;
+  subject: string;
+  /** Rohes HTML aus dem Editor (wird in Layout eingebettet) */
+  htmlFragment: string;
+}): Promise<void> {
+  const r = client();
+  if (!r) {
+    throw new Error(brand.labels.configResendApiKeyMissing);
+  }
+  const html = wrapNewsletterHtml(payload.htmlFragment, payload.guestName);
+  await r.emails.send({
+    from: from(),
+    to: payload.to.trim(),
+    subject: payload.subject.trim(),
+    html,
+  });
 }
 
 export async function sendTeacherSubstitutionNotifications(payload: {

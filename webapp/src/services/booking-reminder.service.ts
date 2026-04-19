@@ -3,33 +3,22 @@ import { bookingReminderLog, bookings } from "../../drizzle/schema";
 import { parseLocalDateOnly } from "../lib/datetime";
 import { getDb } from "../lib/db";
 import { sendBookingReminderNotification } from "../lib/mail";
-
-function reminderHours(): number {
-  const n = Number.parseFloat(process.env.REMINDER_HOURS_BEFORE?.trim() ?? "24");
-  return Number.isFinite(n) && n > 0 ? n : 24;
-}
-
-function windowHours(): number {
-  const n = Number.parseFloat(process.env.REMINDER_WINDOW_HOURS?.trim() ?? "0.75");
-  return Number.isFinite(n) && n > 0 ? n : 0.75;
-}
+import { getCommunicationSettings } from "./communication-settings.service";
 
 /**
- * Server-Intervall: Termine ca. REMINDER_HOURS_BEFORE vor Start (Fenster für Poll-Takt).
+ * Server-Intervall: Termine ca. konfigurierte Stunden vor Start (Fenster für Poll-Takt).
  */
 export async function runDueBookingReminders(): Promise<{
   scanned: number;
   sent: number;
 }> {
-  if (
-    process.env.REMINDER_EMAIL_ENABLED === "false" ||
-    process.env.REMINDER_EMAIL_ENABLED === "0"
-  ) {
+  const settings = await getCommunicationSettings();
+  if (!settings.remindersEnabled) {
     return { scanned: 0, sent: 0 };
   }
 
-  const H = reminderHours();
-  const win = windowHours();
+  const H = settings.reminderHoursBefore;
+  const win = settings.reminderWindowHours;
   const db = getDb();
   const now = new Date();
 
@@ -51,8 +40,17 @@ export async function runDueBookingReminders(): Promise<{
 
   let sent = 0;
   for (const r of rows) {
-    if (!r.guest?.email?.trim()) continue;
+    if (!r.guest) continue;
     if (r.guest.bookingReminderOptIn === false) continue;
+
+    const medium = settings.reminderMedium;
+    const email = r.guest.email?.trim() ?? "";
+    const phone = r.guest.phone?.trim() ?? null;
+
+    if (medium === "email" && !email) continue;
+    if (medium === "sms" && !phone) continue;
+    if (medium === "both" && !email && !phone) continue;
+
     const day =
       r.date instanceof Date
         ? r.date
@@ -65,10 +63,7 @@ export async function runDueBookingReminders(): Promise<{
     if (hoursUntil <= 0 || hoursUntil > H || hoursUntil < H - win) continue;
 
     const exists = await db.query.bookingReminderLog.findFirst({
-      where: and(
-        eq(bookingReminderLog.bookingId, r.id),
-        eq(bookingReminderLog.channel, "email")
-      ),
+      where: eq(bookingReminderLog.bookingId, r.id),
     });
     if (exists) continue;
 
@@ -78,20 +73,31 @@ export async function runDueBookingReminders(): Promise<{
         : String(r.date).slice(0, 10);
 
     try {
-      await sendBookingReminderNotification({
-        to: r.guest.email.trim(),
+      const { sentEmail, sentSms } = await sendBookingReminderNotification({
+        to: email,
         guestName: r.guest.name,
         courseName: r.courseType?.name ?? "—",
         date: dateStr,
         startTime: t.slice(0, 5),
         teacherName: r.teacher?.name ?? r.teacher?.email ?? "",
-        guestPhone: r.guest.phone?.trim() ?? null,
+        guestPhone: phone,
+        medium:
+          medium === "both" && !email
+            ? "sms"
+            : medium === "both" && !phone
+              ? "email"
+              : medium,
+        smsWebhookUrl: settings.reminderSmsWebhookUrl || null,
       });
-      await db.insert(bookingReminderLog).values({
-        bookingId: r.id,
-        channel: "email",
-      });
-      sent += 1;
+      if (sentEmail || sentSms) {
+        const ch =
+          sentEmail && sentSms ? "both" : sentEmail ? "email" : "sms";
+        await db.insert(bookingReminderLog).values({
+          bookingId: r.id,
+          channel: ch,
+        });
+        sent += 1;
+      }
     } catch {
       // ohne Log bei Fehler — nächster Lauf erneut
     }
