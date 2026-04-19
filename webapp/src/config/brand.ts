@@ -214,6 +214,8 @@ const FORK_DEFAULTS = {
     /** REST-API: wiederkehrende JSON-Fehler (für Forks / einheitliche Texte) */
     apiInvalidData: "Ungültige Daten",
     apiInvalidEmail: "Ungültige E-Mail",
+    apiInvalidRole: "Ungültige Rolle (nur Admin oder Lehrkraft).",
+    adminInviteNamePlaceholder: "Name (optional)",
     apiInviteFailed: "Fehler beim Einladen",
     apiResendInviteFailed: "Versand fehlgeschlagen",
     apiPatchNoFields: "Keine Felder",
@@ -472,6 +474,7 @@ const FORK_DEFAULTS = {
     adminUsersEmptyHint:
       "Noch keine Nutzer. Oben eine E-Mail eintragen und Magic-Link senden.",
     adminMagicLinkResentToast: "Magic-Link wurde erneut gesendet.",
+    adminUserNameSavedToast: "Name gespeichert.",
     adminResendMagicLink: "Link erneut",
     adminActivateUser: "Aktivieren",
     adminActivateUserFailed: "Aktivieren fehlgeschlagen",

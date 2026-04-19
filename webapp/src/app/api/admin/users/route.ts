@@ -56,9 +56,25 @@ export async function POST(request: Request) {
       typeof json.name === "string" && json.name.trim()
         ? json.name.trim()
         : email.split("@")[0] ?? brand.labels.staffSingular;
+    const roleRaw = json.role;
+    const role =
+      roleRaw === "admin" || roleRaw === "teacher" ? roleRaw : "teacher";
     if (!email.includes("@")) {
       return apiClientError(
         brand.labels.apiInvalidEmail,
+        400,
+        "INVALID_INPUT",
+        undefined,
+        request
+      );
+    }
+    if (
+      roleRaw !== undefined &&
+      roleRaw !== "admin" &&
+      roleRaw !== "teacher"
+    ) {
+      return apiClientError(
+        brand.labels.apiInvalidRole,
         400,
         "INVALID_INPUT",
         undefined,
@@ -81,15 +97,15 @@ export async function POST(request: Request) {
     await db.insert(users).values({
       email,
       name,
-      role: "teacher",
+      role,
       isActive: true,
     });
     await sendTeacherInviteMagicLink({ email, name });
     await writeAuditLog({
       actorUserId: session.user.id,
-      action: "admin.user.invite_teacher",
+      action: "admin.user.invite",
       resource: email,
-      metadata: { name },
+      metadata: { name, role },
       request,
     });
     return NextResponse.json({ ok: true, email }, { status: 201 });

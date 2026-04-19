@@ -61,6 +61,8 @@ export function AdminHome() {
   );
 
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRole, setInviteRole] = useState<"teacher" | "admin">("teacher");
   const [userActionError, setUserActionError] = useState<UiErrorInfo | null>(null);
 
   useEffect(() => {
@@ -257,13 +259,38 @@ export function AdminHome() {
               ) : null}
             </p>
           ) : null}
-          <div className="flex flex-wrap gap-2">
-            <input
-              className="rounded border px-2 py-2 text-sm"
-              placeholder={brand.labels.adminInviteEmailPlaceholder}
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-            />
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="flex flex-col gap-0.5 text-xs text-sk-ink/70">
+              <span>{brand.labels.labelEmail}</span>
+              <input
+                className="rounded border px-2 py-2 text-sm text-sk-ink"
+                placeholder={brand.labels.adminInviteEmailPlaceholder}
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-0.5 text-xs text-sk-ink/70">
+              <span>{brand.labels.labelName}</span>
+              <input
+                className="rounded border px-2 py-2 text-sm text-sk-ink"
+                placeholder={brand.labels.adminInviteNamePlaceholder}
+                value={inviteName}
+                onChange={(e) => setInviteName(e.target.value)}
+              />
+            </label>
+            <label className="flex flex-col gap-0.5 text-xs text-sk-ink/70">
+              <span>{brand.labels.labelRole}</span>
+              <select
+                className="rounded border bg-white px-2 py-2 text-sm text-sk-ink"
+                value={inviteRole}
+                onChange={(e) =>
+                  setInviteRole(e.target.value === "admin" ? "admin" : "teacher")
+                }
+              >
+                <option value="teacher">{brand.labels.staffSingular}</option>
+                <option value="admin">{brand.labels.navAdmin}</option>
+              </select>
+            </label>
             <button
               type="button"
               className="rounded bg-gradient-to-r from-sk-cta to-sk-cta-mid px-3 py-2 text-sm text-white shadow-sm transition hover:from-sk-cta-hover hover:to-sk-cta-mid"
@@ -273,9 +300,15 @@ export function AdminHome() {
                   await fetchJson("/api/admin/users", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email: inviteEmail }),
+                    body: JSON.stringify({
+                      email: inviteEmail,
+                      name: inviteName.trim() || undefined,
+                      role: inviteRole,
+                    }),
                   });
                   setInviteEmail("");
+                  setInviteName("");
+                  setInviteRole("teacher");
                   void muUsers();
                 } catch (e) {
                   setUserActionError(getUiErrorInfo(e, brand.labels.uiErrorGeneric));
@@ -305,9 +338,60 @@ export function AdminHome() {
               ) : null}
               {users?.map((u) => (
                 <tr key={u.id} className="border-t border-sk-ink/5">
-                  <td className="py-1">{u.name}</td>
+                  <td className="py-1">
+                    <UserNameCell
+                      userId={u.id}
+                      initialName={u.name}
+                      onSave={async (name) => {
+                        setUserActionError(null);
+                        await fetchJson(`/api/admin/users/${u.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ name }),
+                        });
+                        void muUsers();
+                        showToast(brand.labels.adminUserNameSavedToast, "success");
+                      }}
+                      onError={(e) =>
+                        setUserActionError(
+                          getUiErrorInfo(e, brand.labels.uiSaveFailed)
+                        )
+                      }
+                    />
+                  </td>
                   <td>{u.email}</td>
-                  <td>{u.role}</td>
+                  <td>
+                    <select
+                      className="max-w-[10rem] rounded border bg-white px-1 py-1 text-sm"
+                      value={u.role}
+                      disabled={u.id === meId}
+                      title={
+                        u.id === meId
+                          ? brand.labels.adminCannotChangeOwnRoleHere
+                          : undefined
+                      }
+                      onChange={async (e) => {
+                        const role = e.target.value as "admin" | "teacher";
+                        if (role === u.role) return;
+                        setUserActionError(null);
+                        try {
+                          await fetchJson(`/api/admin/users/${u.id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ role }),
+                          });
+                          void muUsers();
+                        } catch (err) {
+                          setUserActionError(
+                            getUiErrorInfo(err, brand.labels.adminRoleChangeFailed)
+                          );
+                        }
+                      }}
+                    >
+                      <option value="teacher">{brand.labels.staffSingular}</option>
+                      <option value="admin">{brand.labels.navAdmin}</option>
+                    </select>
+                  </td>
                   <td>
                     {u.isActive ? brand.labels.uiYes : brand.labels.uiNo}
                   </td>
@@ -357,35 +441,6 @@ export function AdminHome() {
                         {brand.labels.adminActivateUser}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      className="text-xs text-sk-brand underline disabled:cursor-not-allowed disabled:opacity-40"
-                      disabled={u.id === meId}
-                      title={
-                        u.id === meId
-                          ? brand.labels.adminCannotChangeOwnRoleHere
-                          : undefined
-                      }
-                      onClick={async () => {
-                        setUserActionError(null);
-                        try {
-                          await fetchJson(`/api/admin/users/${u.id}`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              role: u.role === "admin" ? "teacher" : "admin",
-                            }),
-                          });
-                          void muUsers();
-                        } catch (e) {
-                          setUserActionError(
-                            getUiErrorInfo(e, brand.labels.adminRoleChangeFailed)
-                          );
-                        }
-                      }}
-                    >
-                      {brand.labels.adminRoleToggle}
-                    </button>
                     {u.isActive && u.id !== meId ? (
                       <button
                         type="button"
@@ -451,6 +506,51 @@ export function AdminHome() {
           <PayrollMonthPanel isAdmin />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function UserNameCell({
+  userId,
+  initialName,
+  onSave,
+  onError,
+}: {
+  userId: string;
+  initialName: string | null;
+  onSave: (name: string) => Promise<void>;
+  onError: (e: unknown) => void;
+}) {
+  const [val, setVal] = useState(initialName ?? "");
+  useEffect(() => {
+    setVal(initialName ?? "");
+  }, [initialName, userId]);
+  const trimmed = val.trim();
+  const initialTrimmed = (initialName ?? "").trim();
+  const dirty = trimmed !== initialTrimmed;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <input
+        className="max-w-[11rem] rounded border px-1 py-0.5 text-sm"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        aria-label={brand.labels.labelName}
+      />
+      <button
+        type="button"
+        disabled={!dirty}
+        className="whitespace-nowrap text-xs text-sk-brand underline disabled:opacity-40"
+        onClick={async () => {
+          try {
+            await onSave(trimmed);
+          } catch (e) {
+            onError(e);
+          }
+        }}
+      >
+        {brand.labels.uiSave}
+      </button>
     </div>
   );
 }

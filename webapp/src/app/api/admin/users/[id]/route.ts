@@ -58,7 +58,10 @@ export async function PATCH(
       }
       patch.role = json.role;
     }
-    if (typeof json.name === "string") patch.name = json.name.trim();
+    if (typeof json.name === "string") {
+      const trimmed = json.name.trim();
+      patch.name = trimmed.length > 0 ? trimmed : null;
+    }
     if (Object.keys(patch).length === 0) {
       return apiClientError(
         brand.labels.apiPatchNoFields,

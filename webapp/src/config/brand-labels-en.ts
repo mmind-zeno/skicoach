@@ -452,6 +452,8 @@ export const BRAND_LABELS_EN = {
   invoiceTableCurrency: "CHF",
   apiInvalidData: "Invalid data",
   apiInvalidEmail: "Invalid email",
+  apiInvalidRole: "Invalid role (only admin or instructor).",
+  adminInviteNamePlaceholder: "Name (optional)",
   apiInviteFailed: "Invitation failed",
   apiResendInviteFailed: "Could not resend",
   apiPatchNoFields: "No fields",
@@ -695,6 +697,7 @@ export const BRAND_LABELS_EN = {
   adminUsersEmptyHint:
     "No users yet. Enter an email above and send a magic link.",
   adminMagicLinkResentToast: "Magic link was sent again.",
+  adminUserNameSavedToast: "Name saved.",
   adminResendMagicLink: "Resend link",
   adminActivateUser: "Activate",
   adminActivateUserFailed: "Could not activate",
