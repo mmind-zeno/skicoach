@@ -84,6 +84,7 @@ const crmProfileFields = {
   medicalNotes: optionalNullableTrimmedString(2000),
   preferredContactChannel: optionalNullableChannel(),
   marketingOptIn: z.boolean().optional(),
+  bookingReminderOptIn: z.boolean().optional(),
 };
 
 export const updateGuestBodySchema = z.object({
@@ -153,4 +154,5 @@ export const createGuestFullBodySchema = z.object({
     preferredChannelSchema.optional()
   ),
   marketingOptIn: z.boolean().optional(),
+  bookingReminderOptIn: z.boolean().optional(),
 });

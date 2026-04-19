@@ -646,6 +646,7 @@ const FORK_DEFAULTS = {
     guestCrmMedicalNotes: "Medizinisch relevant (Allergien, …)",
     guestCrmPreferredContact: "Bevorzugter Kontakt",
     guestCrmMarketingOptIn: "Hinweise & Angebote per E-Mail",
+    guestCrmBookingReminderOptIn: "Erinnerung an Termine per E-Mail",
     guestCrmSectionContact: "Kontakt & Quelle",
     guestCrmSectionAddress: "Adresse",
     guestCrmSectionPerson: "Person",

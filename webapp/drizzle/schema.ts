@@ -184,6 +184,7 @@ export const guests = pgTable(
     medicalNotes: text("medical_notes"),
     preferredContactChannel: text("preferred_contact_channel"),
     marketingOptIn: boolean("marketing_opt_in").notNull().default(false),
+    bookingReminderOptIn: boolean("booking_reminder_opt_in").notNull().default(true),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => ({

@@ -46,6 +46,8 @@ export interface Guest {
   medicalNotes: string | null;
   preferredContactChannel: GuestPreferredContactChannel | null;
   marketingOptIn: boolean;
+  /** Transaktional: E-Mail-Erinnerung vor gebuchten Terminen */
+  bookingReminderOptIn: boolean;
   createdAt: string;
 }
 
@@ -97,6 +99,7 @@ export interface CreateGuestInput {
   medicalNotes?: string | null;
   preferredContactChannel?: GuestPreferredContactChannel | null;
   marketingOptIn?: boolean;
+  bookingReminderOptIn?: boolean;
 }
 
 export interface UpdateGuestInput {
@@ -124,4 +127,5 @@ export interface UpdateGuestInput {
   medicalNotes?: string | null;
   preferredContactChannel?: GuestPreferredContactChannel | null;
   marketingOptIn?: boolean;
+  bookingReminderOptIn?: boolean;
 }

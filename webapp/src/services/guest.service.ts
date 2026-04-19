@@ -93,6 +93,7 @@ export function toGuest(row: typeof guests.$inferSelect): Guest {
     medicalNotes: row.medicalNotes ?? null,
     preferredContactChannel: parseChannel(row.preferredContactChannel),
     marketingOptIn: row.marketingOptIn ?? false,
+    bookingReminderOptIn: row.bookingReminderOptIn ?? true,
     createdAt: rowCreatedAtToIso(row.createdAt),
   };
 }
@@ -120,36 +121,12 @@ export async function listGuestsForSelect(
   limit = 40
 ): Promise<Guest[]> {
   const rows = await findAll(search, undefined, limit);
-  return rows.map(
-    (row): Guest => ({
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      phone: row.phone,
-      niveau: row.niveau,
-      language: row.language,
-      notes: row.notes,
-      company: row.company,
-      crmSource: row.crmSource,
-      salutation: row.salutation,
-      street: row.street,
-      postalCode: row.postalCode,
-      city: row.city,
-      country: row.country,
-      dateOfBirth: row.dateOfBirth,
-      gender: row.gender,
-      nationality: row.nationality,
-      heightCm: row.heightCm,
-      weightKg: row.weightKg,
-      shoeSizeEu: row.shoeSizeEu,
-      emergencyContactName: row.emergencyContactName,
-      emergencyContactPhone: row.emergencyContactPhone,
-      medicalNotes: row.medicalNotes,
-      preferredContactChannel: row.preferredContactChannel,
-      marketingOptIn: row.marketingOptIn,
-      createdAt: row.createdAt,
-    })
-  );
+  return rows.map((row) => {
+    const { lastBookingDate, bookingCount, ...guest } = row;
+    void lastBookingDate;
+    void bookingCount;
+    return guest;
+  });
 }
 
 export async function findAll(
@@ -327,6 +304,7 @@ function buildInsertValues(
     medicalNotes: input.medicalNotes?.trim() || null,
     preferredContactChannel: input.preferredContactChannel ?? null,
     marketingOptIn: input.marketingOptIn ?? false,
+    bookingReminderOptIn: input.bookingReminderOptIn ?? true,
   };
 }
 
@@ -393,6 +371,8 @@ export async function updateGuest(id: string, input: UpdateGuestInput): Promise<
     patch.preferredContactChannel = input.preferredContactChannel;
   if (input.marketingOptIn !== undefined)
     patch.marketingOptIn = input.marketingOptIn;
+  if (input.bookingReminderOptIn !== undefined)
+    patch.bookingReminderOptIn = input.bookingReminderOptIn;
 
   if (Object.keys(patch).length === 0) return getGuestById(id);
   await getDb().update(guests).set(patch).where(eq(guests.id, id));

@@ -127,6 +127,9 @@ export function GuestDetailPanel({
     GuestPreferredContactChannel | ""
   >(guest.preferredContactChannel ?? "");
   const [marketingOptIn, setMarketingOptIn] = useState(guest.marketingOptIn);
+  const [bookingReminderOptIn, setBookingReminderOptIn] = useState(
+    guest.bookingReminderOptIn
+  );
   const [err, setErr] = useState<UiErrorInfo | null>(null);
   const [contactKind, setContactKind] = useState<GuestContactKind>("note");
   const [contactBody, setContactBody] = useState("");
@@ -168,6 +171,7 @@ export function GuestDetailPanel({
     setMedicalNotes(guest.medicalNotes ?? "");
     setPreferredContactChannel(guest.preferredContactChannel ?? "");
     setMarketingOptIn(guest.marketingOptIn);
+    setBookingReminderOptIn(guest.bookingReminderOptIn);
   }, [guest]);
 
   async function save() {
@@ -209,6 +213,7 @@ export function GuestDetailPanel({
         preferredContactChannel:
           preferredContactChannel === "" ? null : preferredContactChannel,
         marketingOptIn,
+        bookingReminderOptIn,
       });
       setEditing(false);
       onMutate();
@@ -368,6 +373,15 @@ export function GuestDetailPanel({
                 className="h-4 w-4 rounded border-sk-ink/30"
               />
               {brand.labels.guestCrmMarketingOptIn}
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sk-ink sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={bookingReminderOptIn}
+                onChange={(e) => setBookingReminderOptIn(e.target.checked)}
+                className="h-4 w-4 rounded border-sk-ink/30"
+              />
+              {brand.labels.guestCrmBookingReminderOptIn}
             </label>
           </div>
 
@@ -585,6 +599,10 @@ export function GuestDetailPanel({
           <div>
             <dt className="text-sk-ink/50">{brand.labels.guestCrmMarketingOptIn}</dt>
             <dd>{guest.marketingOptIn ? brand.labels.uiYes : brand.labels.uiNo}</dd>
+          </div>
+          <div>
+            <dt className="text-sk-ink/50">{brand.labels.guestCrmBookingReminderOptIn}</dt>
+            <dd>{guest.bookingReminderOptIn ? brand.labels.uiYes : brand.labels.uiNo}</dd>
           </div>
           <div>
             <dt className="text-sk-ink/50">{brand.labels.labelCompany}</dt>

@@ -256,6 +256,7 @@ export const BRAND_LABELS_EN = {
   guestCrmMedicalNotes: "Medical notes (allergies, …)",
   guestCrmPreferredContact: "Preferred contact channel",
   guestCrmMarketingOptIn: "Offers & updates by email",
+  guestCrmBookingReminderOptIn: "Appointment reminders by email",
   guestCrmSectionContact: "Contact & source",
   guestCrmSectionAddress: "Address",
   guestCrmSectionPerson: "Person",

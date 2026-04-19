@@ -55,6 +55,7 @@ export async function PATCH(
       medicalNotes: body.medicalNotes,
       preferredContactChannel: body.preferredContactChannel,
       marketingOptIn: body.marketingOptIn,
+      bookingReminderOptIn: body.bookingReminderOptIn,
     });
     return NextResponse.json(guest);
   } catch (e) {

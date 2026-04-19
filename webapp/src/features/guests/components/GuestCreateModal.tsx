@@ -51,6 +51,7 @@ export function GuestCreateModal({
     GuestPreferredContactChannel | ""
   >("");
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [bookingReminderOptIn, setBookingReminderOptIn] = useState(true);
   const [err, setErr] = useState<UiErrorInfo | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -78,6 +79,7 @@ export function GuestCreateModal({
     setMedicalNotes("");
     setPreferredContactChannel("");
     setMarketingOptIn(false);
+    setBookingReminderOptIn(true);
   }
 
   async function submit() {
@@ -222,6 +224,15 @@ export function GuestCreateModal({
                 className="h-4 w-4 rounded border-sk-ink/30"
               />
               {brand.labels.guestCrmMarketingOptIn}
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sk-ink">
+              <input
+                type="checkbox"
+                checked={bookingReminderOptIn}
+                onChange={(e) => setBookingReminderOptIn(e.target.checked)}
+                className="h-4 w-4 rounded border-sk-ink/30"
+              />
+              {brand.labels.guestCrmBookingReminderOptIn}
             </label>
           </div>
 

@@ -120,6 +120,13 @@
       "when": 1743130000000,
       "tag": "0017_users_password_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1743140000000,
+      "tag": "0018_guest_booking_reminder_opt_in",
+      "breakpoints": true
     }
   ]
 }

@@ -52,6 +52,7 @@ export async function runDueBookingReminders(): Promise<{
   let sent = 0;
   for (const r of rows) {
     if (!r.guest?.email?.trim()) continue;
+    if (r.guest.bookingReminderOptIn === false) continue;
     const day =
       r.date instanceof Date
         ? r.date

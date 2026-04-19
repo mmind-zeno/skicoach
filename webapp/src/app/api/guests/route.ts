@@ -52,6 +52,7 @@ export async function POST(request: Request) {
         medicalNotes: d.medicalNotes?.trim() || null,
         preferredContactChannel: d.preferredContactChannel ?? null,
         marketingOptIn: d.marketingOptIn ?? false,
+        bookingReminderOptIn: d.bookingReminderOptIn ?? true,
       });
       return NextResponse.json(g, { status: 201 });
     }
