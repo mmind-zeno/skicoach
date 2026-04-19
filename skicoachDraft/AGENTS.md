@@ -10,7 +10,7 @@
 
 ## Aktueller Stand (kurz)
 
-- **Version:** `webapp/package.json` (z. B. **0.10.1**); Runtime/Build: `NEXT_PUBLIC_APP_VERSION`.
+- **Version:** `webapp/package.json` (z. B. **0.10.2**); Runtime/Build: `NEXT_PUBLIC_APP_VERSION`.
 - **Deploy:** Repo-Root `deploy-local.ps1 -RemoteUp` → `root@49.13.139.206:/opt/skicoach` (SSH-Key i. d. R. `~/.ssh/ssh-kimai-zeno`).
 - **Ascent-Pilot:** `isLandingPilotEnabled()` / `NEXT_PUBLIC_LANDING_PILOT` — öffentlich `.landing-pilot`, intern `.app-ascent`, siehe `webapp/src/app/globals.css` und `webapp/src/lib/landing-pilot.ts`.
 

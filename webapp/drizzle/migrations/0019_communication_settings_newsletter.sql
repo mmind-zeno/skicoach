@@ -3,7 +3,7 @@ WITH ranked AS (
   FROM booking_reminder_log
 )
 DELETE FROM booking_reminder_log WHERE id IN (SELECT id FROM ranked WHERE rn > 1);--> statement-breakpoint
-DROP INDEX IF EXISTS "booking_reminder_log_booking_channel_unique";--> statement-breakpoint
+ALTER TABLE "booking_reminder_log" DROP CONSTRAINT IF EXISTS "booking_reminder_log_booking_channel_unique";--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "booking_reminder_log_booking_id_unique" ON "booking_reminder_log" ("booking_id");--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "app_settings" (
 	"key" text PRIMARY KEY NOT NULL,
