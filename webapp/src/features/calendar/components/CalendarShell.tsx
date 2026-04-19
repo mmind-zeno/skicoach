@@ -177,8 +177,8 @@ export function CalendarShell({
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="sk-surface-card p-4">
+      <header className="order-1 flex flex-col gap-3 md:gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="sk-surface-card p-3 md:p-4">
           <TeacherLegend teachers={teachers} />
           {overlayPack?.weeklySummaries?.length ? (
             <ScheduleContextLegend weeklySummaries={overlayPack.weeklySummaries} />
@@ -246,20 +246,23 @@ export function CalendarShell({
         </div>
       </header>
 
-      <ExternalCalendarSubscribeCard />
+      <div className="order-3 flex flex-col gap-4 lg:order-2">
+        <ExternalCalendarSubscribeCard />
+      </div>
 
-      {error ? (
-        <p className="text-sm text-red-700" role="alert">
-          {error.message}
-        </p>
-      ) : null}
-      {isLoading && !bookings.length ? (
-        <p className="text-sm text-sk-ink/60">
-          Lade {brand.labels.appointmentPlural}…
-        </p>
-      ) : null}
+      <div className="order-2 flex flex-col gap-4 lg:order-3">
+        {error ? (
+          <p className="text-sm text-red-700" role="alert">
+            {error.message}
+          </p>
+        ) : null}
+        {isLoading && !bookings.length ? (
+          <p className="text-sm text-sk-ink/60">
+            Lade {brand.labels.appointmentPlural}…
+          </p>
+        ) : null}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
         <CalendarView
           bookings={bookings}
           overlayEvents={overlayEvents}
@@ -277,7 +280,7 @@ export function CalendarShell({
           }}
         />
         {selected ? (
-          <div className="fixed inset-x-0 bottom-0 z-20 max-h-[55vh] overflow-y-auto rounded-t-3xl border border-sk-outline/20 bg-white/95 p-4 shadow-[0_-12px_40px_rgba(24,28,32,0.14)] backdrop-blur-xl backdrop-saturate-150 lg:relative lg:max-h-none lg:rounded-2xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+          <div className="fixed inset-x-0 bottom-0 z-20 max-h-[55vh] overflow-y-auto rounded-t-3xl border border-sk-outline/20 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(24,28,32,0.14)] backdrop-blur-xl backdrop-saturate-150 lg:relative lg:max-h-none lg:rounded-2xl lg:border-0 lg:bg-transparent lg:p-0 lg:pb-0 lg:shadow-none lg:backdrop-blur-none">
             <BookingDetailPanel
               booking={selected}
               isAdmin={isAdmin}
@@ -297,25 +300,28 @@ export function CalendarShell({
             )}
           </div>
         )}
+        </div>
       </div>
 
-      <BookingCreateModal
-        open={modalOpen}
-        slotStart={slot?.start ?? null}
-        slotEnd={slot?.end ?? null}
-        defaultTeacherId={defaultTeacherForModal}
-        prefillGuestId={prefillGuestId}
-        isAdmin={isAdmin}
-        teachers={teachers}
-        onClose={() => {
-          setModalOpen(false);
-          setSlot(null);
-        }}
-        onCreated={() => {
-          void mutate();
-          void mutOverlays();
-        }}
-      />
+      <div className="order-last">
+        <BookingCreateModal
+          open={modalOpen}
+          slotStart={slot?.start ?? null}
+          slotEnd={slot?.end ?? null}
+          defaultTeacherId={defaultTeacherForModal}
+          prefillGuestId={prefillGuestId}
+          isAdmin={isAdmin}
+          teachers={teachers}
+          onClose={() => {
+            setModalOpen(false);
+            setSlot(null);
+          }}
+          onCreated={() => {
+            void mutate();
+            void mutOverlays();
+          }}
+        />
+      </div>
     </div>
   );
 }

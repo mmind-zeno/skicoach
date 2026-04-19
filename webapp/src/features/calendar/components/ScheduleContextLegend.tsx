@@ -22,7 +22,7 @@ export function ScheduleContextLegend({
       <p className="font-medium text-sk-ink">
         {brand.labels.calendarScheduleLegendTitle}
       </p>
-      <ul className="space-y-2">
+      <ul className="max-h-36 space-y-2 overflow-y-auto overscroll-contain sm:max-h-none">
         {weeklySummaries.map((s) => (
           <li key={s.teacherId} className="flex flex-col gap-0.5">
             <span className="inline-flex items-center gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo, useState } from "react";
 import { Calendar, Views, type SlotInfo, type View } from "react-big-calendar";
 import { brand } from "@/config/brand";
 import { teacherCalendarStyle } from "@/lib/colors";
@@ -70,6 +70,15 @@ export function CalendarView({
     view?: View
   ) => void;
 }) {
+  const [view, setView] = useState<View>(Views.WEEK);
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setView(Views.DAY);
+    }
+  }, []);
+
   const events = useMemo(
     () => [...toEvents(bookings), ...overlayEvents],
     [bookings, overlayEvents]
@@ -122,7 +131,7 @@ export function CalendarView({
   }, []);
 
   return (
-    <div className="sk-surface-card h-[min(720px,calc(100vh-220px))] min-h-[480px] p-3 md:p-4">
+    <div className="sk-calendar-host sk-surface-card h-[min(720px,calc(100dvh-12rem))] min-h-[min(480px,70dvh)] max-md:h-[min(640px,calc(100dvh-9rem))] max-md:min-h-[min(400px,55dvh)] p-3 md:p-4">
       <Calendar
         culture={calendarCulture}
         localizer={calendarLocalizer}
@@ -131,8 +140,9 @@ export function CalendarView({
         endAccessor="end"
         titleAccessor="title"
         messages={messages}
-        views={[Views.DAY, Views.WEEK, Views.MONTH]}
-        defaultView={Views.WEEK}
+        views={[Views.DAY, Views.WEEK, Views.MONTH, Views.AGENDA]}
+        view={view}
+        onView={setView}
         min={minT}
         max={maxT}
         scrollToTime={minT}

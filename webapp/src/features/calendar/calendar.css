@@ -25,3 +25,46 @@
   outline: 2px solid #ab3500;
   outline-offset: 1px;
 }
+
+/* Mobile: readable toolbar, touch-friendly time grid */
+@media (max-width: 767px) {
+  .sk-calendar-host .rbc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sk-calendar-host .rbc-toolbar-label {
+    order: -1;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .sk-calendar-host .rbc-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .sk-calendar-host .rbc-toolbar button {
+    min-height: 2.5rem;
+    padding-inline: 0.65rem;
+    font-size: 0.8125rem;
+  }
+
+  .sk-calendar-host .rbc-time-view .rbc-time-slot {
+    min-height: 2rem;
+  }
+
+  .sk-calendar-host .rbc-agenda-view table {
+    font-size: 0.8125rem;
+  }
+
+  .sk-calendar-host .rbc-agenda-view .rbc-agenda-event-cell {
+    padding: 0.5rem 0.35rem;
+  }
+}
