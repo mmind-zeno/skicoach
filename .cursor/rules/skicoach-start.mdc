@@ -1,0 +1,14 @@
+---
+description: skicoach — jede Session mit AGENTS.md und Lesepfad starten
+alwaysApply: true
+---
+
+# skicoach — Projektstart (Kurz)
+
+1. **Zuerst** die Datei **`AGENTS.md` im Repo-Root** (`skicoach/AGENTS.md`) lesen — dort: Lesepriorität, lokaler Start, Deploy, Workspace-Hinweis.
+
+2. Danach wie in **`AGENTS.md`** beschrieben typischerweise: **`skicoachDraft/CLAUDE.md`**, optional Vault **`knowledge/projects/skicoach.md`** (wenn Workspace **„Second Brain“** geöffnet ist).
+
+3. **Workspace:** **`skicoach-second-brain.code-workspace`** öffnen (Repo + Obsidian-Vault), damit Second-Brain- und Projektdateien gemeinsam sichtbar sind.
+
+Keine Architekturentscheidungen „aus dem Bauch“, wenn **`CLAUDE.md`** oder das Vault bereits Antworten liefern.

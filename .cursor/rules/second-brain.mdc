@@ -1,0 +1,49 @@
+---
+description: Second Brain — Retrieval vor Code, Rückschreiben nach Schema
+alwaysApply: true
+---
+
+# Obsidian Second Brain (tiefe Cursor-Kopplung)
+
+**Vault-Pfad:** `c:/_DATA/600_github/obsidian-secondBrain`  
+**Workspace:** Dieses Repo soll mit `skicoach-second-brain.code-workspace` geöffnet sein (skicoach + Vault), damit Suche und Dateizugriff den gesamten Kontext sehen.
+
+**Schema / Konventionen:** `AGENTS.md` im Vault (Frontmatter, `knowledge-index`, Wikilinks, Deutsch CH).
+
+**Repo zuerst:** Technischer Einstieg und Lesepriorität stehen in **`AGENTS.md` im Repo-Root** (`skicoach/AGENTS.md`) — dort auch lokaler Start und Deploy. Vault-Punkte unten **danach** oder parallel bei Domänenfragen.
+
+---
+
+## 1. Retrieval — wann und wie (vor größeren Änderungen)
+
+Bei **App-Entwicklung, Architektur, Deploy, Stack, Domänenlogik** für dieses Projekt **zuerst** relevantes Vault-Wissen einbeziehen — **bevor** du nur im App-Repo rätst:
+
+1. **`knowledge/projects/skicoach.md`** lesen (Projektgedächtnis).
+2. **`knowledge/knowledge-index.md`** scannen (passende Konzeptzeilen).
+3. Bei Bedarf **`knowledge/concepts/`** und **`knowledge/connections/`** gezielt öffnen (Thema/Dateiname).
+4. Optional **`index.md`** (Wiki-Index) und **aktuelles `daily/YYYY-MM-DD.md`** (was heute schon anliegt).
+5. Wenn **Obsidian MCP** (`obsidian-second-brain`) verfügbar ist und Obsidian läuft: **`obsidian_global_search`** oder Lesen per MCP für schnelle Vault-Suche nutzen; sonst **Repo-Suche** (`grep` / semantische Suche) im Vault-Ordner.
+
+**Kleine Fixes** (Tippfehler, eine Zeile) ohne Architekturbezug: Vault-Pflicht entfällt.
+
+---
+
+## 2. Rückschreiben — wann und wohin
+
+Nach **substanzieller** Arbeit (neue Entscheidungen, Gotchas, Deploy-Schritte, API-Verhalten), damit das Second Brain wächst:
+
+| Inhalt | Ziel |
+|--------|------|
+| Nur **Skicoach**-Projektstand, URLs, Versionen, offene Punkte | **`knowledge/projects/skicoach.md`** aktualisieren (bestehende Struktur beibehalten). |
+| **Neues, wiederverwendbares** technisches Konzept (atomar) | Neuer Artikel unter **`knowledge/concepts/`** mit YAML-Frontmatter gemäß `AGENTS.md`; eine Zeile in **`knowledge/knowledge-index.md`** ergänzen. |
+| **Verknüpfung** mehrerer Konzepte | Kurzartikel unter **`knowledge/connections/`** + Index pflegen. |
+| **Session-Protokoll** (heute) | Unter **`daily/YYYY-MM-DD.md`** einen Block nach dem Session-Template aus `AGENTS.md` **anhängen** (nicht alte Tage umschreiben). |
+
+**Sparsam bleiben:** lieber bestehende Artikel erweitern als Duplikate; keine Massen an neuen Dateien pro Tag; `daily/` nicht leeren oder komplett ersetzen.
+
+---
+
+## 3. Kurz
+
+- **Suchen zuerst** im Vault bei allem, was Kontext kostet.  
+- **Zurückschreiben**, wenn sich tragfähiges Wissen ergibt — an die obigen Pfade und an `AGENTS.md` gebunden.

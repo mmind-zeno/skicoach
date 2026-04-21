@@ -1,8 +1,9 @@
 # AGENTS.md — Kurzreferenz für KI-Agenten (skicoach)
 
-> Ergänzt **`CLAUDE.md`** im gleichen Ordner. **`CLAUDE.md` hat Vorrang** bei Widersprüchen (Architektur, Schichten, APIs).
+> **Einstieg:** zuerst **`AGENTS.md` im Repo-Root** (`../AGENTS.md` von hier aus) — vollständige Lesepriorität, Startbefehle, Deploy.  
+> Diese Datei ergänzt **`CLAUDE.md`** im gleichen Ordner. **`CLAUDE.md` hat Vorrang** bei Widersprüchen (Architektur, Schichten, APIs).
 
-## Zuerst lesen
+## Zuerst lesen (nach Root-AGENTS)
 
 1. **`skicoachDraft/CLAUDE.md`** — Stack, Middleware, DB, Konventionen, Design (Legacy + Ascent-Pilot).
 2. **`skicoachDraft/STITCH_DESIGN_PROMPT.md`** — Stitch/MCP-Brief, optionale Bildprompts.

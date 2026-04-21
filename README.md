@@ -2,6 +2,8 @@
 
 Skischule: interne Verwaltung + öffentliches Buchungsportal (Spezifikation in **`skicoachDraft/`**).
 
+**Neue Session / KI:** zuerst **`AGENTS.md`** im Repo-Root lesen (Lesepfad, lokaler Start, Deploy). Empfohlen: Workspace **`skicoach-second-brain.code-workspace`** öffnen (App + Obsidian-Vault).
+
 ## Struktur
 
 | Pfad | Inhalt |

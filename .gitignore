@@ -11,5 +11,10 @@ skicoach-deploy-staging/
 *.log
 .DS_Store
 Thumbs.db
-.cursor/
+# Cursor: nur Projektregeln versionieren (lokale IDE-Caches bleiben ignoriert)
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+# Workspaces: Multi-Root (App + Vault) mit ins Repo; andere *.code-workspace weiter ignorieren
 *.code-workspace
+!skicoach-second-brain.code-workspace
